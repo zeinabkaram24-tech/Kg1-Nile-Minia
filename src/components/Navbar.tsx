@@ -121,7 +121,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Studying Weekly Plan
                 </h1>
                 <span className="text-[11px] text-indigo-400 font-sans font-bold block">
-                  Nile Schools • Grade 2 ({selectedSection})
+                  Nile Schools • KG 1 ({selectedSection})
                 </span>
               </div>
             </div>
@@ -368,7 +368,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Studying Weekly Plan
                 </h1>
                 <span className="text-[10px] text-indigo-300 font-sans block">
-                  Grade 2 • فصل {selectedSection}
+                  KG 1 • فصل {selectedSection}
                 </span>
               </div>
             </div>
