@@ -169,7 +169,8 @@ export function loadSavedSubjects(): Subject[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.SUBJECTS);
     if (saved) {
-      return JSON.parse(saved);
+      const subjects: Subject[] = JSON.parse(saved);
+      return subjects.filter((subject) => subject.id === 'arabic' || subject.id === 'english');
     }
   } catch (e) {
     console.error('Failed to load subjects', e);
@@ -179,7 +180,8 @@ export function loadSavedSubjects(): Subject[] {
 
 export function saveSubjects(subjects: Subject[]): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.SUBJECTS, JSON.stringify(subjects));
+    const allowedSubjects = subjects.filter((subject) => subject.id === 'arabic' || subject.id === 'english');
+    localStorage.setItem(STORAGE_KEYS.SUBJECTS, JSON.stringify(allowedSubjects));
   } catch (e) {
     console.error('Failed to save subjects', e);
   }
@@ -198,7 +200,7 @@ export function isUserLoggedIn(): boolean {
   try {
     const isRemembered = localStorage.getItem('g2_student_remembered') === 'true';
     const name = localStorage.getItem('g2_saved_student_name');
-    return Boolean(isRemembered && name && name.trim() && name !== 'طالب Grade 2' && name !== 'زائر');
+    return Boolean(isRemembered && name && name.trim() && name !== 'طالب KG 1' && name !== 'زائر');
   } catch {
     return false;
   }
