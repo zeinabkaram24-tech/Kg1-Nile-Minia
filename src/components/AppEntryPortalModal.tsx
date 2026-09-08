@@ -71,7 +71,7 @@ export const AppEntryPortalModal: React.FC<AppEntryPortalModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const saved = getSavedStudentName() || currentStudentName;
-      if (saved && saved !== 'طالب Grade 2' && saved !== 'فصل G2B' && saved !== 'زائر') {
+      if (saved && saved !== 'طالب KG 1' && saved !== 'فصل G2B' && saved !== 'زائر') {
         setStudentNameInput(saved);
       }
       setStudentSectionInput(selectedSection);
@@ -189,7 +189,7 @@ export const AppEntryPortalModal: React.FC<AppEntryPortalModalProps> = ({
             </div>
             <div>
               <span className="text-[11px] font-bold text-indigo-300 tracking-wide block">
-                Nile Egyptian Schools • Grade 2 Weekly Plan
+                Nile Egyptian Schools • KG 1 Weekly Plan
               </span>
               <h2 className="text-xl sm:text-2xl font-black text-white">
                 بوابة الدخول وتحديد الصلاحيات
