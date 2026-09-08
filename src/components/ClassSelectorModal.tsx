@@ -22,17 +22,17 @@ export const ClassSelectorModal: React.FC<ClassSelectorModalProps> = ({
 
   const sectionDescriptions: Record<GradeSection, { title: string; subtitle: string; tag: string }> = {
     '2A': {
-      title: 'فصل 2A (Grade 2A)',
+      title: 'فصل 2A (KG 1A)',
       subtitle: 'عرض جدول حصص 2A، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 تربية بدنية (PE)',
     },
     '2B': {
-      title: 'فصل 2B (Grade 2B)',
+      title: 'فصل 2B (KG 1B)',
       subtitle: 'عرض جدول حصص 2B، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 فرنسي (Français)',
     },
     '2C': {
-      title: 'فصل 2C (Grade 2C)',
+      title: 'فصل 2C (KG 1C)',
       subtitle: 'عرض جدول حصص 2C، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 رياضيات (Math)',
     },
@@ -56,7 +56,7 @@ export const ClassSelectorModal: React.FC<ClassSelectorModalProps> = ({
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-indigo-100 text-xs font-bold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Nile Egyptian International Schools • Grade 2</span>
+            <span>Nile Egyptian International Schools • KG 1</span>
           </div>
 
           <h2 className="text-xl sm:text-2xl font-black mb-1.5 flex items-center gap-2">
