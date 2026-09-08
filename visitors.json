@@ -1,0 +1,17 @@
+{
+  "visitors": [
+    {
+      "id": "owner-zeinab",
+      "name": "الأستاذة زينب (المسؤول)",
+      "loginType": "admin",
+      "studentGrade": "Grade 2B",
+      "section": "2B",
+      "firstSeenAt": 1788234646790,
+      "lastSeenAt": 1788666646790,
+      "visitCount": 15,
+      "device": "Admin Account",
+      "email": "zeinabkaram909@gmail.com"
+    }
+  ],
+  "lastUpdated": 1788688620375
+}
