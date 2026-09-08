@@ -1,13 +1,13 @@
 import { DayInfo, DayOfWeek, GradeSection, GradeSectionOption, PlanTask, StudentProfile, Subject, Timetable } from '../types';
-import { GRADE_TASKS, TASKS_2A, TASKS_2B, TASKS_2C } from './gradeTasks';
+import { TASKS_2A, TASKS_2B, TASKS_2C } from './gradeTasks';
 
-export { GRADE_TASKS, TASKS_2A, TASKS_2B, TASKS_2C };
+export { TASKS_2A, TASKS_2B, TASKS_2C };
 
 export const GRADE_SECTIONS: GradeSectionOption[] = [
   {
     id: '2A',
-    nameAr: 'فصل Grade 2A',
-    nameEn: 'Grade 2 - A',
+    nameAr: 'فصل KG 1A',
+    nameEn: 'KG 1 - A',
     badgeColor: 'bg-indigo-600 text-white',
     textColor: 'text-indigo-700',
     borderColor: 'border-indigo-300',
@@ -15,8 +15,8 @@ export const GRADE_SECTIONS: GradeSectionOption[] = [
   },
   {
     id: '2B',
-    nameAr: 'فصل Grade 2B',
-    nameEn: 'Grade 2 - B',
+    nameAr: 'فصل KG 1B',
+    nameEn: 'KG 1 - B',
     badgeColor: 'bg-purple-600 text-white',
     textColor: 'text-purple-700',
     borderColor: 'border-purple-300',
@@ -24,8 +24,8 @@ export const GRADE_SECTIONS: GradeSectionOption[] = [
   },
   {
     id: '2C',
-    nameAr: 'فصل Grade 2C',
-    nameEn: 'Grade 2 - C',
+    nameAr: 'فصل KG 1C',
+    nameEn: 'KG 1 - C',
     badgeColor: 'bg-emerald-600 text-white',
     textColor: 'text-emerald-700',
     borderColor: 'border-emerald-300',
@@ -56,48 +56,6 @@ export const PERIODS_TIMING = [
 
 export const DEFAULT_SUBJECTS: Subject[] = [
   {
-    id: 'math',
-    nameEn: 'Math',
-    nameAr: 'Math',
-    code: 'MATH',
-    color: {
-      bg: 'bg-blue-600',
-      text: 'text-blue-700',
-      border: 'border-blue-200',
-      accent: '#2563eb',
-      lightBg: 'bg-blue-50',
-    },
-    iconName: 'Calculator',
-  },
-  {
-    id: 'science',
-    nameEn: 'Science',
-    nameAr: 'Science',
-    code: 'SCI',
-    color: {
-      bg: 'bg-emerald-600',
-      text: 'text-emerald-700',
-      border: 'border-emerald-200',
-      accent: '#059669',
-      lightBg: 'bg-emerald-50',
-    },
-    iconName: 'Sparkles',
-  },
-  {
-    id: 'french',
-    nameEn: 'French',
-    nameAr: 'French',
-    code: 'FR',
-    color: {
-      bg: 'bg-rose-600',
-      text: 'text-rose-700',
-      border: 'border-rose-200',
-      accent: '#e11d48',
-      lightBg: 'bg-rose-50',
-    },
-    iconName: 'Globe',
-  },
-  {
     id: 'english',
     nameEn: 'English',
     nameAr: 'English',
@@ -125,95 +83,28 @@ export const DEFAULT_SUBJECTS: Subject[] = [
     },
     iconName: 'Feather',
   },
-  {
-    id: 'social_studies',
-    nameEn: 'Social Studies',
-    nameAr: 'Social Studies',
-    code: 'SOC',
-    color: {
-      bg: 'bg-cyan-600',
-      text: 'text-cyan-700',
-      border: 'border-cyan-200',
-      accent: '#0891b2',
-      lightBg: 'bg-cyan-50',
-    },
-    iconName: 'Compass',
-  },
-  {
-    id: 'religion',
-    nameEn: 'Religion',
-    nameAr: 'Religion',
-    code: 'REL',
-    color: {
-      bg: 'bg-teal-600',
-      text: 'text-teal-700',
-      border: 'border-teal-200',
-      accent: '#0d9488',
-      lightBg: 'bg-teal-50',
-    },
-    iconName: 'HeartHandshake',
-  },
-  {
-    id: 'ict',
-    nameEn: 'ICT',
-    nameAr: 'ICT',
-    code: 'ICT',
-    color: {
-      bg: 'bg-indigo-600',
-      text: 'text-indigo-700',
-      border: 'border-indigo-200',
-      accent: '#4f46e5',
-      lightBg: 'bg-indigo-50',
-    },
-    iconName: 'Laptop',
-  },
-  {
-    id: 'pe',
-    nameEn: 'PE',
-    nameAr: 'PE',
-    code: 'PE',
-    color: {
-      bg: 'bg-orange-600',
-      text: 'text-orange-700',
-      border: 'border-orange-200',
-      accent: '#ea580c',
-      lightBg: 'bg-orange-50',
-    },
-    iconName: 'Award',
-  },
-  {
-    id: 'arts',
-    nameEn: 'Arts',
-    nameAr: 'Arts',
-    code: 'ART',
-    color: {
-      bg: 'bg-pink-600',
-      text: 'text-pink-700',
-      border: 'border-pink-200',
-      accent: '#db2777',
-      lightBg: 'bg-pink-50',
-    },
-    iconName: 'Palette',
-  },
-  {
-    id: 'music',
-    nameEn: 'Music',
-    nameAr: 'Music',
-    code: 'MUS',
-    color: {
-      bg: 'bg-violet-600',
-      text: 'text-violet-700',
-      border: 'border-violet-200',
-      accent: '#7c3aed',
-      lightBg: 'bg-violet-50',
-    },
-    iconName: 'Sparkles',
-  },
 ];
 
+const ALLOWED_SUBJECT_IDS = new Set(['arabic', 'english']);
+const filterAllowedTasks = (tasks: PlanTask[]) => tasks.filter((task) => ALLOWED_SUBJECT_IDS.has(task.subjectId));
+const filterAllowedTimetable = (timetable: Timetable): Timetable =>
+  Object.fromEntries(
+    Object.entries(timetable).map(([day, slots]) => [
+      day,
+      slots.filter((slot) => ALLOWED_SUBJECT_IDS.has(slot.subjectId)),
+    ]),
+  ) as Timetable;
+
+export const GRADE_TASKS: Record<GradeSection, PlanTask[]> = {
+  '2A': filterAllowedTasks(TASKS_2A),
+  '2B': filterAllowedTasks(TASKS_2B),
+  '2C': filterAllowedTasks(TASKS_2C),
+};
+
+
 export const DEFAULT_STUDENT: StudentProfile = {
-  name: 'طالب Grade 2',
-  grade: 'Grade 2',
+  name: 'طالب KG 1',
+  grade: 'KG 1',
   section: '2A',
   schoolName: 'Nile Egyptian International Schools',
   branch: 'Minia Branch (فرع المنيا)',
@@ -394,13 +285,13 @@ export const TIMETABLE_G2C: Timetable = {
 };
 
 export const GRADE_TIMETABLES: Record<GradeSection, Timetable> = {
-  '2A': TIMETABLE_G2A,
-  '2B': TIMETABLE_G2B,
-  '2C': TIMETABLE_G2C,
+  '2A': filterAllowedTimetable(TIMETABLE_G2A),
+  '2B': filterAllowedTimetable(TIMETABLE_G2B),
+  '2C': filterAllowedTimetable(TIMETABLE_G2C),
 };
 
 // Default fallback timetable (2A or 2B)
-export const DEFAULT_TIMETABLE: Timetable = TIMETABLE_G2A;
+export const DEFAULT_TIMETABLE: Timetable = GRADE_TIMETABLES['2A'];
 
 // Default fallback tasks
 export const DEFAULT_TASKS: PlanTask[] = TASKS_2A;
