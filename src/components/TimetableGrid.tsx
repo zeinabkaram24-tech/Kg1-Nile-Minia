@@ -22,13 +22,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
   onSelectDay,
   selectedDay,
 }) => {
-  const schedule = CLASS_TIMETABLES[currentClass] || {};
-  const activeDays = SCHOOL_DAYS.filter((d) => (schedule[d] || []).length > 0);
-  const displayDays: SchoolDay[] =
-    activeDays.length > 0
-      ? activeDays
-      : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-  const isTimetableEmpty = activeDays.length === 0;
+  const schedule = CLASS_TIMETABLES[currentClass];
 
   return (
     <div className="space-y-3">
@@ -54,25 +48,10 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
         </div>
       </div>
 
-      {/* Empty schedule notice banner */}
-      {isTimetableEmpty && (
-        <div className="bg-amber-50/90 border border-amber-200 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-amber-950 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
-            <span className="font-bold">
-              تم مسح الجدول المسجل سابقاً. لا توجد حصص مسجلة حالياً بانتظار تنزيل ورفع الجدول الجديد.
-            </span>
-          </div>
-          <span className="text-[11px] font-black text-amber-800 bg-amber-100/90 px-2.5 py-1 rounded-lg border border-amber-300 shrink-0 self-start sm:self-auto">
-            بانتظار الجدول الجديد
-          </span>
-        </div>
-      )}
-
-      {/* Full-width Responsive Timetable Table */}
+      {/* Full-width Responsive Timetable Table (No horizontal scrolling, no lunch column) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <table className="w-full table-fixed border-collapse text-xs text-left">
-          {/* Table Header with Periods & Times */}
+          {/* Table Header with Periods & Times (Without Lunch) */}
           <thead>
             <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
               <th className="p-1 sm:p-2 font-black text-center border-r border-slate-300 w-[10%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
@@ -96,7 +75,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
 
           {/* Table Body */}
           <tbody>
-            {displayDays.map((day) => {
+            {SCHOOL_DAYS.filter((d) => (schedule[d] || []).length > 0).map((day) => {
               const daySlots = schedule[day] || [];
               const isSelected = selectedDay === day;
               const getPeriod = (num: number) => daySlots.find((p) => p.period === num);
@@ -123,7 +102,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
                     )}
                   </td>
 
-                  {/* 8 Periods directly side-by-side */}
+                  {/* 8 Periods directly side-by-side without lunch column */}
                   {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => (
                     <SlotCell
                       key={pNum}

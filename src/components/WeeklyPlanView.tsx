@@ -141,10 +141,10 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
                 id="btn-archive-weekly"
                 onClick={onOpenArchiveModal}
                 className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 transition-colors flex items-center gap-2 shadow-2xs font-sans cursor-pointer"
-                title="أرشيف وتوبيكات الخطط الأسبوعية (الرجوع لأي أسبوع سابق)"
+                title="أرشيف وبلوكات الخطط الأسبوعية (الرجوع لأي أسبوع سابق)"
               >
                 <FolderArchive className="w-4 h-4 text-purple-600" />
-                <span>أرشيف الأسابيع (T{activeBlockNumber} • W{activeWeekNumber})</span>
+                <span>أرشيف الأسابيع (B{activeBlockNumber} • W{activeWeekNumber})</span>
               </button>
             )}
 

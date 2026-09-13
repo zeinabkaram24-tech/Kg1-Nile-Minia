@@ -24,8 +24,7 @@ import { Sparkles, RotateCcw } from 'lucide-react';
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
-  WEEK: 'nile_planner_current_week_v4',
-  TOPIC: 'nile_planner_current_topic_v4',
+  WEEK: 'nile_planner_current_week_v3',
 };
 
 function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
@@ -83,16 +82,16 @@ export default function App() {
     return 'KG1A';
   });
 
-  // Current Topic (1, 2, 3, 4) - Replaces Block
+  // Current Block (1, 2, 3, 4)
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.TOPIC) || localStorage.getItem('nile_planner_block');
+    const saved = localStorage.getItem('nile_planner_block');
     return saved ? Number(saved) : 1;
   });
 
-  // Current Week (1, 2, 3, 4) - Defaults to Week 1 as requested
+  // Current Week (1, 2, 3, 4)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 1;
+    return saved ? Number(saved) : 2;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -298,15 +297,14 @@ export default function App() {
         currentBlock={currentBlock}
         onSelectBlock={(b) => {
           setCurrentBlock(b);
-          localStorage.setItem(STORAGE_KEYS.TOPIC, String(b));
           localStorage.setItem('nile_planner_block', String(b));
-          showToast(`تم التبديل إلى توبيك ${b} (Topic ${b})`);
+          showToast(`Switched to Block ${b}`);
         }}
         currentWeek={currentWeek}
         onSelectWeek={(w) => {
           setCurrentWeek(w);
           localStorage.setItem(STORAGE_KEYS.WEEK, String(w));
-          showToast(`تم التبديل إلى الأسبوع ${w} (Week ${w})`);
+          showToast(`Switched to Week ${w}`);
         }}
         activeTab={activeTab}
         onSelectTab={setActiveTab}

@@ -77,11 +77,11 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
                   ذاكرة وأرشيف الخطط الأسبوعية
                 </h3>
                 <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold font-sans">
-                  Topic & Week Archive
+                  Block & Week Archive
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                يمكنك في أي وقت الرجوع لأي أسبوع أو توبيك سابق ومراجعة مهامه وتكليفاته الأصلية
+                يمكنك في أي وقت الرجوع لأي أسبوع أو بلوك سابق ومراجعة مهامه وتكليفاته الأصلية
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
         {/* Filter Toolbar */}
         <div className="px-6 py-3 bg-white border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-            <span className="text-xs font-bold text-slate-500 ms-1">تصفية حسب التوبيك:</span>
+            <span className="text-xs font-bold text-slate-500 ms-1">تصفية حسب البلوك:</span>
             <button
               type="button"
               onClick={() => setSelectedBlockFilter('all')}
@@ -108,7 +108,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
-              جميع التوبيكات ({archive.length})
+              جميع البلوكات ({archive.length})
             </button>
             {uniqueBlocks.map((blockNum) => (
               <button
@@ -121,7 +121,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Topic {blockNum}
+                Block {blockNum}
               </button>
             ))}
           </div>
@@ -146,7 +146,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
           {filteredPlans.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-2xl border border-slate-200">
               <FolderArchive className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-600">لا توجد خطط مؤرشفة لهذا التوبيك</p>
+              <p className="text-sm font-bold text-slate-600">لا توجد خطط مؤرشفة لهذا البلوك</p>
             </div>
           ) : (
             filteredPlans.map((plan) => {
@@ -172,7 +172,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
                     <div className="space-y-1.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-black font-sans">
-                          Topic {plan.blockNumber} • Week {plan.weekNumber}
+                          Block {plan.blockNumber} • Week {plan.weekNumber}
                         </span>
 
                         {isCurrent && (
@@ -298,7 +298,7 @@ export const WeeklyPlanArchiveModal: React.FC<WeeklyPlanArchiveModalProps> = ({
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-indigo-600" />
             <span>
-              ذاكرة التطبيق تحتفظ بجميع الأسابيع والتوبيكات السابقة دون مسح أو فقدان للبيانات.
+              ذاكرة التطبيق تحتفظ بجميع الأسابيع والبلوكات السابقة دون مسح أو فقدان للبيانات.
             </span>
           </div>
 

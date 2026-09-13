@@ -11,7 +11,6 @@ import {
   Download,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
-import { PdfViewerModal } from './PdfViewerModal';
 import {
   getAllMaterials,
   subscribeToMaterials,
@@ -37,7 +36,6 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
-  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Load materials from storage
   const loadMaterials = async () => {
@@ -63,13 +61,12 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const handleClose = () => {
     setSelectedBlock(null);
     setSelectedSection(null);
-    setPreviewItem(null);
     onClose();
   };
 
-  // Helper to preview PDF directly in-app on the website
+  // Helper to open PDF directly in new tab (no extra steps/modals)
   const handlePreview = (item: MaterialItem) => {
-    setPreviewItem(item);
+    openPdfItem(item);
   };
 
   // Helper to trigger Print
@@ -112,7 +109,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                   {selectedBlock && (
                     <>
                       <span>/</span>
-                      <span className="text-slate-600 font-black">Topic {selectedBlock}</span>
+                      <span className="text-slate-600 font-black">Block {selectedBlock}</span>
                     </>
                   )}
                   {selectedSection && (
@@ -139,11 +136,11 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
           {/* Modal Body */}
           <div className="py-4 overflow-y-auto flex-1 space-y-3">
-            {/* LEVEL 1: Topic Selection (Topic 1, Topic 2, Topic 3, Topic 4) */}
+            {/* LEVEL 1: Block Selection (Block 1, Block 2, Block 3, Block 4) */}
             {selectedBlock === null && (
               <div className="space-y-2.5">
                 <p className="text-xs font-bold text-slate-500 mb-2" dir="rtl">
-                  اختر الـ Topic المطلوب لعرض ملفاته (اختر التوبيك):
+                  اختر الـ Block المطلوب لعرض ملفاته:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {blocks.map((b) => (
@@ -162,7 +159,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         </div>
                         <div>
                           <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
-                            Topic {b}
+                            Block {b}
                           </h4>
                           <span className="text-[11px] font-semibold text-slate-400">
                             Main sheet & Weeks
@@ -176,10 +173,10 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
               </div>
             )}
 
-            {/* LEVEL 2: Inside a Topic -> Main sheet + Week 1, 2, 3, 4 */}
+            {/* LEVEL 2: Inside a Block -> Main sheet + Week 1, 2, 3, 4 */}
             {selectedBlock !== null && selectedSection === null && (
               <div className="space-y-3">
-                {/* Back to Topics button */}
+                {/* Back to Blocks button */}
                 <div className="flex items-center justify-between">
                   <button
                     id="back-to-blocks-btn"
@@ -187,10 +184,10 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                     className="inline-flex items-center gap-1.5 text-xs font-black text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200/80 transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Back to Topics</span>
+                    <span>Back to Blocks</span>
                   </button>
                   <span className="text-xs font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                    Topic {selectedBlock}
+                    Block {selectedBlock}
                   </span>
                 </div>
 
@@ -211,7 +208,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                           Main sheet
                         </h4>
                         <span className="text-[11px] font-bold text-indigo-700">
-                          Topic {selectedBlock} Overview & Schedule
+                          Block {selectedBlock} Overview & Schedule
                         </span>
                       </div>
                     </div>
@@ -251,7 +248,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
             {/* LEVEL 3: Section Content (Uploaded PDF files with the 3 buttons) */}
             {selectedBlock !== null && selectedSection !== null && (
               <div className="space-y-4">
-                {/* Back to Topic sections */}
+                {/* Back to Block sections */}
                 <div className="flex items-center justify-between">
                   <button
                     id="back-to-sections-btn"
@@ -259,7 +256,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                     className="inline-flex items-center gap-1.5 text-xs font-black text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-xl border border-amber-200/80 transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Back to Topic {selectedBlock}</span>
+                    <span>Back to Block {selectedBlock}</span>
                   </button>
                   <span className="text-xs font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
                     {selectedSection}
@@ -343,7 +340,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-800">
-                        Topic {selectedBlock} • {selectedSection}
+                        Block {selectedBlock} • {selectedSection}
                       </h4>
                       <p className="text-xs text-slate-500 font-semibold mt-1" dir="rtl">
                         لا يوجد ملف PDF مضاف في هذا القسم حتى الآن. يمكن للآدمن رفع الملف عبر لوحة الأدمن (Admin Panel).
@@ -367,13 +364,6 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
           </div>
         </div>
       </div>
-
-      {/* In-App PDF Viewer Modal directly on the website */}
-      <PdfViewerModal
-        isOpen={!!previewItem}
-        onClose={() => setPreviewItem(null)}
-        item={previewItem}
-      />
     </>
   );
 };

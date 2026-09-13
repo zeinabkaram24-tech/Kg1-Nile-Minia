@@ -29,11 +29,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   selectedDay,
   classworkList,
   currentBlock = 1,
-  currentWeek = 1,
+  currentWeek = 2,
   onToggleClasswork,
   onSaveClasswork,
 }) => {
-  // Check if current class has ANY weekly plan entered for this Topic and Week
+  // Check if current class has ANY weekly plan entered for this Block and Week
   const hasPlanForWeek = classworkList.some(
     (c) =>
       c.classId === currentClass &&
@@ -160,7 +160,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           لا توجد خطة أسبوعية مسجلة لهذا الأسبوع
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek} / توبيك {currentBlock} - الأسبوع {currentWeek}) فارغ حالياً ولم يتم إدخال أو رفع أي خطة دراسية له بعد.
+          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أو رفع أي خطة دراسية له بعد.
         </p>
       </div>
     );

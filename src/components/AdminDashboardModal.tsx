@@ -15,7 +15,6 @@ import {
   X,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
-import { PdfViewerModal } from './PdfViewerModal';
 import {
   getAllMaterials,
   saveMaterial,
@@ -39,7 +38,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Upload Form State
   const [targetBlock, setTargetBlock] = useState<number>(1);
@@ -125,7 +123,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           await refreshMaterials();
 
           setSuccessMessage(
-            `تم رفع الملف "${selectedFile.name}" بنجاح في Topic ${targetBlock} — ${targetSection}!`
+            `تم رفع الملف "${selectedFile.name}" بنجاح في Block ${targetBlock} — ${targetSection}!`
           );
           setSelectedFile(null);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -158,7 +156,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   // Handle Delete with Confirmation
   const handleDelete = async (item: MaterialItem) => {
     const confirmed = window.confirm(
-      `هل أنت متأكد من مسح ملف "${item.fileName}" نهائياً من Topic ${item.block} (${item.section})؟`
+      `هل أنت متأكد من مسح ملف "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
     );
     if (!confirmed) return;
 
@@ -173,9 +171,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Helper to open PDF in-app directly on website
+  // Helper to open PDF directly in new tab
   const handlePreview = (item: MaterialItem) => {
-    setPreviewItem(item);
+    openPdfItem(item);
   };
 
   // Print helper
@@ -252,7 +250,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       زر تحميل وتوزيع الـ PDF على الـ Materials
                     </h3>
                     <p className="text-xs text-amber-800/80 font-medium">
-                      اختر الـ Topic والقسم لتحميل ملف الـ PDF بنفس ألوانه وتنسيقه الأصلي
+                      اختر الـ Block والقسم لتحميل ملف الـ PDF بنفس ألوانه وتنسيقه الأصلي
                     </p>
                   </div>
                 </div>
@@ -275,10 +273,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               {/* Upload Form Box (when opened) */}
               {showUploadForm && (
                 <div className="pt-3 border-t border-amber-200/80 space-y-4 animate-in fade-in duration-200">
-                  {/* Step 1: Select Topic */}
+                  {/* Step 1: Select Block */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      1. أنت عايز تحمل في أي توبيك؟ (اختر الـ Topic):
+                      1. أنت عايز تحمل في أي بلوك؟ (اختر الـ Block):
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {blocks.map((b) => (
@@ -293,7 +291,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50/50'
                           }`}
                         >
-                          Topic {b}
+                          Block {b}
                         </button>
                       ))}
                     </div>
@@ -401,7 +399,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <span>
                         {isUploading
                           ? 'جاري حفظ ورفع الملف...'
-                          : `تأكيد الرفع في Topic ${targetBlock} (${targetSection})`}
+                          : `تأكيد الرفع في Block ${targetBlock} (${targetSection})`}
                       </span>
                     </button>
                   </div>
@@ -451,7 +449,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               {item.fileName}
                             </span>
                             <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
-                              Topic {item.block}
+                              Block {item.block}
                             </span>
                             <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
                               {item.section}
@@ -529,13 +527,6 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         </div>
       </div>
-
-      {/* In-App PDF Viewer Modal directly on the website */}
-      <PdfViewerModal
-        isOpen={!!previewItem}
-        onClose={() => setPreviewItem(null)}
-        item={previewItem}
-      />
     </>
   );
 };

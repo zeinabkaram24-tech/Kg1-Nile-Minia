@@ -93,12 +93,12 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
               {activePlan?.isCurrent || activePlan?.id === latestPlan?.id ? (
                 <span className="px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm font-black flex items-center gap-2 font-sans shadow-2xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>الأسبوع الحالي: Topic {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}</span>
+                  <span>الأسبوع الحالي: Block {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}</span>
                 </span>
               ) : (
                 <span className="px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black flex items-center gap-2 font-sans">
                   <History className="w-3.5 h-3.5 text-amber-700" />
-                  <span>أرشيف أسبوع سابق: Topic {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}</span>
+                  <span>أرشيف أسبوع سابق: Block {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}</span>
                 </span>
               )}
             </div>
@@ -110,13 +110,13 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
                   id="weekly-plan-archive-select"
                   value={activePlanId}
                   onChange={handleDropdownChange}
-                  aria-label="اختيار خطة الأسبوع والتوبيك"
+                  aria-label="اختيار خطة الأسبوع والبلوك"
                   className="w-full pe-9 ps-3 py-1.5 rounded-xl border border-slate-300 hover:border-indigo-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 bg-slate-50 hover:bg-white text-slate-900 font-bold text-xs transition-all appearance-none cursor-pointer shadow-2xs"
                 >
                   {sortedPlans.map((plan) => {
                     const isLatest = plan.id === latestPlan.id || plan.isCurrent;
                     const labelPrefix = isLatest ? '🌟 [الأسبوع الحالي] ' : '📁 [أرشيف] ';
-                    const blockWeekStr = `Topic ${plan.blockNumber || 1} - Week ${plan.weekNumber || 1}`;
+                    const blockWeekStr = `Block ${plan.blockNumber || 1} - Week ${plan.weekNumber || 1}`;
                     const dateStr = plan.startDate ? ` (${plan.startDate} - ${plan.endDate || ''})` : '';
                     return (
                       <option key={plan.id} value={plan.id}>
@@ -166,7 +166,7 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
             id="btn-week-full-archive"
             onClick={onOpenArchiveModal}
             className="px-3 py-2 rounded-xl text-xs font-bold bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs font-sans"
-            title="فتح نافذة الأرشيف الشاملة للتوبيكات والأسابيع"
+            title="فتح نافذة الأرشيف الشاملة للبلوكات والأسابيع"
           >
             <FolderArchive className="w-3.5 h-3.5 text-purple-600" />
             <span className="hidden sm:inline">الأرشيف الشامل</span>
@@ -180,7 +180,7 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
               id="btn-admin-add-new-week"
               onClick={onOpenUploadNewPlan}
               className="px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 font-sans"
-              title="إضافة وتجهيز خطة أسبوع جديد بالتوبيك والأسبوع"
+              title="إضافة وتجهيز خطة أسبوع جديد بالبلوك والأسبوع"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>+ إضافة أسبوع جديد</span>
@@ -200,7 +200,7 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
               <div className="font-bold flex items-center gap-1.5">
                 <span>أنت تتصفح حالياً أرشيف:</span>
                 <span className="font-mono bg-amber-200/70 px-2 py-0.5 rounded text-amber-900 font-black">
-                  Topic {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}
+                  Block {activePlan?.blockNumber || 1} - Week {activePlan?.weekNumber || 1}
                 </span>
                 <span>({activePlan?.title})</span>
               </div>
@@ -217,7 +217,7 @@ export const WeekPlanSelectorBar: React.FC<WeekPlanSelectorBarProps> = ({
             onClick={() => onSelectPlan(latestPlan.id)}
             className="px-3.5 py-1.5 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 self-end sm:self-auto"
           >
-            <span>العودة للأسبوع الحالي (T{latestPlan.blockNumber || 1}-W{latestPlan.weekNumber || 1})</span>
+            <span>العودة للأسبوع الحالي (B{latestPlan.blockNumber || 1}-W{latestPlan.weekNumber || 1})</span>
             <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
           </button>
         </div>
