@@ -1,25 +1,27 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+@keyframes balloonFloat {
+  0% {
+    transform: translateY(100vh) scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(75vh) scale(1) rotate(6deg);
+  }
+  50% {
+    transform: translateY(40vh) scale(1.05) rotate(-6deg);
+  }
+  85% {
+    opacity: 0.95;
+    transform: translateY(12vh) scale(1) rotate(5deg);
+  }
+  100% {
+    transform: translateY(-12vh) scale(0.9) rotate(-4deg);
+    opacity: 0;
   }
 }
 
-@media print {
-  header,
-  nav,
-  aside,
-  button,
-  .no-print {
-    display: none !important;
-  }
-  body {
-    background: white !important;
-    color: black !important;
-  }
-  main {
-    max-width: 100% !important;
-    padding: 0 !important;
-  }
+.animate-balloon {
+  animation: balloonFloat 2.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }

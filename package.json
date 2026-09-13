@@ -1,5 +1,5 @@
 {
-  "name": "studying-weekly-plan",
+  "name": "react-example",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -19,19 +19,15 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "lucide-react": "^0.546.0",
-    "mammoth": "^1.12.2",
     "motion": "^12.23.24",
-    "multer": "^2.3.0",
     "pdfjs-dist": "^6.3.289",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "vite": "^6.2.3",
-    "xlsx": "^0.18.5"
+    "vite": "^6.2.3"
   },
   "devDependencies": {
     "@types/canvas-confetti": "^1.9.0",
     "@types/express": "^4.17.21",
-    "@types/multer": "^2.2.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",

@@ -1,479 +1,287 @@
 import React from 'react';
-import { GradeSection, StudentProfile, UserRole } from '../types';
 import {
-  Clock,
-  Edit2,
-  FileSpreadsheet,
-  Printer,
-  RotateCcw,
-  UploadCloud,
-  Users,
+  CalendarDays,
+  BookOpen,
+  CheckSquare,
+  Briefcase,
   School,
   ChevronDown,
-  LogIn,
-  LogOut,
   User,
-  FolderArchive,
-  FolderOpen,
-  ShieldCheck,
-  Lock,
-  GraduationCap,
   Eye,
-  RefreshCw,
+  Shield,
+  GraduationCap,
+  FolderOpen,
 } from 'lucide-react';
-import { VisitorStatsSummary } from '../types';
+import { ClassId, SchoolDay, UserProfile } from '../types';
+import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
 
 interface NavbarProps {
-  currentTab: 'today' | 'weekly' | 'timetable';
-  onSelectTab: (tab: 'today' | 'weekly' | 'timetable') => void;
-  student: StudentProfile;
-  selectedSection: GradeSection;
-  onSelectSection: (section: GradeSection) => void;
-  onOpenClassSelector: () => void;
-  onOpenEditProfile: () => void;
-  onOpenAddTask: () => void;
-  onOpenSmartPaste: () => void;
-  onOpenTimetableModal: () => void;
-  onOpenWeekDaysModal: () => void;
-  onOpenUploadModal: () => void;
-  onOpenArchiveModal: () => void;
-  onOpenMaterialsModal?: () => void;
-  isAdmin?: boolean;
-  onOpenAdminLogin?: () => void;
-  activeBlockNumber?: number;
-  activeWeekNumber?: number;
-  onOpenVisitorStats: () => void;
-  visitorStats: VisitorStatsSummary | null;
-  onResetData: () => void;
-  todayPendingCount: number;
-  todayCompletedCount: number;
-  isLoggedIn?: boolean;
-  onLogin?: () => void;
-  onLogout?: () => void;
-  userRole?: UserRole;
-  onOpenRoleSwitch?: () => void;
+  currentClass: ClassId;
+  onSelectClass: (c: ClassId) => void;
+  currentBlock: number;
+  onSelectBlock: (b: number) => void;
+  currentWeek: number;
+  onSelectWeek: (w: number) => void;
+  activeTab: 'classwork' | 'homework' | 'tomorrow' | 'timetable';
+  onSelectTab: (t: 'classwork' | 'homework' | 'tomorrow' | 'timetable') => void;
+  selectedDay: SchoolDay;
+  onSelectDay: (d: SchoolDay) => void;
+  onPrint?: () => void;
+  pendingHomeworkCount: number;
+  userProfile?: UserProfile | null;
+  onOpenProfileModal?: () => void;
+  onOpenAdminAuth?: () => void;
+  onOpenMaterials?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  currentTab,
+  currentClass,
+  onSelectClass,
+  currentBlock,
+  onSelectBlock,
+  currentWeek,
+  onSelectWeek,
+  activeTab,
   onSelectTab,
-  student,
-  selectedSection,
-  onSelectSection,
-  onOpenClassSelector,
-  onOpenEditProfile,
-  onOpenAddTask,
-  onOpenSmartPaste,
-  onOpenTimetableModal,
-  onOpenWeekDaysModal,
-  onOpenUploadModal,
-  onOpenArchiveModal,
-  onOpenMaterialsModal,
-  isAdmin = false,
-  onOpenAdminLogin,
-  activeBlockNumber = 1,
-  activeWeekNumber = 1,
-  onOpenVisitorStats,
-  visitorStats,
-  onResetData,
-  todayPendingCount,
-  todayCompletedCount,
-  isLoggedIn = false,
-  onLogin,
-  onLogout,
-  userRole = 'visitor',
-  onOpenRoleSwitch,
+  selectedDay,
+  onSelectDay,
+  pendingHomeworkCount,
+  userProfile,
+  onOpenProfileModal,
+  onOpenAdminAuth,
+  onOpenMaterials,
 }) => {
-  const totalToday = todayPendingCount + todayCompletedCount;
-  const percentCompleted = totalToday > 0 ? Math.round((todayCompletedCount / totalToday) * 100) : 0;
-
-  const handleUploadClick = () => {
-    if (isAdmin) {
-      onOpenUploadModal();
-    } else if (onOpenAdminLogin) {
-      onOpenAdminLogin();
-    } else {
-      onOpenUploadModal();
-    }
-  };
-
-  const handleRoleSwitchClick = () => {
-    if (onOpenRoleSwitch) {
-      onOpenRoleSwitch();
-    } else if (onLogin) {
-      onLogin();
-    }
-  };
+  const tabs = [
+    {
+      id: 'classwork',
+      label: 'Classwork',
+      icon: BookOpen,
+      badge: null,
+    },
+    {
+      id: 'homework',
+      label: 'Homework',
+      icon: CheckSquare,
+      badge: null,
+    },
+    {
+      id: 'tomorrow',
+      label: 'Tomorrow',
+      icon: Briefcase,
+      badge: null,
+    },
+    {
+      id: 'timetable',
+      label: 'Timetable',
+      icon: CalendarDays,
+      badge: null,
+    },
+  ] as const;
 
   return (
-    <>
-      {/* 1. DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex md:w-64 lg:w-72 bg-[#0F172A] flex-col border-s border-slate-800 text-slate-200 shrink-0 sticky top-0 h-screen z-30 justify-between select-none">
-        {/* Top Branding */}
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-md shadow-indigo-950 ring-2 ring-indigo-400/30">
-                {selectedSection}
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm print:hidden">
+      {/* Top Banner: Full-width unified blue row containing title & admin button without separation */}
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-950 to-blue-900 text-white border-b border-indigo-950 shadow-xs">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-2 sm:py-2.5 gap-2">
+            {/* Logo & School info: Nile Egyptian International School / Grade 2 */}
+            <div className="flex items-center gap-2.5 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-indigo-600 to-indigo-700 flex items-center justify-center text-white shadow-md border border-white/20 shrink-0 relative">
+                <School className="w-4 h-4 text-white" />
+                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+                  <GraduationCap className="w-2.5 h-2.5 text-slate-900 stroke-[2.5]" />
+                </div>
               </div>
-              <div>
-                <h1 className="text-white text-base font-black tracking-tight leading-tight font-sans">
-                  Studying Weekly Plan
+              <div className="flex flex-col items-start justify-center text-start">
+                <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none flex items-center gap-1.5">
+                  <span>Nile Egyptian International School</span>
                 </h1>
-                <span className="text-[11px] text-indigo-400 font-sans font-bold block">
-                  Nile Schools • KG 1 ({selectedSection})
-                </span>
+                <p className="text-[10px] sm:text-[11px] text-blue-200 font-bold mt-1 leading-none flex items-center gap-1.5">
+                  <span>Grade 2</span>
+                  <span className="text-indigo-300">•</span>
+                  <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
+                </p>
               </div>
             </div>
 
-            {/* Top Quick Actions: Unified Admin Button */}
-            <div className="flex items-center shrink-0">
-              {/* Single Unified Admin Button (Protected by password) */}
-              <button
-                type="button"
-                id="desktop-header-admin-btn"
-                onClick={handleUploadClick}
-                className="px-2.5 py-1.5 rounded-xl bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 hover:text-white border border-indigo-800/60 transition-all shadow-xs active:scale-95 flex items-center gap-1.5 font-bold text-xs cursor-pointer"
-                title="أدمن: تحميل ومسح الشيتات وإحصائيات المستخدمين والزوار"
-              >
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                <span>أدمن</span>
-                {!isAdmin && <Lock className="w-2.5 h-2.5 text-indigo-300" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Requested Feature: Class Section Switcher (2A / 2B / 2C) */}
-          <div className="bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 mb-3 shadow-inner">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-2 px-1">
-              <span className="flex items-center gap-1.5 text-indigo-300">
-                <School className="w-3.5 h-3.5" />
-                <span>الفصل الدراسي:</span>
-              </span>
-              <button
-                type="button"
-                onClick={onOpenClassSelector}
-                className="text-xs text-indigo-400 hover:text-indigo-200 flex items-center gap-0.5 transition-colors font-medium"
-              >
-                <span>تغيير</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800/80">
-              {(['2A', '2B', '2C'] as GradeSection[]).map((sec) => (
-                <button
-                  key={sec}
-                  type="button"
-                  onClick={() => onSelectSection(sec)}
-                  className={`py-1.5 rounded-lg text-xs font-black transition-all ${
-                    selectedSection === sec
-                      ? 'bg-indigo-600 text-white shadow-sm ring-1 ring-indigo-400'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                  }`}
-                >
-                  {sec}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Student Status & Auth Toggle Card */}
-          <div className="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 truncate">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
-                  isAdmin || userRole === 'admin'
-                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                    : userRole === 'student' && isLoggedIn
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                }`}>
-                  {isAdmin || userRole === 'admin' ? (
-                    <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                  ) : userRole === 'student' && isLoggedIn ? (
-                    <GraduationCap className="w-4 h-4 text-emerald-400" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-sky-400" />
-                  )}
-                </div>
-                <div className="truncate text-right">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-black text-white text-xs block truncate">
-                      {isAdmin || userRole === 'admin'
-                        ? 'المشرف العام (أدمن)'
-                        : userRole === 'student' && isLoggedIn
-                        ? student.name
-                        : 'وضع الزائر (Guest)'}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-sans block">
-                    {isAdmin || userRole === 'admin'
-                      ? 'صلاحيات كاملة • إدارة وتحكم'
-                      : userRole === 'student' && isLoggedIn
-                      ? `طالب فصل ${selectedSection} • حفظ محلي`
-                      : 'تصفح وعرض فقط'}
-                  </span>
-                </div>
-              </div>
-
-              {isLoggedIn && userRole === 'student' && (
-                <button
-                  type="button"
-                  onClick={onOpenEditProfile}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
-                  title="تعديل بيانات الطالب"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Role Switch / Login Button */}
+            {/* Admin Button directly inside the top blue bar without any separation */}
             <button
               type="button"
-              id="sidebar-btn-role-switch"
-              onClick={handleRoleSwitchClick}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold text-indigo-200 bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-800/50 transition-all shadow-xs active:scale-98 cursor-pointer"
-              title="تغيير نوع الدخول: أدمن، طالب، أو زائر"
+              onClick={onOpenAdminAuth}
+              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
+              title="لوحة الأدمن / Admin Mode"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-indigo-300" />
-              <span>تبديل الحساب / نوع الدخول</span>
+              <Shield className="w-3.5 h-3.5 text-amber-300" />
+              <span>أدمن</span>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
-          {/* 1. Today's Tasks */}
-          <button
-            type="button"
-            id="tab-today-desktop"
-            onClick={() => onSelectTab('today')}
-            className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all text-xs sm:text-sm font-bold ${
-              currentTab === 'today'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/60'
-                : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Clock className="w-4 h-4" />
-              <span>خطة اليوم (Daily View)</span>
-            </div>
-            {todayPendingCount > 0 ? (
-              <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">
-                {todayPendingCount}
-              </span>
+      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
+          {/* Left: Student Profile & Classes */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
+            {userProfile?.mode === 'student' && userProfile.studentName ? (
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="group inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200/90 text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
+                title="انقر لتعديل اسم الطالب أو التبديل"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <User className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
+                <span className="text-xs font-black text-indigo-950 truncate max-w-[100px] sm:max-w-[160px]">
+                  {userProfile.studentName}
+                </span>
+                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-bold border-s border-indigo-200 ps-1.5 ms-0.5">
+                  تبديل
+                </span>
+              </button>
             ) : (
-              <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">
-                Done
-              </span>
+              <button
+                type="button"
+                onClick={onOpenProfileModal}
+                className="group inline-flex items-center gap-1.5 bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
+                title="أنت الآن زائر، انقر للدخول باسم الطالب وحفظ إنجازاتك"
+              >
+                <Eye className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-600 shrink-0" />
+                <span className="text-xs font-bold">زائر</span>
+                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-black border-s border-slate-300 group-hover:border-indigo-200 ps-1.5 ms-0.5">
+                  دخول كطالب
+                </span>
+              </button>
             )}
-          </button>
 
-          {/* 2. School Timetable */}
-          <button
-            type="button"
-            id="tab-timetable-desktop"
-            onClick={() => onSelectTab('timetable')}
-            className={`w-full flex items-center gap-2.5 p-3 rounded-2xl transition-all text-xs sm:text-sm font-bold ${
-              currentTab === 'timetable'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-950/60'
-                : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-200'
-            }`}
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>جدول حصص فصل {selectedSection}</span>
-          </button>
-
-          {/* Unified Admin Menu Item in Navigation (Hidden for visitor) */}
-          {userRole !== 'visitor' && (
-            <button
-              type="button"
-              id="tab-admin-desktop"
-              onClick={handleUploadClick}
-              className="w-full flex items-center justify-between p-3 rounded-2xl transition-all text-xs sm:text-sm font-bold text-slate-300 hover:bg-slate-800/80 hover:text-indigo-300 border border-slate-800/80 hover:border-indigo-800/60 cursor-pointer"
-              title="لوحة تحكم الأدمن: إدارة ورفع وحذف الشيتات والملفات وإحصائيات الزوار"
-            >
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                <span>لوحة تحكم الأدمن</span>
-              </div>
-              {!isAdmin ? (
-                <span className="flex items-center gap-1 text-[11px] text-slate-400 font-sans bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-700">
-                  <Lock className="w-3 h-3 text-indigo-400/80" />
-                  <span>مشرف</span>
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  أدمن نشط 👑
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* Action Tools Section: read-only for students and visitors */}
-          {userRole !== 'visitor' && (
-            <div className="pt-3 mt-3 border-t border-slate-800/80 space-y-2">
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="flex-1 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs p-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-slate-800"
-                  title="طباعة الخطة"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>طباعة</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onResetData}
-                  className="flex-1 bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-amber-400 text-xs p-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-slate-800"
-                  title="إعادة تعيين واستعادة البيانات الأصلية"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>استعادة البيانات</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Visitor Quick Tools */}
-          {userRole === 'visitor' && (
-            <div className="pt-3 mt-3 border-t border-slate-800/80">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="w-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs p-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors border border-slate-800"
-                title="طباعة الخطة الأسبوعية"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>طباعة الخطة</span>
-              </button>
-            </div>
-          )}
-        </nav>
-      </aside>
-
-      {/* 2. MOBILE TOP BAR & QUICK ACTIONS */}
-      <header className="md:hidden bg-[#0F172A] border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
-        <div className="p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-sm ring-1 ring-indigo-400/40">
-                {selectedSection}
-              </div>
-              <div>
-                <h1 className="text-xs font-bold text-white leading-tight">
-                  Studying Weekly Plan
-                </h1>
-                <span className="text-[10px] text-indigo-300 font-sans block">
-                  KG 1 • فصل {selectedSection}
-                </span>
-              </div>
-            </div>
-
-            {/* Quick Class Switcher for Mobile */}
-            <div className="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-800">
-              {(['2A', '2B', '2C'] as GradeSection[]).map((sec) => (
-                <button
-                  key={sec}
-                  type="button"
-                  onClick={() => onSelectSection(sec)}
-                  className={`px-2 py-1 rounded-lg text-xs font-black transition-all ${
-                    selectedSection === sec
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {sec}
-                </button>
-              ))}
-            </div>
-
-            {/* Quick Actions for Mobile */}
-            <div className="flex items-center gap-1.5">
-              {/* Dynamic Role Switcher for Mobile */}
-              <button
-                type="button"
-                id="mobile-btn-auth-toggle"
-                onClick={handleRoleSwitchClick}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1 shadow-xs active:scale-95 cursor-pointer border ${
-                  isAdmin || userRole === "admin"
-                    ? "bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border-indigo-800/60"
-                    : userRole === "student" && isLoggedIn
-                    ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500"
-                    : "bg-sky-600 hover:bg-sky-500 text-white border-sky-500"
-                }`}
-                title="تبديل نوع الدخول: أدمن، طالب، أو زائر"
-              >
-                {isAdmin || userRole === "admin" ? (
-                  <>
-                    <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                    <span>أدمن</span>
-                  </>
-                ) : userRole === "student" && isLoggedIn ? (
-                  <>
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    <span className="max-w-[65px] truncate">{student.name}</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>زائر</span>
-                  </>
-                )}
-              </button>
-
-              {/* Single Unified Admin Button for Mobile (Hidden for visitor) */}
-              {userRole !== 'visitor' && (
-                <button
-                  type="button"
-                  id="mobile-btn-admin"
-                  onClick={handleUploadClick}
-                  className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs flex items-center gap-1 active:scale-95 cursor-pointer font-bold"
-                  title="لوحة تحكم الأدمن"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>أدمن</span>
-                  {!isAdmin && <Lock className="w-2.5 h-2.5 text-indigo-300" />}
-                </button>
-              )}
+            {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
+            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
+              {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
+                const isSelected = currentClass === cls;
+                const label = cls.replace('G', ''); // '2A', '2B', '2C'
+                return (
+                  <button
+                    key={cls}
+                    onClick={() => onSelectClass(cls)}
+                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
+                      isSelected
+                        ? 'bg-slate-900 text-white shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Mobile Tabs */}
-          <div className="grid grid-cols-2 gap-1 bg-slate-900 p-1 rounded-2xl border border-slate-800">
-            <button
-              type="button"
-              id="tab-today-mobile"
-              onClick={() => onSelectTab('today')}
-              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                currentTab === 'today'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-400'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              <span>اليوم ({todayPendingCount})</span>
-            </button>
+          {/* Right: Block & Week Dropdowns Group */}
+          <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/60 shrink-0">
+            {/* Compact Block Dropdown */}
+            <div className="relative">
+              <select
+                id="block-select"
+                value={currentBlock}
+                onChange={(e) => onSelectBlock(Number(e.target.value))}
+                className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                title="Block"
+              >
+                <option value={1}>Block 1</option>
+                <option value={2}>Block 2</option>
+                <option value={3}>Block 3</option>
+                <option value={4}>Block 4</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
 
+            {/* Compact Week Dropdown */}
+            <div className="relative">
+              <select
+                id="week-select"
+                value={currentWeek}
+                onChange={(e) => onSelectWeek(Number(e.target.value))}
+                className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                title="Week"
+              >
+                {[1, 2, 3, 4].map((w) => {
+                  const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
+                  return (
+                    <option key={w} value={w}>
+                      Week {w} {range ? `(${range})` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-purple-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+
+            {/* Materials Button */}
             <button
+              id="materials-btn"
               type="button"
-              id="tab-timetable-mobile"
-              onClick={() => onSelectTab('timetable')}
-              className={`flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                currentTab === 'timetable'
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'text-slate-400'
-              }`}
+              onClick={onOpenMaterials}
+              className="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-amber-950 font-black text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+              title="Materials"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>الجدول {selectedSection}</span>
+              <FolderOpen className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+              <span>Materials</span>
             </button>
           </div>
         </div>
-      </header>
-    </>
+
+        {/* Navigation Tabs - All 4 visible side-by-side in one single line matching row width */}
+        <div className="border-t border-slate-100 py-1.5">
+          <nav className="grid grid-cols-4 gap-1 sm:gap-2 w-full">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onSelectTab(tab.id)}
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1 rounded-xl text-[11px] sm:text-xs font-bold transition-all truncate ${
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-2xs font-black'
+                      : 'text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/80'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                  <span className="truncate">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+
+      {/* Day Ribbon: NO scroll, NO 'School Day' label, ALL 6 days visible side-by-side in one single row */}
+      {activeTab !== 'timetable' && (
+        <div className="bg-slate-50 border-t border-slate-200 py-1.5 px-2 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-6 gap-1 sm:gap-1.5 w-full">
+              {SCHOOL_DAYS.map((day) => {
+                const isSelected = selectedDay === day;
+                return (
+                  <button
+                    key={day}
+                    onClick={() => onSelectDay(day)}
+                    className={`w-full py-1 sm:py-1.5 px-0.5 sm:px-1 rounded-lg text-center transition-all text-[11px] sm:text-xs font-black truncate ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white shadow-2xs'
+                        : 'bg-white text-slate-700 hover:text-slate-950 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                    title={day}
+                  >
+                    {day}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
   );
 };

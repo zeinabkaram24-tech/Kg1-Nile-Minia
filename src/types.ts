@@ -1,204 +1,106 @@
-export type DayOfWeek = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
+export type ClassId = 'G2A' | 'G2B' | 'G2C';
 
-export type UserRole = 'admin' | 'student' | 'visitor';
+export type SchoolDay = 'Saturday' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday';
 
-export type TaskType = 'homework' | 'classwork' | 'study' | 'dictation' | 'quiz' | 'supplies' | 'general';
+export type SubjectName =
+  | 'Mathematics'
+  | 'English'
+  | 'Arabic'
+  | 'Science'
+  | 'Social Studies'
+  | 'French'
+  | 'Religion'
+  | 'ICT'
+  | 'Arts'
+  | 'Music'
+  | 'PE';
 
-export interface Subject {
-  id: string;
-  nameEn: string;
-  nameAr: string;
-  code: string;
-  color: {
-    bg: string;
-    text: string;
-    border: string;
-    accent: string;
-    lightBg: string;
-  };
-  iconName: string;
+export interface PeriodSlot {
+  period: number; // 1 to 8
+  time: string; // e.g., "7:45 - 8:35"
+  subject: SubjectName;
+  teacher: string;
+  notes?: string;
 }
 
-export interface PlanTask {
+export interface BreakSlot {
+  name: string;
+  time: string;
+  type: 'line' | 'breakfast' | 'lunch';
+}
+
+export interface DaySchedule {
+  day: SchoolDay;
+  periods: PeriodSlot[];
+}
+
+export interface ClassworkEntry {
   id: string;
-  day: DayOfWeek;
-  subjectId: string;
-  section?: GradeSection;
-  period?: number;
-  type: TaskType;
+  classId: ClassId;
+  day: SchoolDay;
+  period: number;
+  subject: SubjectName;
   title: string;
   details?: string;
   pages?: string;
-  linkUrl?: string; // Direct clickable link (e.g. video, online platform, explanation, sheet)
-  linkTitle?: string; // Optional custom text for the link button (e.g. "اضغط هنا لمشاهدة/سماع الرابط")
-  isDone: boolean;
-  notes?: string;
-  personalNotes?: string; // User Role: Personal student note (stored locally only)
-  isPersonalTask?: boolean; // User Role: Custom task added by the student (stored locally only)
-  isCarriedOver?: boolean; // Deprecated: Kept for backwards compatibility only
-  previousWeekNote?: string; // Deprecated: Kept for backwards compatibility only
-  createdAt: number;
-  completedAt?: number;
+  completed: boolean;
+  block?: number;
+  week?: number;
+  linkUrl?: string;
+  linkTitle?: string;
 }
 
-export interface TimetableSlot {
+export interface HomeworkEntry {
+  id: string;
+  classId: ClassId;
+  assignedDay: SchoolDay;
+  dueDay: SchoolDay;
+  subject: SubjectName;
+  task: string;
+  details?: string;
+  pages?: string;
+  completed: boolean;
+  priority?: 'normal' | 'urgent';
+  block?: number;
+  week?: number;
+  isLinkTask?: boolean;
+  linkUrl?: string;
+}
+
+export interface TomorrowItem {
+  subject: SubjectName;
   period: number;
-  timeRange: string;
-  subjectId: string;
-  room?: string;
+  time: string;
+  teacher: string;
+  requiredBagItems: string[];
+  dueHomework?: HomeworkEntry[];
+  specialNote?: string;
 }
 
-export type Timetable = Record<DayOfWeek, TimetableSlot[]>;
-
-export type GradeSection = '2A' | '2B' | '2C';
-
-export interface GradeSectionOption {
-  id: GradeSection;
-  nameAr: string;
-  nameEn: string;
-  badgeColor: string;
-  textColor: string;
-  borderColor: string;
-  lightBg: string;
+export interface ParsedWeeklyPlanResponse {
+  classwork: Omit<ClassworkEntry, 'id'>[];
+  homework: Omit<HomeworkEntry, 'id'>[];
+  tomorrowNotes?: {
+    day: SchoolDay;
+    note: string;
+  }[];
 }
 
-export interface StudentProfile {
-  name: string;
-  grade: string;
-  section: GradeSection;
-  schoolName: string;
-  branch: string;
-}
-
-export interface DayInfo {
-  key: DayOfWeek;
-  nameAr: string;
-  nameEn: string;
-  shortAr: string;
-  shortEn: string;
-  isSchoolDay: boolean;
-}
-
-export interface UploadedPlanFile {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  uploadDate: number;
-  subjectId?: string;
-  weekName?: string;
-  previewUrl?: string;
-  extractedTaskCount?: number;
-}
-
-export interface VisitorItem {
-  id: string;
-  name: string;
-  loginType: 'student' | 'visitor' | 'admin';
-  studentGrade?: string;
-  section?: GradeSection | string;
-  firstSeenAt: number;
-  lastSeenAt: number;
-  visitCount: number;
-  dailyVisits?: Record<string, number>;
-  device?: string;
-  email?: string;
-  userAgent?: string;
-}
-
-export interface VisitorStatsSummary {
-  totalUsers: number;
-  totalStudentsNamed: number;
-  totalVisitorsGuest: number;
-  totalVisits: number;
-  // Daily census strictly starting from 12:00 AM midnight to 12:00 AM next day
-  todayDateString?: string;
-  todayDateLabel?: string;
-  todayTotalUsers: number;
-  todayStudentsNamed: number;
-  todayVisitorsGuest: number;
-  todayVisits: number;
-  lastUpdated: number;
-  sectionCounts?: {
-    '2A': number;
-    '2B': number;
-    '2C': number;
-    other: number;
-  };
-  todaySectionCounts?: {
-    '2A': number;
-    '2B': number;
-    '2C': number;
-    other: number;
-  };
-}
-
-export interface WeeklyPlanArchiveEntry {
-  id: string; // e.g. "b1-w1", "b1-w2"
-  blockNumber: number; // e.g. 1
-  weekNumber: number; // e.g. 1
-  title: string; // e.g. "خطة الأسبوع الأول (Block 1 - Week 1)"
-  createdAt: number;
-  startDate?: string;
-  endDate?: string;
-  tasksBySection: Record<GradeSection, PlanTask[]>;
-  uploadedFiles?: UploadedPlanFile[];
-  isCurrent: boolean;
-  notes?: string;
-}
+export type UserMode = 'guest' | 'student';
 
 export interface MaterialItem {
   id: string;
-  title: string;
-  subjectId: string;
-  blockNumber: number; // e.g. 1 for Block 1
-  category: 'main_sheets' | 'week1' | 'week2' | 'week3' | 'week4' | 'week5' | string;
-  categoryLabel?: string; // e.g. "الشيتات الرئيسية", "ويك 1", "ويك 2"
-  itemType: 'sheet' | 'booklet' | 'notes' | 'revision' | 'link';
-  fileUrl?: string;
-  fileData?: string; // Base64 data URL or embedded file representation
-  fileName?: string;
-  fileType?: string; // e.g. 'application/pdf'
-  fileSize?: string;
-  notes?: string;
-  pageCount?: number;
-  unitTitle?: string;
-  contentPreview?: {
-    type: 'exercises' | 'topics' | 'reading';
-    items: string[];
-    sections?: { title: string; points: string[] }[];
-  };
-  section?: 'all' | GradeSection;
-  createdAt: number;
+  fileName: string;
+  fileSize: number; // bytes
+  fileData: string; // Base64 data URL
+  block: number; // 1, 2, 3, 4
+  section: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4'
+  classId?: ClassId | 'ALL';
+  uploadedAt: string;
 }
 
-// Global Plan Shared Storage (Admin Role -> Global Storage)
-export interface GlobalPlanData {
-  activePlanId: string;
-  weekTitle: string;
-  activeBlockNumber: number;
-  activeWeekNumber: number;
-  tasksBySection: Record<GradeSection, PlanTask[]>;
-  archive: WeeklyPlanArchiveEntry[];
-  uploadedFiles: UploadedPlanFile[];
-  lastUpdated: number;
-  updatedBy?: string;
-}
-
-// User Local Progress & Personal Notes (User Role -> Local Storage)
-export interface UserTaskProgressItem {
-  isDone: boolean;
-  completedAt?: number;
-  personalNotes?: string;
-  updatedAt?: number;
-}
-
-export interface UserPersonalState {
-  userId: string;
+export interface UserProfile {
+  mode: UserMode;
   studentName?: string;
-  section?: GradeSection;
-  taskProgress: Record<string, UserTaskProgressItem>;
-  personalTasks?: PlanTask[];
-  lastUpdated?: number;
+  classId?: ClassId;
 }
-

@@ -1,7 +1,6 @@
 {
-  "name": "Studying Weekly Plan",
-  "description": "Weekly plan and timetable tracker for Grade 2 (2A, 2B, 2C) - Nile Egyptian International Schools",
+  "name": "Nile Egyptian International School - Grade 2",
+  "description": "Weekly school timetable and academic organizer for Nile Egyptian International School Grade 2, tracking Classwork, Homework, and Tomorrow preparation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
-
