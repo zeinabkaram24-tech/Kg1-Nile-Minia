@@ -24,7 +24,7 @@ interface WeeklyPlanModalProps {
   onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[]) => void;
 }
 
-const SAMPLE_WEEKLY_PLAN = `Grade 2 Weekly Plan - Nile Egyptian International School
+const SAMPLE_WEEKLY_PLAN = `KG 1 Weekly Plan - Nile Egyptian International School
 
 Sunday:
 - French: Unité 1 Salutations. CW: Manuel p. 6-8. HW: None

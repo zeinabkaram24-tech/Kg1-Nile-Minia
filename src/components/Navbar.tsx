@@ -13,7 +13,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
-import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
+import { SCHOOL_DAYS, TOPIC_WEEK_DATES, ALL_CLASSES } from '../data/timetables';
 
 interface NavbarProps {
   currentClass: ClassId;
@@ -97,9 +97,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Nile Egyptian International School</span>
                 </h1>
                 <p className="text-[10px] sm:text-[11px] text-blue-200 font-bold mt-1 leading-none flex items-center gap-1.5">
-                  <span>Grade 2</span>
+                  <span className="font-extrabold text-white bg-indigo-800/80 px-1.5 py-0.5 rounded text-[10px]">KG 1</span>
                   <span className="text-indigo-300">•</span>
-                  <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
+                  <span className="text-amber-300 font-black">خطة المذاكرة والأنشطة الأسبوعية</span>
                 </p>
               </div>
             </div>
@@ -118,12 +118,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+      {/* Row 2: Classes (KG 1 A, B, C, D, E), Student Profile, and Topic & Week */}
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
           {/* Left: Student Profile & Classes */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
+            {/* Student Name / Profile Badge */}
             {userProfile?.mode === 'student' && userProfile.studentName ? (
               <button
                 type="button"
@@ -155,43 +155,44 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
+            {/* Class Buttons Side-by-Side (KG 1 A, B, C, D, E) */}
             <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
-              {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
-                const isSelected = currentClass === cls;
-                const label = cls.replace('G', ''); // '2A', '2B', '2C'
+              {ALL_CLASSES.map((cls) => {
+                const isSelected = currentClass === cls.id;
                 return (
                   <button
-                    key={cls}
-                    onClick={() => onSelectClass(cls)}
-                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
+                    key={cls.id}
+                    onClick={() => onSelectClass(cls.id)}
+                    className={`px-2.5 py-1 text-xs font-black rounded-lg transition-all ${
                       isSelected
                         ? 'bg-slate-900 text-white shadow-2xs'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     }`}
+                    title={cls.label}
                   >
-                    {label}
+                    <span className="hidden sm:inline">{cls.label}</span>
+                    <span className="sm:hidden">{cls.letter}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Right: Block & Week Dropdowns Group */}
+          {/* Right: Topic & Week Dropdowns Group */}
           <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/60 shrink-0">
-            {/* Compact Block Dropdown */}
+            {/* Compact Topic Dropdown */}
             <div className="relative">
               <select
                 id="block-select"
                 value={currentBlock}
                 onChange={(e) => onSelectBlock(Number(e.target.value))}
                 className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                title="Block"
+                title="Topic"
               >
-                <option value={1}>Block 1</option>
-                <option value={2}>Block 2</option>
-                <option value={3}>Block 3</option>
-                <option value={4}>Block 4</option>
+                <option value={1}>Topic 1</option>
+                <option value={2}>Topic 2</option>
+                <option value={3}>Topic 3</option>
+                <option value={4}>Topic 4</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
@@ -206,7 +207,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="Week"
               >
                 {[1, 2, 3, 4].map((w) => {
-                  const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
+                  const range = TOPIC_WEEK_DATES[currentBlock]?.[w];
                   return (
                     <option key={w} value={w}>
                       Week {w} {range ? `(${range})` : ''}

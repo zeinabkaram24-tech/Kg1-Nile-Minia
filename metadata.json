@@ -1,6 +1,6 @@
 {
-  "name": "Nile Egyptian International School - Grade 2",
-  "description": "Weekly school timetable and academic organizer for Nile Egyptian International School Grade 2, tracking Classwork, Homework, and Tomorrow preparation.",
+  "name": "Nile Egyptian International School - KG 1",
+  "description": "Weekly school timetable and academic organizer for Nile Egyptian International School KG 1, tracking Classwork, Homework, and Tomorrow preparation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

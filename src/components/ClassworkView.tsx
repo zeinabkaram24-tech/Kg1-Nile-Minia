@@ -155,7 +155,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           لا توجد خطة أسبوعية مسجلة لهذا الأسبوع
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أو رفع أي خطة دراسية له بعد.
+          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أو رفع أي خطة دراسية له بعد.
         </p>
       </div>
     );

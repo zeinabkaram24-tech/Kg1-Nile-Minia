@@ -87,24 +87,29 @@ export default function App() {
     return getActiveUserProfile() === null;
   });
 
-  // Class selection (G2A, G2B, G2C)
+  // Class selection (KG1A, KG1B, KG1C, KG1D, KG1E)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const profile = getActiveUserProfile();
-    if (profile?.classId) return profile.classId;
+    if (profile?.classId && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(profile.classId)) {
+      return profile.classId;
+    }
     const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
-    return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
+    if (saved && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(saved)) {
+      return saved as ClassId;
+    }
+    return 'KG1A';
   });
 
-  // Current Block (1, 2, 3, 4)
+  // Current Topic / Block (1, 2, 3, 4)
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
     const saved = localStorage.getItem('nile_planner_block');
     return saved ? Number(saved) : 1;
   });
 
-  // Current Week (1, 2, 3, 4)
+  // Current Week (1, 2, 3, 4) - Starts Week 1
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 2;
+    return saved ? Number(saved) : 1;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)

@@ -126,7 +126,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           await refreshMaterials();
 
           setSuccessMessage(
-            `تم رفع الملف "${selectedFile.name}" بنجاح في Block ${targetBlock} — ${targetSection}!`
+            `تم رفع الملف "${selectedFile.name}" بنجاح في Topic ${targetBlock} — ${targetSection}!`
           );
           setSelectedFile(null);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -323,10 +323,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               {/* Upload Form Box (when opened) */}
               {showUploadForm && (
                 <div className="pt-3 border-t border-amber-200/80 space-y-4 animate-in fade-in duration-200">
-                  {/* Step 1: Select Block */}
+                  {/* Step 1: Select Topic */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      1. أنت عايز تحمل في أي بلوك؟ (اختر الـ Block):
+                      1. اختر الـ Topic المستهدف (Select Topic):
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {blocks.map((b) => (
@@ -341,7 +341,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-50/50'
                           }`}
                         >
-                          Block {b}
+                          Topic {b}
                         </button>
                       ))}
                     </div>
@@ -374,14 +374,16 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   {/* Step 3: Select Target Class */}
                   <div>
                     <label className="block text-xs font-black text-slate-800 mb-1.5">
-                      3. تحديد الفصل (المستفيدين):
+                      3. تحديد الفصل (المستفيدين - KG 1):
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {[
                         { id: 'ALL', label: 'كل الفصول (All Classes)' },
-                        { id: 'G2A', label: 'فصل G2A' },
-                        { id: 'G2B', label: 'فصل G2B' },
-                        { id: 'G2C', label: 'فصل G2C' },
+                        { id: 'KG1A', label: 'فصل KG 1 A' },
+                        { id: 'KG1B', label: 'فصل KG 1 B' },
+                        { id: 'KG1C', label: 'فصل KG 1 C' },
+                        { id: 'KG1D', label: 'فصل KG 1 D' },
+                        { id: 'KG1E', label: 'فصل KG 1 E' },
                       ].map((c) => (
                         <button
                           key={c.id}
@@ -497,13 +499,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                               {item.fileName}
                             </span>
                             <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
-                              Block {item.block}
+                              Topic {item.block}
                             </span>
                             <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-900 px-2 py-0.5 rounded-md">
                               {item.section}
                             </span>
                             <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded-md">
-                              {item.classId === 'ALL' ? 'كل الفصول' : item.classId}
+                              {item.classId === 'ALL'
+                                ? 'كل الفصول'
+                                : item.classId === 'KG1A'
+                                ? 'KG 1 A'
+                                : item.classId === 'KG1B'
+                                ? 'KG 1 B'
+                                : item.classId === 'KG1C'
+                                ? 'KG 1 C'
+                                : item.classId === 'KG1D'
+                                ? 'KG 1 D'
+                                : item.classId === 'KG1E'
+                                ? 'KG 1 E'
+                                : item.classId}
                             </span>
                           </div>
                           <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium mt-1">

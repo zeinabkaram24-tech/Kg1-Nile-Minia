@@ -19,7 +19,7 @@ interface TimetableViewProps {
 export const TimetableView: React.FC<TimetableViewProps> = ({
   timetable,
   subjects,
-  currentSection = '2A',
+  currentSection = 'KG1A',
   isAdmin = false,
   onOpenAdminLogin,
   onSelectSection,
@@ -83,11 +83,11 @@ export const TimetableView: React.FC<TimetableViewProps> = ({
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-wider font-sans">
-                Official School Timetable • Grade {currentSection}
+                Official School Timetable • KG 1 ({currentSection})
               </span>
               {onSelectSection && (
                 <div className="flex items-center bg-slate-100 p-1 rounded-xl">
-                  {(['2A', '2B', '2C'] as GradeSection[]).map((sec) => (
+                  {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as GradeSection[]).map((sec) => (
                     <button
                       key={sec}
                       type="button"
@@ -98,7 +98,7 @@ export const TimetableView: React.FC<TimetableViewProps> = ({
                           : 'text-slate-600 hover:text-slate-900'
                       }`}
                     >
-                      فصل {sec}
+                      فصل {sec.replace('KG1', 'KG 1 ')}
                     </button>
                   ))}
                 </div>

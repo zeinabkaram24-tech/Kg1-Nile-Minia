@@ -8,6 +8,11 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
     const raw = localStorage.getItem(TIMETABLE_STORAGE_KEY);
     if (!raw) {
       return {
+        KG1A: createEmptyWeekSchedule(),
+        KG1B: createEmptyWeekSchedule(),
+        KG1C: createEmptyWeekSchedule(),
+        KG1D: createEmptyWeekSchedule(),
+        KG1E: createEmptyWeekSchedule(),
         G2A: createEmptyWeekSchedule(),
         G2B: createEmptyWeekSchedule(),
         G2C: createEmptyWeekSchedule(),
@@ -15,6 +20,11 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
     }
     const parsed = JSON.parse(raw);
     return {
+      KG1A: parsed.KG1A || createEmptyWeekSchedule(),
+      KG1B: parsed.KG1B || createEmptyWeekSchedule(),
+      KG1C: parsed.KG1C || createEmptyWeekSchedule(),
+      KG1D: parsed.KG1D || createEmptyWeekSchedule(),
+      KG1E: parsed.KG1E || createEmptyWeekSchedule(),
       G2A: parsed.G2A || createEmptyWeekSchedule(),
       G2B: parsed.G2B || createEmptyWeekSchedule(),
       G2C: parsed.G2C || createEmptyWeekSchedule(),
@@ -22,6 +32,11 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);
     return {
+      KG1A: createEmptyWeekSchedule(),
+      KG1B: createEmptyWeekSchedule(),
+      KG1C: createEmptyWeekSchedule(),
+      KG1D: createEmptyWeekSchedule(),
+      KG1E: createEmptyWeekSchedule(),
       G2A: createEmptyWeekSchedule(),
       G2B: createEmptyWeekSchedule(),
       G2C: createEmptyWeekSchedule(),
@@ -96,6 +111,11 @@ export function clearClassTimetable(classId: ClassId): Record<ClassId, Record<Sc
 export function clearAllStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodSlot[]>> {
   localStorage.removeItem(TIMETABLE_STORAGE_KEY);
   const empty: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
+    KG1A: createEmptyWeekSchedule(),
+    KG1B: createEmptyWeekSchedule(),
+    KG1C: createEmptyWeekSchedule(),
+    KG1D: createEmptyWeekSchedule(),
+    KG1E: createEmptyWeekSchedule(),
     G2A: createEmptyWeekSchedule(),
     G2B: createEmptyWeekSchedule(),
     G2C: createEmptyWeekSchedule(),

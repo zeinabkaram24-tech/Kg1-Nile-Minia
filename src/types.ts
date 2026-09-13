@@ -1,4 +1,4 @@
-export type ClassId = 'G2A' | 'G2B' | 'G2C';
+export type ClassId = 'KG1A' | 'KG1B' | 'KG1C' | 'KG1D' | 'KG1E' | 'G2A' | 'G2B' | 'G2C';
 
 export type SchoolDay = 'Saturday' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday';
 

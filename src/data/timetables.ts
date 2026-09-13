@@ -2,7 +2,7 @@ import { ClassId, SchoolDay, SubjectName, PeriodSlot, BreakSlot } from '../types
 
 export const SCHOOL_NAME = 'Nile Egyptian International School';
 export const SCHOOL_BRANCH = 'Menia';
-export const SCHOOL_GRADE = 'Grade 2';
+export const SCHOOL_GRADE = 'KG 1';
 
 export const SCHOOL_DAYS: SchoolDay[] = [
   'Saturday',
@@ -30,33 +30,49 @@ export const BREAK_SLOTS: BreakSlot[] = [
   { name: 'Lunch Break', time: '13:05 - 13:25', type: 'lunch' },
 ];
 
-// Block & Week date ranges (Day and Month only without year)
-export const BLOCK_WEEK_DATES: Record<number, Record<number, string>> = {
+export interface ClassOption {
+  id: ClassId;
+  label: string;
+  letter: string;
+}
+
+export const ALL_CLASSES: ClassOption[] = [
+  { id: 'KG1A', label: 'KG 1 A', letter: 'A' },
+  { id: 'KG1B', label: 'KG 1 B', letter: 'B' },
+  { id: 'KG1C', label: 'KG 1 C', letter: 'C' },
+  { id: 'KG1D', label: 'KG 1 D', letter: 'D' },
+  { id: 'KG1E', label: 'KG 1 E', letter: 'E' },
+];
+
+// Topic & Week date ranges (Day and Month only without year) - Week 1 starts on 13/9
+export const TOPIC_WEEK_DATES: Record<number, Record<number, string>> = {
   1: {
-    1: '6/9 - 10/9',
-    2: '13/9 - 17/9',
-    3: '20/9 - 24/9',
-    4: '27/9 - 1/10',
+    1: '13/9 - 17/9',
+    2: '20/9 - 24/9',
+    3: '27/9 - 1/10',
+    4: '4/10 - 8/10',
   },
   2: {
-    1: '4/10 - 8/10',
-    2: '11/10 - 15/10',
-    3: '18/10 - 22/10',
-    4: '25/10 - 29/10',
+    1: '11/10 - 15/10',
+    2: '18/10 - 22/10',
+    3: '25/10 - 29/10',
+    4: '1/11 - 5/11',
   },
   3: {
-    1: '1/11 - 5/11',
-    2: '8/11 - 12/11',
-    3: '15/11 - 19/11',
-    4: '22/11 - 26/11',
+    1: '8/11 - 12/11',
+    2: '15/11 - 19/11',
+    3: '22/11 - 26/11',
+    4: '29/11 - 3/12',
   },
   4: {
-    1: '29/11 - 3/12',
-    2: '6/12 - 10/12',
-    3: '13/12 - 17/12',
-    4: '20/12 - 24/12',
+    1: '6/12 - 10/12',
+    2: '13/12 - 17/12',
+    3: '20/12 - 24/12',
+    4: '27/12 - 31/12',
   },
 };
+
+export const BLOCK_WEEK_DATES = TOPIC_WEEK_DATES;
 
 export interface SubjectMeta {
   name: SubjectName;
@@ -194,6 +210,11 @@ export const createEmptyWeekSchedule = (): Record<SchoolDay, PeriodSlot[]> => ({
 });
 
 export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
+  KG1A: createEmptyWeekSchedule(),
+  KG1B: createEmptyWeekSchedule(),
+  KG1C: createEmptyWeekSchedule(),
+  KG1D: createEmptyWeekSchedule(),
+  KG1E: createEmptyWeekSchedule(),
   G2A: createEmptyWeekSchedule(),
   G2B: createEmptyWeekSchedule(),
   G2C: createEmptyWeekSchedule(),

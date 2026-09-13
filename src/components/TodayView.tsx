@@ -233,7 +233,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
               id="btn-archive-header"
               onClick={onOpenArchiveModal}
               className="px-4 py-2.5 rounded-2xl text-xs font-bold bg-purple-950/70 hover:bg-purple-900 text-purple-200 border border-purple-700/60 shadow-xs transition-all duration-150 flex items-center gap-2 font-sans active:scale-95 cursor-pointer"
-              title="الرجوع لذاكرة وأرشيف الأسابيع والبلوكات السابقة"
+              title="الرجوع لذاكرة وأرشيف الأسابيع والـ Topics السابقة"
             >
               <FolderArchive className="w-4 h-4 text-purple-400 stroke-[2.2]" />
               <span className="font-bold">أرشيف الأسابيع (B{activeBlockNumber} • W{activeWeekNumber})</span>

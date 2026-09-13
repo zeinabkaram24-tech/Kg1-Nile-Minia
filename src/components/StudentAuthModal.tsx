@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, GraduationCap, Eye, Sparkles, CheckCircle2, ArrowRight, X, Trash2 } from 'lucide-react';
 import { ClassId, UserProfile } from '../types';
 import { getKnownStudents, removeKnownStudent } from '../utils/studentStorage';
+import { ALL_CLASSES } from '../data/timetables';
 
 interface StudentAuthModalProps {
   isOpen: boolean;
@@ -180,24 +181,23 @@ export const StudentAuthModal: React.FC<StudentAuthModalProps> = ({
               {/* Class Selection Pills */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  اختر الفصل الدراسي:
+                  اختر الفصل الدراسي (KG 1):
                 </label>
-                <div className="flex items-center gap-2">
-                  {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
-                    const isSelected = selectedClass === cls;
-                    const label = cls.replace('G', '');
+                <div className="grid grid-cols-5 gap-1.5">
+                  {ALL_CLASSES.map((cls) => {
+                    const isSelected = selectedClass === cls.id;
                     return (
                       <button
-                        key={cls}
+                        key={cls.id}
                         type="button"
-                        onClick={() => setSelectedClass(cls)}
-                        className={`flex-1 py-1.5 px-3 rounded-xl font-black text-xs border transition-all ${
+                        onClick={() => setSelectedClass(cls.id)}
+                        className={`py-1.5 px-2 rounded-xl font-black text-xs border transition-all text-center ${
                           isSelected
                             ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        Grade {label}
+                        {cls.label}
                       </button>
                     );
                   })}

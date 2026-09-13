@@ -908,14 +908,14 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-indigo-700 stroke-[2.25]" />
                 <span className="text-xs font-black text-indigo-900">
-                  تحديد البلوك والأسبوع المستهدف بالخطة (Block & Week):
+                  تحديد الـ Topic والأسبوع المستهدف (Topic & Week):
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    رقم البلوك (Block Number):
+                    Topic Number (Topic):
                   </label>
                   <select
                     value={blockNumber}
@@ -924,7 +924,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                   >
                     {[1, 2, 3, 4, 5, 6].map((b) => (
                       <option key={b} value={b}>
-                        Block {b}
+                        Topic {b}
                       </option>
                     ))}
                   </select>
@@ -1532,7 +1532,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    رقم البلوك:
+                    Select Topic:
                   </label>
                   <select
                     value={matBlock}
@@ -1541,7 +1541,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                   >
                     {[1, 2, 3, 4, 5, 6].map((b) => (
                       <option key={b} value={b}>
-                        Block {b}
+                        Topic {b}
                       </option>
                     ))}
                   </select>

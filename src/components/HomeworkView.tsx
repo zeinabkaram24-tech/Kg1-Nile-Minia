@@ -114,7 +114,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           لا توجد واجبات مسجلة لهذا الأسبوع
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أي واجبات له.
+          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أي واجبات له.
         </p>
       </div>
     );

@@ -80,7 +80,7 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
         <div>
           <h1 className="text-xl font-bold uppercase tracking-tight">{SCHOOL_NAME}</h1>
           <p className="text-sm font-semibold text-slate-700">
-            {SCHOOL_BRANCH} Branch • Grade 2 ({currentClass}) • Daily & Tomorrow Prep
+            {SCHOOL_BRANCH} Branch • KG 1 ({currentClass}) • Daily & Tomorrow Prep
           </p>
         </div>
         <div className="text-right">
