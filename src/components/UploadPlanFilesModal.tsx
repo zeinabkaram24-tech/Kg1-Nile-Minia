@@ -48,6 +48,7 @@ import {
   openMaterialSheetInNewTab,
   downloadMaterialSheet,
 } from '../utils/sheetPdfViewer';
+import { PdfViewerModal } from './PdfViewerModal';
 import { VisitorStatsSummary } from '../types';
 import { VisitorStatsPanel } from './VisitorStatsPanel';
 import { processTasksAndExtractLinkTasks, extractFirstUrl, parseWeeklyPlanTextWithLinks } from '../utils/urlHelper';
@@ -152,6 +153,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
   // Materials & Sheets upload state
   const [materialsList, setMaterialsList] = useState<MaterialItem[]>([]);
+  const [previewPdfModalItem, setPreviewPdfModalItem] = useState<MaterialItem | null>(null);
   const [matTitle, setMatTitle] = useState('');
   const [matSubjectId, setMatSubjectId] = useState('science');
   const [matCategory, setMatCategory] = useState<'main_sheets' | 'week1' | 'week2' | 'week3'>('main_sheets');
@@ -1327,11 +1329,11 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                     <span className="text-[11px] text-emerald-800 font-bold">اختبار فوري للملف والتنسيق:</span>
                     <button
                       type="button"
-                      onClick={() => openMaterialSheetInNewTab(lastAddedMat, subjectMap.get(lastAddedMat.subjectId)?.nameAr || lastAddedMat.subjectId)}
+                      onClick={() => setPreviewPdfModalItem(lastAddedMat)}
                       className="px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                     >
                       <Eye className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>فتح الرابط للتأكد من الألوان والتنسيق الأصلي 100%</span>
+                      <span>معاينة الملف على الموقع</span>
                     </button>
                     <button
                       type="button"
@@ -1798,12 +1800,12 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                             />
                           </label>
 
-                          {/* Eye button: View in new tab */}
+                          {/* Eye button: View in-app on website */}
                           <button
                             type="button"
-                            onClick={() => openMaterialSheetInNewTab(mat, subObj?.nameAr || mat.subjectId)}
+                            onClick={() => setPreviewPdfModalItem(mat)}
                             className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition-colors cursor-pointer border border-indigo-200"
-                            title="عرض في تبويب جديد"
+                            title="معاينة الملف على الموقع"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -2051,6 +2053,12 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
             </div>
           </div>
         )}
+        {/* In-App PDF Viewer Modal directly on the website */}
+        <PdfViewerModal
+          isOpen={!!previewPdfModalItem}
+          onClose={() => setPreviewPdfModalItem(null)}
+          item={previewPdfModalItem}
+        />
       </div>
     </div>
   );

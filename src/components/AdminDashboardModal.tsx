@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
+import { PdfViewerModal } from './PdfViewerModal';
 import {
   getAllMaterials,
   saveMaterial,
@@ -38,6 +39,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Upload Form State
   const [targetBlock, setTargetBlock] = useState<number>(1);
@@ -171,9 +173,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Helper to open PDF directly in new tab
+  // Helper to open PDF in-app directly on website
   const handlePreview = (item: MaterialItem) => {
-    openPdfItem(item);
+    setPreviewItem(item);
   };
 
   // Print helper
@@ -527,6 +529,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App PDF Viewer Modal directly on the website */}
+      <PdfViewerModal
+        isOpen={!!previewItem}
+        onClose={() => setPreviewItem(null)}
+        item={previewItem}
+      />
     </>
   );
 };

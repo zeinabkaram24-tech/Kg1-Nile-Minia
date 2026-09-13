@@ -11,6 +11,7 @@ import {
   Download,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
+import { PdfViewerModal } from './PdfViewerModal';
 import {
   getAllMaterials,
   subscribeToMaterials,
@@ -36,6 +37,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Load materials from storage
   const loadMaterials = async () => {
@@ -61,12 +63,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const handleClose = () => {
     setSelectedBlock(null);
     setSelectedSection(null);
+    setPreviewItem(null);
     onClose();
   };
 
-  // Helper to open PDF directly in new tab (no extra steps/modals)
+  // Helper to preview PDF directly in-app on the website
   const handlePreview = (item: MaterialItem) => {
-    openPdfItem(item);
+    setPreviewItem(item);
   };
 
   // Helper to trigger Print
@@ -364,6 +367,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App PDF Viewer Modal directly on the website */}
+      <PdfViewerModal
+        isOpen={!!previewItem}
+        onClose={() => setPreviewItem(null)}
+        item={previewItem}
+      />
     </>
   );
 };

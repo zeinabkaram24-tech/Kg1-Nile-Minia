@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
@@ -9,7 +10,44 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Directories for permanent files and materials
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
+const DATA_DIR = path.join(process.cwd(), 'data');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
+
+function loadServerMaterials(): any[] {
+  if (fs.existsSync(MATERIALS_FILE)) {
+    try {
+      const content = fs.readFileSync(MATERIALS_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {
+      console.warn('Could not read materials.json:', e);
+    }
+  }
+  return [];
+}
+
+function saveServerMaterials(materials: any[]) {
+  try {
+    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(materials, null, 2), 'utf-8');
+  } catch (e) {
+    console.error('Failed to write materials.json:', e);
+  }
+}
+
+let materialsCache: any[] = loadServerMaterials();
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
 function getGenAI(): GoogleGenAI | null {
@@ -212,6 +250,155 @@ ${planText}
     const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'KG1A');
     return res.json(fallback);
   }
+});
+
+// Materials API: Get all materials list
+app.get('/api/materials', (req, res) => {
+  res.json({ success: true, materials: materialsCache });
+});
+
+// Materials API: Save materials list from Admin
+app.post('/api/materials/save', (req, res) => {
+  try {
+    const { materials } = req.body;
+    if (Array.isArray(materials)) {
+      materialsCache = materials;
+      saveServerMaterials(materialsCache);
+    }
+    res.json({ success: true, count: materialsCache.length });
+  } catch (e: any) {
+    console.error('Error saving materials:', e);
+    res.status(500).json({ error: 'Failed to save materials' });
+  }
+});
+
+// Materials API: Upload file directly (supports Base64 JSON payload)
+app.post('/api/materials/upload', (req, res) => {
+  try {
+    const { fileName, fileData, fileSize, block, section, classId, title, subjectId } = req.body;
+    if (!fileName || !fileData) {
+      return res.status(400).json({ error: 'fileName and fileData are required' });
+    }
+
+    // Generate safe filename for disk storage
+    const safeName = `${Date.now()}_${path.basename(fileName).replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    const filePath = path.join(UPLOADS_DIR, safeName);
+
+    // Write file to uploads directory
+    const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData;
+    fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+
+    const fileUrl = `/api/materials/file/${encodeURIComponent(safeName)}`;
+    const downloadUrl = `/api/materials/download/${encodeURIComponent(safeName)}`;
+
+    const newMaterial = {
+      id: `mat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      fileName: fileName,
+      storedFileName: safeName,
+      fileSize: fileSize || fs.statSync(filePath).size,
+      fileUrl,
+      downloadUrl,
+      fileData,
+      block: Number(block) || 1,
+      section: section || 'Main sheet',
+      classId: classId || 'ALL',
+      title: title || fileName.replace(/\.[^/.]+$/, ''),
+      subjectId: subjectId || 'general',
+      uploadedAt: new Date().toISOString(),
+    };
+
+    // Prepend to materialsCache and save to disk
+    materialsCache = [newMaterial, ...materialsCache.filter((m) => m.id !== newMaterial.id)];
+    saveServerMaterials(materialsCache);
+
+    res.json({
+      success: true,
+      fileUrl,
+      downloadUrl,
+      fileName,
+      item: newMaterial,
+    });
+  } catch (e: any) {
+    console.error('Error uploading material file:', e);
+    res.status(500).json({ error: 'Failed to upload file' });
+  }
+});
+
+// Materials API: Stream/view PDF file
+app.get('/api/materials/file/:filename', (req, res) => {
+  const filename = path.basename(decodeURIComponent(req.params.filename));
+  let targetPath = path.join(UPLOADS_DIR, filename);
+
+  if (!fs.existsSync(targetPath)) {
+    const found = materialsCache.find((m) => m.storedFileName === filename || m.fileName === filename);
+    if (found && found.storedFileName) {
+      targetPath = path.join(UPLOADS_DIR, found.storedFileName);
+    }
+  }
+
+  if (fs.existsSync(targetPath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    fs.createReadStream(targetPath).pipe(res);
+  } else {
+    // Check if in memory as data URI
+    const found = materialsCache.find((m) => m.fileName === filename || m.storedFileName === filename);
+    if (found && found.fileData) {
+      const base64Data = found.fileData.includes(',') ? found.fileData.split(',')[1] : found.fileData;
+      const buffer = Buffer.from(base64Data, 'base64');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+      return res.send(buffer);
+    }
+    res.status(404).send('File not found');
+  }
+});
+
+// Materials API: Download PDF file
+app.get('/api/materials/download/:filename', (req, res) => {
+  const filename = path.basename(decodeURIComponent(req.params.filename));
+  let targetPath = path.join(UPLOADS_DIR, filename);
+
+  if (!fs.existsSync(targetPath)) {
+    const found = materialsCache.find((m) => m.storedFileName === filename || m.fileName === filename);
+    if (found && found.storedFileName) {
+      targetPath = path.join(UPLOADS_DIR, found.storedFileName);
+    }
+  }
+
+  if (fs.existsSync(targetPath)) {
+    res.download(targetPath, filename);
+  } else {
+    const found = materialsCache.find((m) => m.fileName === filename || m.storedFileName === filename);
+    if (found && found.fileData) {
+      const base64Data = found.fileData.includes(',') ? found.fileData.split(',')[1] : found.fileData;
+      const buffer = Buffer.from(base64Data, 'base64');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      return res.send(buffer);
+    }
+    res.status(404).send('File not found');
+  }
+});
+
+// Materials API: Delete material
+app.delete('/api/materials/:id', (req, res) => {
+  const id = req.params.id;
+  const item = materialsCache.find((m) => m.id === id);
+  if (item && item.storedFileName) {
+    const filePath = path.join(UPLOADS_DIR, item.storedFileName);
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (e) {
+        console.warn('Could not unlink file:', e);
+      }
+    }
+  }
+  materialsCache = materialsCache.filter((m) => m.id !== id);
+  saveServerMaterials(materialsCache);
+  res.json({ success: true });
 });
 
 async function startServer() {

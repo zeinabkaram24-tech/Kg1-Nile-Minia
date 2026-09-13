@@ -460,8 +460,8 @@ export function getInitialWeeklyPlansArchive(): WeeklyPlanArchiveEntry[] {
     weekNumber: 1,
     title: 'Topic 1 - Week 1',
     createdAt: Date.now(),
-    startDate: 'الأحد 31 أغسطس',
-    endDate: 'الخميس 4 سبتمبر',
+    startDate: 'الأحد 13 سبتمبر',
+    endDate: 'الخميس 17 سبتمبر',
     tasksBySection: {
       'KG1A': filterOutArtTasks(TASKS_2A),
       'KG1B': filterOutArtTasks(TASKS_2B),
