@@ -30,7 +30,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentClass,
   selectedDay,
   currentBlock = 1,
-  currentWeek = 2,
+  currentWeek = 1,
 }) => {
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';

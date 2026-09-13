@@ -48,10 +48,10 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
   homeworkList,
   classworkList = [],
   currentBlock = 1,
-  currentWeek = 2,
+  currentWeek = 1,
   onToggleHomework,
 }) => {
-  // Check if this Block and Week has ANY homework entered for current class
+  // Check if this Topic and Week has ANY homework entered for current class
   const hasHomeworkForWeek = homeworkList.some(
     (h) =>
       h.classId === currentClass &&
@@ -114,7 +114,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
           لا توجد واجبات مسجلة لهذا الأسبوع
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          الأسبوع المحدد (Block {currentBlock} - Week {currentWeek}) فارغ حالياً ولم يتم إدخال أي واجبات له.
+          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek} / توبيك {currentBlock} - الأسبوع {currentWeek}) فارغ حالياً ولم يتم إدخال أي واجبات له.
         </p>
       </div>
     );

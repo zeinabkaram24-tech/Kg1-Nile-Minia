@@ -118,25 +118,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
+      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Topic & Week */}
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
           {/* Left: Student Profile & Classes */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {/* Student Name / Profile Badge directly next to classes */}
             {userProfile?.mode === 'student' && userProfile.studentName ? (
               <button
                 type="button"
                 onClick={onOpenProfileModal}
-                className="group inline-flex items-center gap-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200/90 text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
+                className="group inline-flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200/90 text-indigo-950 px-2 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0 text-xs"
                 title="انقر لتعديل اسم الطالب أو التبديل"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <User className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
-                <span className="text-xs font-black text-indigo-950 truncate max-w-[100px] sm:max-w-[160px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                <User className="w-3 h-3 text-indigo-700 shrink-0" />
+                <span className="text-xs font-black text-indigo-950 truncate max-w-[80px] sm:max-w-[130px]">
                   {userProfile.studentName}
                 </span>
-                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-bold border-s border-indigo-200 ps-1.5 ms-0.5">
+                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-bold border-s border-indigo-200 ps-1 ms-0.5">
                   تبديل
                 </span>
               </button>
@@ -144,54 +144,57 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenProfileModal}
-                className="group inline-flex items-center gap-1.5 bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-950 px-2.5 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0"
-                title="أنت الآن زائر، انقر للدخول باسم الطالب وحفظ إنجازاتك"
+                className="group inline-flex items-center gap-1 bg-slate-100 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-950 px-2 py-1 rounded-xl shadow-2xs cursor-pointer transition-all shrink-0 text-xs"
+                title="أنت الآن زائر، انقر للدخول كطالب"
               >
-                <Eye className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-600 shrink-0" />
-                <span className="text-xs font-bold">زائر</span>
-                <span className="text-[10px] text-indigo-600 group-hover:text-indigo-900 font-black border-s border-slate-300 group-hover:border-indigo-200 ps-1.5 ms-0.5">
-                  دخول كطالب
-                </span>
+                <User className="w-3 h-3 text-indigo-600 shrink-0" />
+                <span className="text-[11px] font-black text-indigo-700">دخول طالب</span>
               </button>
             )}
 
-            {/* Class Buttons Side-by-Side (KG 1 A - E) */}
-            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0 overflow-x-auto">
-              {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
-                const isSelected = currentClass === cls;
-                const label = cls.replace('KG1', 'KG 1 '); // 'KG 1 A', 'KG 1 B', etc.
-                return (
-                  <button
-                    key={cls}
-                    onClick={() => onSelectClass(cls)}
-                    className={`px-2 sm:px-2.5 py-1 text-xs font-black rounded-lg transition-all whitespace-nowrap ${
-                      isSelected
-                        ? 'bg-slate-900 text-white shadow-2xs'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+            {/* Class Buttons Side-by-Side: KG prefix once, then 1A, 1B, 1C, 1D, 1E */}
+            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
+              <span className="px-1.5 py-0.5 text-[11px] font-black text-slate-600 bg-slate-200/70 rounded-md select-none shrink-0 ms-0.5">
+                KG
+              </span>
+              <div className="flex items-center gap-0.5 ps-1">
+                {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
+                  const isSelected = currentClass === cls;
+                  const shortLabel = cls.replace('KG', ''); // '1A', '1B', '1C', '1D', '1E'
+                  return (
+                    <button
+                      key={cls}
+                      onClick={() => onSelectClass(cls)}
+                      className={`px-1.5 sm:px-2 py-1 text-xs font-black rounded-lg transition-all whitespace-nowrap ${
+                        isSelected
+                          ? 'bg-slate-900 text-white shadow-2xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                      }`}
+                      title={`KG ${shortLabel}`}
+                    >
+                      {shortLabel}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Right: Block & Week Dropdowns Group */}
+          {/* Right: Topic & Week Dropdowns Group */}
           <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/60 shrink-0">
-            {/* Compact Block Dropdown */}
+            {/* Compact Topic Dropdown (Formerly Block) */}
             <div className="relative">
               <select
-                id="block-select"
+                id="topic-select"
                 value={currentBlock}
                 onChange={(e) => onSelectBlock(Number(e.target.value))}
                 className="appearance-none bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                title="Block"
+                title="Topic (توبيك)"
               >
-                <option value={1}>Block 1</option>
-                <option value={2}>Block 2</option>
-                <option value={3}>Block 3</option>
-                <option value={4}>Block 4</option>
+                <option value={1}>Topic 1</option>
+                <option value={2}>Topic 2</option>
+                <option value={3}>Topic 3</option>
+                <option value={4}>Topic 4</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-indigo-700 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>

@@ -44,7 +44,8 @@ export interface ClassworkEntry {
   details?: string;
   pages?: string;
   completed: boolean;
-  block?: number;
+  block?: number; // Topic number (Topic 1, 2, 3, 4)
+  topic?: number;
   week?: number;
   linkUrl?: string;
   linkTitle?: string;
@@ -61,7 +62,8 @@ export interface HomeworkEntry {
   pages?: string;
   completed: boolean;
   priority?: 'normal' | 'urgent';
-  block?: number;
+  block?: number; // Topic number (Topic 1, 2, 3, 4)
+  topic?: number;
   week?: number;
   isLinkTask?: boolean;
   linkUrl?: string;

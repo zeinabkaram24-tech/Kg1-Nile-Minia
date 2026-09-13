@@ -288,9 +288,9 @@ export function loadWeekTitle(): string {
     if (saved && !saved.includes('الأسبوع الأول') && !saved.includes('Week 2') && !saved.includes('Week 1 Plan')) {
       return saved;
     }
-    return 'Block 1 - Week 1';
+    return 'Topic 1 - Week 1';
   } catch {
-    return 'Block 1 - Week 1';
+    return 'Topic 1 - Week 1';
   }
 }
 
@@ -458,7 +458,7 @@ export function getInitialWeeklyPlansArchive(): WeeklyPlanArchiveEntry[] {
     id: 'b1-w1',
     blockNumber: 1,
     weekNumber: 1,
-    title: 'Block 1 - Week 1',
+    title: 'Topic 1 - Week 1',
     createdAt: Date.now(),
     startDate: 'الأحد 31 أغسطس',
     endDate: 'الخميس 4 سبتمبر',
@@ -516,8 +516,8 @@ export function loadWeeklyPlansArchive(): WeeklyPlanArchiveEntry[] {
           return {
             ...entry,
             title:
-              entry.id === 'b1-w1' && (!entry.title || entry.title.includes('الأسبوع الأول') || entry.title.includes('Week 1 Plan'))
-                ? 'Block 1 - Week 1'
+              entry.id === 'b1-w1' && (!entry.title || entry.title.includes('الأسبوع الأول') || entry.title.includes('Week 1 Plan') || entry.title.includes('Block 1'))
+                ? 'Topic 1 - Week 1'
                 : entry.title,
             tasksBySection: {
               'KG1A': a,

@@ -139,178 +139,21 @@ export const DEFAULT_STUDENT: StudentProfile = {
 };
 
 // ==========================================
-// 1) Timetable for G2A (from IMG-20260906-WA0002.jpg)
+// Empty fallback timetables - ready for new schedule upload
 // ==========================================
-export const TIMETABLE_G2A: Timetable = {
-  sunday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'pe' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'social_studies' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'ict' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'arts' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'english' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'english' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'arabic' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'math' },
-  ],
-  monday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'music' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'math' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'pe' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'science' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'arabic' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'arabic' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'ict' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'english' },
-  ],
-  tuesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'english' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'english' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'math' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'math' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'religion' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'french' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'arts' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'arabic' },
-  ],
-  wednesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'math' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'science' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'ict' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'social_studies' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'french' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'arabic' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'english' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'english' },
-  ],
-  thursday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'english' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'music' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'religion' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'arabic' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'french' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'math' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'social_studies' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'science' },
-  ],
+const EMPTY_TIMETABLE: Timetable = {
+  sunday: [],
+  monday: [],
+  tuesday: [],
+  wednesday: [],
+  thursday: [],
   friday: [],
   saturday: [],
 };
 
-// ==========================================
-// 2) Timetable for G2B (from IMG-20260906-WA0000.jpg)
-// ==========================================
-export const TIMETABLE_G2B: Timetable = {
-  sunday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'french' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'math' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'arabic' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'science' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'english' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'english' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'ict' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'music' },
-  ],
-  monday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'social_studies' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'pe' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'english' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'english' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'math' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'math' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'arabic' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'arabic' },
-  ],
-  tuesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'math' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'ict' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'arts' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'french' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'religion' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'english' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'music' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'arabic' },
-  ],
-  wednesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'english' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'social_studies' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'pe' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'arabic' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'math' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'french' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'science' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'arts' },
-  ],
-  thursday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'arabic' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'social_studies' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'religion' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'math' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'english' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'english' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'science' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'ict' },
-  ],
-  friday: [],
-  saturday: [],
-};
-
-// ==========================================
-// 3) Timetable for G2C (from IMG-20260906-WA0001.jpg)
-// ==========================================
-export const TIMETABLE_G2C: Timetable = {
-  sunday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'math' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'math' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'french' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'english' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'ict' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'arabic' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'social_studies' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'pe' },
-  ],
-  monday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'arabic' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'arabic' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'social_studies' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'english' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'science' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'arts' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'french' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'math' },
-  ],
-  tuesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'pe' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'arabic' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'science' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'math' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'religion' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'ict' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'english' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'english' },
-  ],
-  wednesday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'english' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'english' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'french' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'social_studies' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'music' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'arabic' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'math' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'music' },
-  ],
-  thursday: [
-    { period: 1, timeRange: '7:45 - 8:35', subjectId: 'ict' },
-    { period: 2, timeRange: '8:35 - 9:25', subjectId: 'science' },
-    { period: 3, timeRange: '9:45 - 10:35', subjectId: 'religion' },
-    { period: 4, timeRange: '10:35 - 11:25', subjectId: 'english' },
-    { period: 5, timeRange: '11:25 - 12:15', subjectId: 'english' },
-    { period: 6, timeRange: '12:15 - 13:05', subjectId: 'math' },
-    { period: 7, timeRange: '13:25 - 14:15', subjectId: 'arabic' },
-    { period: 8, timeRange: '14:15 - 15:05', subjectId: 'arts' },
-  ],
-  friday: [],
-  saturday: [],
-};
+export const TIMETABLE_G2A: Timetable = { ...EMPTY_TIMETABLE };
+export const TIMETABLE_G2B: Timetable = { ...EMPTY_TIMETABLE };
+export const TIMETABLE_G2C: Timetable = { ...EMPTY_TIMETABLE };
 
 export const GRADE_TIMETABLES: Record<GradeSection, Timetable> = {
   'KG1A': filterAllowedTimetable(TIMETABLE_G2A),

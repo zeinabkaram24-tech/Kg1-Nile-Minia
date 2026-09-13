@@ -129,7 +129,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
   const [setAsCurrent, setSetAsCurrent] = useState<boolean>(true);
 
   const [weekTitle, setWeekTitle] = useState(() => {
-    return `Week ${suggestedWeek} Plan (Block ${suggestedBlock} - Week ${suggestedWeek})`;
+    return `Week ${suggestedWeek} Plan (Topic ${suggestedBlock} - Week ${suggestedWeek})`;
   });
 
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('all');
@@ -221,7 +221,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
   const handleBlockWeekChange = (newBlock: number, newWeek: number) => {
     setBlockNumber(newBlock);
     setWeekNumber(newWeek);
-    setWeekTitle(`Week ${newWeek} Plan (Block ${newBlock} - Week ${newWeek})`);
+    setWeekTitle(`Week ${newWeek} Plan (Topic ${newBlock} - Week ${newWeek})`);
   };
 
   const subjectMap = new Map<string, Subject>();
@@ -286,7 +286,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
           day: targetDay,
           type: 'homework' as TaskType,
           title: `مهمة أسبوعية من ملف: ${file.name.replace(/\.[^/.]+$/, '')}`,
-          details: `تم توليدها تلقائياً من الملف المرفوع لـ (Block ${blockNumber} - Week ${weekNumber})`,
+          details: `تم توليدها تلقائياً من الملف المرفوع لـ (Topic ${blockNumber} - Week ${weekNumber})`,
           isDone: false,
           section: targetSection === 'all' ? undefined : targetSection,
         });
@@ -908,14 +908,14 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-indigo-700 stroke-[2.25]" />
                 <span className="text-xs font-black text-indigo-900">
-                  تحديد البلوك والأسبوع المستهدف بالخطة (Block & Week):
+                  تحديد التوبيك والأسبوع المستهدف بالخطة (Topic & Week):
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    رقم البلوك (Block Number):
+                    رقم التوبيك (Topic Number):
                   </label>
                   <select
                     value={blockNumber}
@@ -924,7 +924,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                   >
                     {[1, 2, 3, 4, 5, 6].map((b) => (
                       <option key={b} value={b}>
-                        Block {b}
+                        Topic {b}
                       </option>
                     ))}
                   </select>
@@ -1523,7 +1523,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                     onChange={(e) => setMatCategory(e.target.value as any)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-slate-800"
                   >
-                    <option value="main_sheets">Main Sheets (Block 1)</option>
+                    <option value="main_sheets">Main Sheets (Topic 1)</option>
                     <option value="week1">Week 1</option>
                     <option value="week2">Week 2</option>
                     <option value="week3">Week 3</option>
@@ -1532,7 +1532,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                    رقم البلوك:
+                    رقم التوبيك:
                   </label>
                   <select
                     value={matBlock}
@@ -1541,7 +1541,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                   >
                     {[1, 2, 3, 4, 5, 6].map((b) => (
                       <option key={b} value={b}>
-                        Block {b}
+                        Topic {b}
                       </option>
                     ))}
                   </select>
@@ -1773,7 +1773,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                               {mat.title}
                             </span>
                             <span className="text-[11px] text-slate-400 font-sans">
-                              {mat.categoryLabel || mat.category} • Block {mat.blockNumber}{' '}
+                              {mat.categoryLabel || mat.category} • Topic {mat.blockNumber}{' '}
                               {mat.pageCount ? `• ${mat.pageCount} صفحة` : ''}
                             </span>
                           </div>
@@ -2007,8 +2007,8 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
                   <Check className="w-4 h-4 stroke-[2.5]" />
                   <span>
                     {generatedTasks.length > 0
-                      ? `حفظ وتطبيق خطة (Block ${blockNumber} - Week ${weekNumber}) [${generatedTasks.length} مهمة]`
-                      : `إنشاء وتطبيق خطة (Block ${blockNumber} - Week ${weekNumber})`}
+                      ? `حفظ وتطبيق خطة (Topic ${blockNumber} - Week ${weekNumber}) [${generatedTasks.length} مهمة]`
+                      : `إنشاء وتطبيق خطة (Topic ${blockNumber} - Week ${weekNumber})`}
                   </span>
                 </button>
               )}

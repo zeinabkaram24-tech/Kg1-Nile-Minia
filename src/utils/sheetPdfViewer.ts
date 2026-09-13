@@ -473,7 +473,7 @@ export function generateSheetHtml(item: MaterialItem, subjectNameAr: string): st
         </div>
         <div class="school-badge-box">
           عام 2025 / 2026<br/>
-          Block ${item.blockNumber} • ${escapeHtml(item.categoryLabel || item.category)}
+          Topic ${item.blockNumber} • ${escapeHtml(item.categoryLabel || item.category)}
         </div>
       </div>
 
@@ -504,7 +504,7 @@ export function generateSheetHtml(item: MaterialItem, subjectNameAr: string): st
           ${item.unitTitle ? `<div style="font-size: 13px; opacity: 0.9; margin-top: 4px;">${escapeHtml(item.unitTitle)}</div>` : ''}
         </div>
         <div class="sheet-tags">
-          <span class="tag">Block ${item.blockNumber}</span>
+          <span class="tag">Topic ${item.blockNumber}</span>
           <span class="tag">${escapeHtml(item.categoryLabel || item.category)}</span>
           ${item.pageCount ? `<span class="tag">${item.pageCount} صفحة</span>` : ''}
         </div>
