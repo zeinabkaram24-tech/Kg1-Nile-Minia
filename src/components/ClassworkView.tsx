@@ -8,7 +8,7 @@ import {
   BookOpen,
   ExternalLink,
 } from 'lucide-react';
-import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, SubjectName, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
@@ -20,6 +20,7 @@ interface ClassworkViewProps {
   classworkList: ClassworkEntry[];
   currentBlock?: number;
   currentWeek?: number;
+  timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
   onToggleClasswork: (id: string) => void;
   onSaveClasswork: (entry: ClassworkEntry) => void;
 }
@@ -30,6 +31,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   classworkList,
   currentBlock = 1,
   currentWeek = 2,
+  timetables,
   onToggleClasswork,
   onSaveClasswork,
 }) => {
@@ -41,16 +43,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       (c.week || 1) === currentWeek
   );
 
-  // Filter to subjects with weekly plans (Arabic, French, Mathematics, Social Studies, English, ICT, Science)
-  const rawTimetablePeriods = (CLASS_TIMETABLES[currentClass][selectedDay] || []).filter(
-    (s) =>
-      s.subject === 'Arabic' ||
-      s.subject === 'French' ||
-      s.subject === 'Mathematics' ||
-      s.subject === 'Social Studies' ||
-      s.subject === 'English' ||
-      s.subject === 'ICT' ||
-      s.subject === 'Science'
+  const schedule = timetables ? timetables[currentClass] : CLASS_TIMETABLES[currentClass];
+  const rawTimetablePeriods = ((schedule && schedule[selectedDay]) || []).filter(
+    (s) => Boolean(s.subject)
   );
 
   // Group repeated periods (especially English or Mathematics) so they appear once only
@@ -210,10 +205,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               <BookOpen className="w-6 h-6" />
             </div>
             <h3 className="text-base font-black text-slate-900">
-              لا توجد حصص مقررة ليوم {selectedDay} ({currentClass})
+              لا توجد حصص مسجلة ليوم {selectedDay} ({currentClass})
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1.5 max-w-md mx-auto">
-              يقتصر العرض حالياً على المواد المدرجة بالخطة الأسبوعية (إنجليزي وعربي وفرنش وماث ودراسات اجتماعية وتكنولوجيا المعلومات ICT وساينس Science).
+              يمكنكِ إدخال حصص الجدول الجديد من تبويب "جدول الحصص"، أو استيراد خطة أسبوعية بالضغط على "Smart Plan Classifier".
             </p>
           </div>
         )

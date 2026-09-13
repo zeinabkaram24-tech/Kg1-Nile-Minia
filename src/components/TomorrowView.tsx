@@ -15,6 +15,7 @@ interface TomorrowViewProps {
   selectedDay: SchoolDay;
   currentBlock?: number;
   currentWeek?: number;
+  timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
 }
 
 const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
@@ -31,12 +32,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   selectedDay,
   currentBlock = 1,
   currentWeek = 2,
+  timetables,
 }) => {
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
   // Tomorrow's timetable periods (the 8 periods)
-  const targetPeriods: PeriodSlot[] = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
+  const schedule = timetables ? timetables[currentClass] : CLASS_TIMETABLES[currentClass];
+  const targetPeriods: PeriodSlot[] = (schedule && schedule[tomorrowDay]) || [];
 
   // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items, strictly excluding homework)
   const isHomeworkNote = (noteText: string, arabicText?: string) => {

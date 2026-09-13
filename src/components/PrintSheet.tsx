@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, PeriodSlot } from '../types';
 import {
   CLASS_TIMETABLES,
   NEXT_SCHOOL_DAY,
@@ -17,6 +17,7 @@ interface PrintSheetProps {
   homeworkList: HomeworkEntry[];
   currentBlock?: number;
   currentWeek?: number;
+  timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
 }
 
 export const PrintSheet: React.FC<PrintSheetProps> = ({
@@ -26,10 +27,12 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
   homeworkList,
   currentBlock = 1,
   currentWeek = 2,
+  timetables,
 }) => {
   const tomorrowDay = NEXT_SCHOOL_DAY[selectedDay];
-  const tomorrowPeriods = CLASS_TIMETABLES[currentClass][tomorrowDay] || [];
-  const todayPeriods = CLASS_TIMETABLES[currentClass][selectedDay] || [];
+  const schedule = timetables ? timetables[currentClass] : CLASS_TIMETABLES[currentClass];
+  const tomorrowPeriods = (schedule && schedule[tomorrowDay]) || [];
+  const todayPeriods = (schedule && schedule[selectedDay]) || [];
 
   const dayClasswork = classworkList.filter(
     (c) =>
