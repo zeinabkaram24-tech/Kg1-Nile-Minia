@@ -329,11 +329,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[
                         { id: 'ALL', label: 'كل الفصول (All Classes)' },
-                        { id: 'KG1A', label: 'فصل KG 1A' },
-                        { id: 'KG1B', label: 'فصل KG 1B' },
-                        { id: 'KG1C', label: 'فصل KG 1C' },
-                        { id: 'KG1D', label: 'فصل KG 1D' },
-                        { id: 'KG1E', label: 'فصل KG 1E' },
+                        { id: 'G2A', label: 'فصل G2A' },
+                        { id: 'G2B', label: 'فصل G2B' },
+                        { id: 'G2C', label: 'فصل G2C' },
                       ].map((c) => (
                         <button
                           key={c.id}

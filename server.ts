@@ -105,7 +105,7 @@ function heuristicParser(planText: string, classId: string) {
         Thursday: 'Sunday',
       };
       homework.push({
-        classId: classId || 'KG1A',
+        classId: classId || 'G2B',
         assignedDay: currentDay,
         dueDay: nextDayMap[currentDay] || 'Monday',
         subject: currentSubject,
@@ -115,7 +115,7 @@ function heuristicParser(planText: string, classId: string) {
       });
     } else if (isCw || cleanText.length > 5) {
       classwork.push({
-        classId: classId || 'KG1A',
+        classId: classId || 'G2B',
         day: currentDay,
         period: (classwork.length % 8) + 1,
         subject: currentSubject,
@@ -144,12 +144,12 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
     }
 
     const prompt = `
-You are an expert school coordinator assistant for Nile Egyptian International School, KG 1 (${classId || 'KG1A'}).
+You are an expert school coordinator assistant for Nile Egyptian International School, Grade 2 (${classId || 'G2B'}).
 The user provided their weekly plan text (which can be in English, Arabic, or mixed).
 Your job is to categorize and extract:
 1. "classwork": An array of items studied in class for that day and period.
    Each classwork item must have:
-   - "classId": "${classId || 'KG1A'}"
+   - "classId": "${classId || 'G2B'}"
    - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
    - "period": Number (1 to 8, or estimate 1-8 based on typical school day schedule)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
@@ -160,7 +160,7 @@ Your job is to categorize and extract:
 
 2. "homework": An array of homework tasks assigned.
    Each homework item must have:
-   - "classId": "${classId || 'KG1A'}"
+   - "classId": "${classId || 'G2B'}"
    - "assignedDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
    - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" (usually the next school day or next subject period)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
@@ -209,7 +209,7 @@ ${planText}
   } catch (error: any) {
     console.error('Error in /api/parse-weekly-plan:', error);
     // Fall back gracefully instead of crashing
-    const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'KG1A');
+    const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'G2B');
     return res.json(fallback);
   }
 });

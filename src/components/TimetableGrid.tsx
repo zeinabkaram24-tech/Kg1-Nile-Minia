@@ -38,7 +38,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            {SCHOOL_NAME} • {SCHOOL_BRANCH} Campus • KG 1 ({currentClass})
+            {SCHOOL_NAME} • {SCHOOL_BRANCH} Campus • Grade 2 ({currentClass})
           </p>
         </div>
 
