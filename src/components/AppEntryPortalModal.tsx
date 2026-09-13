@@ -71,7 +71,7 @@ export const AppEntryPortalModal: React.FC<AppEntryPortalModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const saved = getSavedStudentName() || currentStudentName;
-      if (saved && saved !== 'طالب KG 1' && saved !== 'فصل G2B' && saved !== 'زائر') {
+      if (saved && saved !== 'طالب KG 1' && saved !== 'فصل KG 1A' && saved !== 'فصل G2B' && saved !== 'زائر') {
         setStudentNameInput(saved);
       }
       setStudentSectionInput(selectedSection);

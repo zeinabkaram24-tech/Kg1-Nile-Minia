@@ -35,7 +35,7 @@ export const VisitorWelcomeModal: React.FC<VisitorWelcomeModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const savedName = getSavedStudentName() || currentStudentName;
-      if (savedName && savedName !== 'طالب KG 1' && savedName !== 'فصل G2B') {
+      if (savedName && savedName !== 'طالب KG 1' && savedName !== 'فصل KG 1A' && savedName !== 'فصل G2B') {
         setName(savedName);
       }
       setRememberMe(isStudentRemembered() || true);

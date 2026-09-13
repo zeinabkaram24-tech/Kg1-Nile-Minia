@@ -45,7 +45,7 @@ export const QuickTimetableModal: React.FC<QuickTimetableModalProps> = ({
                   الجدول الدراسي الأسبوعي (فصل {currentSection})
                 </h3>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold font-sans">
-                  Grade 2
+                  KG 1
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-sans">
@@ -61,18 +61,18 @@ export const QuickTimetableModal: React.FC<QuickTimetableModalProps> = ({
                 <School className="w-3.5 h-3.5 text-indigo-600" />
                 <span>الفصل:</span>
               </span>
-              {(['2A', '2B', '2C'] as GradeSection[]).map((sec) => (
+              {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as GradeSection[]).map((sec) => (
                 <button
                   key={sec}
                   type="button"
                   onClick={() => onSelectSection(sec)}
-                  className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all ${
                     currentSection === sec
                       ? 'bg-indigo-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-300/60'
                   }`}
                 >
-                  {sec}
+                  {sec.replace('KG1', 'KG 1 ')}
                 </button>
               ))}
             </div>
@@ -179,7 +179,7 @@ export const QuickTimetableModal: React.FC<QuickTimetableModalProps> = ({
         {/* Footer */}
         <div className="px-6 py-3 border-t border-slate-100 bg-slate-50 text-right flex items-center justify-between">
           <span className="text-xs text-slate-500 font-sans">
-            مطابق لجدول الفصل المدرسي الرسمي لـ G2B
+            مطابق لجدول الفصل المدرسي الرسمي لـ KG 1
           </span>
           <button
             type="button"

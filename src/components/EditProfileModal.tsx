@@ -26,8 +26,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     e.preventDefault();
     onSave({
       ...student,
-      name: name.trim() || 'فصل G2B',
-      grade: grade.trim() || 'Grade 2 - B',
+      name: name.trim() || 'فصل KG 1A',
+      grade: grade.trim() || 'KG 1 - A',
       schoolName: schoolName.trim() || 'Nile Egyptian International Schools',
       branch: branch.trim() || 'Minia Branch',
     });
@@ -65,7 +65,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="مثال: زياد / طالب G2B"
+              placeholder="مثال: زياد / طالب KG 1A"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900"
             />
           </div>
@@ -79,7 +79,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               required
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              placeholder="Grade 2 - B"
+              placeholder="KG 1 - A"
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 text-sm font-bold text-slate-900 font-sans"
             />
           </div>

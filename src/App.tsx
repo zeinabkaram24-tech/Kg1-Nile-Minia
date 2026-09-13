@@ -67,12 +67,19 @@ export default function App() {
     return getActiveUserProfile() === null;
   });
 
-  // Class selection (G2A, G2B, G2C)
+  // Class selection (KG1A, KG1B, KG1C, KG1D, KG1E)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const profile = getActiveUserProfile();
     if (profile?.classId) return profile.classId;
     const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
-    return saved === 'G2A' || saved === 'G2B' || saved === 'G2C' ? saved : 'G2B';
+    if (saved === 'KG1A' || saved === 'KG1B' || saved === 'KG1C' || saved === 'KG1D' || saved === 'KG1E') {
+      return saved;
+    }
+    // Backward compatibility for old saved classes
+    if (saved === 'G2A') return 'KG1A';
+    if (saved === 'G2B') return 'KG1B';
+    if (saved === 'G2C') return 'KG1C';
+    return 'KG1A';
   });
 
   // Current Block (1, 2, 3, 4)
@@ -262,7 +269,7 @@ export default function App() {
 
   // Reset to sample plan
   const handleResetToDefaults = () => {
-    if (confirm('Reset to standard Grade 2 Nile International School weekly plan?')) {
+    if (confirm('Reset to standard KG 1 Nile International School weekly plan?')) {
       setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
       setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
       if (userProfile?.mode === 'student' && userProfile.studentName) {
@@ -395,7 +402,7 @@ export default function App() {
             <span>•</span>
             <span>{SCHOOL_BRANCH} Branch</span>
             <span>•</span>
-            <span>Classes: G2A, G2B, G2C</span>
+            <span>Classes: KG 1 A, KG 1 B, KG 1 C, KG 1 D, KG 1 E</span>
           </div>
 
           <div className="flex items-center gap-4">

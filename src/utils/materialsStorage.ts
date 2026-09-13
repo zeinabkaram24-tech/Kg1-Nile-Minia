@@ -1,14 +1,19 @@
 import { MaterialItem } from '../types';
+import { INITIAL_MATERIALS_DATA } from '../data/materialsData';
+import { deleteMaterialBlob, deleteMultipleMaterialBlobs } from './materialsDb';
+import { isAdminLoggedIn } from './storage';
 
 const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
 const DB_VERSION = 1;
 const EVENT_NAME = 'school_materials_updated';
+const STORAGE_KEY = 'g2b_school_materials_v7';
+const FALLBACK_KEY = 'school_materials_fallback';
 
 // Helper to open IndexedDB
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (!('indexedDB' in window)) {
+    if (typeof window === 'undefined' || !('indexedDB' in window)) {
       reject(new Error('IndexedDB is not supported'));
       return;
     }
@@ -32,9 +37,6 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-// Fallback in localStorage if IndexedDB has issues
-const FALLBACK_KEY = 'school_materials_fallback';
-
 function getFallbackMaterials(): MaterialItem[] {
   try {
     const raw = localStorage.getItem(FALLBACK_KEY);
@@ -52,7 +54,7 @@ function saveFallbackMaterials(items: MaterialItem[]) {
   }
 }
 
-// Retrieve all materials
+// Retrieve all materials via IndexedDB
 export async function getAllMaterials(): Promise<MaterialItem[]> {
   try {
     const db = await openDB();
@@ -75,7 +77,141 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
   }
 }
 
-// Save or add a material
+// Synchronous localStorage getter used by UploadPlanFilesModal
+export function getSavedMaterials(): MaterialItem[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw === null) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    const items: MaterialItem[] = Array.isArray(parsed) ? parsed : [];
+
+    return items
+      .filter((m: MaterialItem) => m && m.subjectId !== 'religion')
+      .map((m: MaterialItem) => {
+        const updated = { ...m };
+        if (m.category === 'main_sheets' || m.categoryLabel === 'الشيتات الرئيسية') {
+          updated.categoryLabel = 'Main Sheets';
+        } else if (m.category === 'week1' || m.categoryLabel === 'ويك 1') {
+          updated.categoryLabel = 'Week 1';
+        } else if (m.category === 'week2' || m.categoryLabel === 'ويك 2') {
+          updated.categoryLabel = 'Week 2';
+        } else if (m.category === 'week3' || m.categoryLabel === 'ويك 3') {
+          updated.categoryLabel = 'Week 3';
+        }
+        return updated;
+      });
+  } catch (err) {
+    console.error('Failed to load materials from localStorage', err);
+    return [];
+  }
+}
+
+export function saveMaterials(materials: MaterialItem[], asAdmin?: boolean): void {
+  const sanitized = materials.map((m) => {
+    if (m.fileData && m.fileData.length > 50000) {
+      const { fileData, ...rest } = m;
+      return rest;
+    }
+    return m;
+  });
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
+    window.dispatchEvent(new CustomEvent(EVENT_NAME));
+  } catch (err) {
+    console.error('Failed to save materials to localStorage', err);
+  }
+
+  const isAuthorizedAdmin = asAdmin === true || isAdminLoggedIn();
+  if (isAuthorizedAdmin) {
+    try {
+      fetch('/api/materials/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materials: sanitized,
+          isAdmin: true,
+          pin: '1940',
+        }),
+      }).catch((e) => console.warn('Notice: Admin sync materials to server:', e));
+    } catch {
+      // Offline ignore
+    }
+  }
+}
+
+export async function syncMaterialsFromServer(): Promise<MaterialItem[]> {
+  try {
+    const res = await fetch('/api/materials');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.materials)) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.materials));
+        return data.materials;
+      }
+    }
+  } catch (err) {
+    console.warn('Cannot fetch materials from server:', err);
+  }
+  return getSavedMaterials();
+}
+
+export function addMaterialItem(item: Omit<MaterialItem, 'id' | 'createdAt'>): MaterialItem {
+  const current = getSavedMaterials();
+  const newItem: MaterialItem = {
+    ...item,
+    id: `mat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    createdAt: Date.now(),
+  };
+  const updated = [newItem, ...current];
+  saveMaterials(updated, true);
+  return newItem;
+}
+
+export function deleteMaterialItem(id: string): boolean {
+  const current = getSavedMaterials();
+  const updated = current.filter((m) => m.id !== id);
+  saveMaterials(updated, true);
+  deleteMaterialBlob(id);
+  return true;
+}
+
+export function updateMaterialItem(id: string, updates: Partial<MaterialItem>): MaterialItem | null {
+  const current = getSavedMaterials();
+  let updatedItem: MaterialItem | null = null;
+  const updated = current.map((m) => {
+    if (m.id === id) {
+      updatedItem = { ...m, ...updates };
+      return updatedItem;
+    }
+    return m;
+  });
+  if (updatedItem) {
+    saveMaterials(updated, true);
+  }
+  return updatedItem;
+}
+
+export function deleteMultipleMaterialItems(ids: string[]): boolean {
+  if (!ids || ids.length === 0) return false;
+  const idSet = new Set(ids);
+  const current = getSavedMaterials();
+  const updated = current.filter((m) => !idSet.has(m.id));
+  saveMaterials(updated, true);
+  deleteMultipleMaterialBlobs(ids);
+  return true;
+}
+
+export function resetToDefaultMaterials(): MaterialItem[] {
+  saveMaterials(INITIAL_MATERIALS_DATA);
+  return INITIAL_MATERIALS_DATA;
+}
+
+// Save or add a material via IndexedDB
 export async function saveMaterial(item: MaterialItem): Promise<void> {
   try {
     const db = await openDB();
@@ -98,7 +234,7 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material
+// Delete a material via IndexedDB
 export async function deleteMaterial(id: string): Promise<void> {
   try {
     const db = await openDB();
@@ -144,7 +280,7 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   const parts = dataUrl.split(',');
   const mimeMatch = parts[0].match(/:(.*?);/);
   const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
-  const bstr = atob(parts[1]);
+  const bstr = atob(parts[1] || '');
   let n = bstr.length;
   const u8arr = new Uint8Array(n);
   while (n--) {
@@ -153,16 +289,15 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Open PDF Directly in a new browser tab (No modal, opens natively)
+// Open PDF Directly in a new browser tab
 export function openPdfItem(item: MaterialItem): void {
   try {
+    if (!item.fileData) return;
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
 
-    // Attempt direct window.open first
     const newWin = window.open(blobUrl, '_blank');
     if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-      // Fallback via anchor click if window.open was intercepted
       const a = document.createElement('a');
       a.href = blobUrl;
       a.target = '_blank';
@@ -179,10 +314,10 @@ export function openPdfItem(item: MaterialItem): void {
 // Universal Print Function for PDF item
 export function printPdfItem(item: MaterialItem): void {
   try {
+    if (!item.fileData) return;
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
 
-    // Create a hidden iframe with the blob URL to trigger browser print dialog
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -203,7 +338,6 @@ export function printPdfItem(item: MaterialItem): void {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       } catch {
-        // If iframe printing is blocked, open in new tab for direct printing
         const newTab = window.open(blobUrl, '_blank');
         if (newTab) {
           newTab.focus();
@@ -226,11 +360,13 @@ export function printPdfItem(item: MaterialItem): void {
 // Universal Download Function
 export function downloadPdfItem(item: MaterialItem): void {
   try {
+    if (!item.fileData) return;
     const blob = dataUrlToBlob(item.fileData);
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
+    const name = item.fileName || item.title || 'document';
+    a.download = name.endsWith('.pdf') ? name : `${name}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

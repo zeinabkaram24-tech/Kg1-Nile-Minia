@@ -20,21 +20,72 @@ export const ClassSelectorModal: React.FC<ClassSelectorModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const sectionDescriptions: Record<GradeSection, { title: string; subtitle: string; tag: string }> = {
+  const sectionDescriptions: Record<string, { title: string; subtitle: string; tag: string }> = {
+    'KG1A': {
+      title: 'فصل KG 1A',
+      subtitle: 'عرض جدول حصص KG 1A، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 تربية بدنية (PE)',
+    },
+    'KG1B': {
+      title: 'فصل KG 1B',
+      subtitle: 'عرض جدول حصص KG 1B، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 فرنسي (Français)',
+    },
+    'KG1C': {
+      title: 'فصل KG 1C',
+      subtitle: 'عرض جدول حصص KG 1C، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 رياضيات (Math)',
+    },
+    'KG1D': {
+      title: 'فصل KG 1D',
+      subtitle: 'عرض جدول حصص KG 1D، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 لغة إنجليزية (English)',
+    },
+    'KG1E': {
+      title: 'فصل KG 1E',
+      subtitle: 'عرض جدول حصص KG 1E، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 لغة عربية (Arabic)',
+    },
+    // Backwards compatibility for legacy IDs
     '2A': {
-      title: 'فصل 2A (KG 1A)',
-      subtitle: 'عرض جدول حصص 2A، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      title: 'فصل KG 1A',
+      subtitle: 'عرض جدول حصص KG 1A، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 تربية بدنية (PE)',
     },
     '2B': {
-      title: 'فصل 2B (KG 1B)',
-      subtitle: 'عرض جدول حصص 2B، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      title: 'فصل KG 1B',
+      subtitle: 'عرض جدول حصص KG 1B، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 فرنسي (Français)',
     },
     '2C': {
-      title: 'فصل 2C (KG 1C)',
-      subtitle: 'عرض جدول حصص 2C، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      title: 'فصل KG 1C',
+      subtitle: 'عرض جدول حصص KG 1C، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
       tag: 'الأحد: حصة 1 رياضيات (Math)',
+    },
+    '1A': {
+      title: 'فصل KG 1A',
+      subtitle: 'عرض جدول حصص KG 1A، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 تربية بدنية (PE)',
+    },
+    '1B': {
+      title: 'فصل KG 1B',
+      subtitle: 'عرض جدول حصص KG 1B، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 فرنسي (Français)',
+    },
+    '1C': {
+      title: 'فصل KG 1C',
+      subtitle: 'عرض جدول حصص KG 1C، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 رياضيات (Math)',
+    },
+    '1D': {
+      title: 'فصل KG 1D',
+      subtitle: 'عرض جدول حصص KG 1D، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 لغة إنجليزية (English)',
+    },
+    '1E': {
+      title: 'فصل KG 1E',
+      subtitle: 'عرض جدول حصص KG 1E، تجهيزات حقيبة الغد، وخطة المذاكرة الأسبوعية',
+      tag: 'الأحد: حصة 1 لغة عربية (Arabic)',
     },
   };
 
@@ -64,7 +115,7 @@ export const ClassSelectorModal: React.FC<ClassSelectorModalProps> = ({
             <span>اختر فصلك الدراسي</span>
           </h2>
           <p className="text-xs sm:text-sm text-indigo-100 leading-relaxed">
-            الخطة الأسبوعية موحدة للصف الثاني، ويتم تخصيص جدول الحصص اليومية وحقيبة ومطلوبات الغد بدقة حسب فصلك (2A / 2B / 2C).
+            الخطة الأسبوعية لمرحلة KG 1، ويتم تخصيص جدول الحصص اليومية وحقيبة ومطلوبات الغد بدقة حسب فصلك (KG 1 A / B / C / D / E).
           </p>
         </div>
 
@@ -72,7 +123,11 @@ export const ClassSelectorModal: React.FC<ClassSelectorModalProps> = ({
         <div className="p-6 space-y-3">
           {GRADE_SECTIONS.map((sec) => {
             const isSelected = currentSection === sec.id;
-            const meta = sectionDescriptions[sec.id];
+            const meta = sectionDescriptions[sec.id] || {
+              title: sec.nameAr || `فصل ${sec.id}`,
+              subtitle: 'عرض جدول الحصص وتجهيزات الغد',
+              tag: 'KG 1',
+            };
 
             return (
               <button

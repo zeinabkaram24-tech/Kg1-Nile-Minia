@@ -9,9 +9,9 @@ import { TomorrowSpecialNote } from './defaultWeeklyPlan';
 // =============================================================
 
 export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
-  // Prep for Sunday (Saturday night) - G2B & G2C French Lesson 1
+  // Prep for Sunday (Saturday night) - KG1B & KG1C French Lesson 1
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Sunday',
     subject: 'French',
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
@@ -20,7 +20,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Sunday',
     subject: 'French',
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
@@ -29,9 +29,9 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
 
-  // Prep for Tuesday (Monday night) - G2A French Lesson 1
+  // Prep for Tuesday (Monday night) - KG1A French Lesson 1
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Tuesday',
     subject: 'French',
     note: 'Apportez vos crayons de couleurs avec vous, on va les utiliser pendant le cours (Les couleurs p. 11 à 14).',
@@ -42,7 +42,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
 
   // Prep for Wednesday (Tuesday night) - Dictation Notebook
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Wednesday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
@@ -51,7 +51,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Wednesday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
@@ -60,7 +60,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Wednesday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب لحصة الإملاء.',
@@ -74,7 +74,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   // Note: "Please bring a small white board , marker and 100 chart"
   // Sunday
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Sunday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -83,7 +83,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Sunday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -92,7 +92,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Sunday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -102,7 +102,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   },
   // Monday
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -111,7 +111,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -120,7 +120,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -130,7 +130,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   },
   // Tuesday
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -139,7 +139,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -148,7 +148,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -158,7 +158,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   },
   // Wednesday
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -167,7 +167,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -176,7 +176,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -186,7 +186,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   },
   // Thursday
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -195,7 +195,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -204,7 +204,7 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 2,
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board , marker and 100 chart',
@@ -218,11 +218,11 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
 // BLOCK 1 - WEEK 2 CLASSWORK (Arabic & French across classes)
 // -------------------------------------------------------------
 export const WEEK2_CLASSWORK: ClassworkEntry[] = [
-  // ===================== G2A (Week 2) =====================
+  // ===================== KG1A (Week 2) =====================
   // Sunday
   {
-    id: 'cw-w2-g2a-sun-7',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-7',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 7,
     subject: 'Arabic',
@@ -234,8 +234,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Monday
   {
-    id: 'cw-w2-g2a-mon-5',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-mon-5',
+    classId: 'KG1A',
     day: 'Monday',
     period: 5,
     subject: 'Arabic',
@@ -246,8 +246,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-mon-6',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-mon-6',
+    classId: 'KG1A',
     day: 'Monday',
     period: 6,
     subject: 'Arabic',
@@ -259,8 +259,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Tuesday
   {
-    id: 'cw-w2-g2a-tue-6',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-tue-6',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 6,
     subject: 'French',
@@ -273,8 +273,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2a-tue-8',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-tue-8',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 8,
     subject: 'Arabic',
@@ -287,8 +287,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Wednesday
   {
-    id: 'cw-w2-g2a-wed-5',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-5',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 5,
     subject: 'French',
@@ -301,8 +301,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2a-wed-6',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-6',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 6,
     subject: 'Arabic',
@@ -314,8 +314,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Thursday
   {
-    id: 'cw-w2-g2a-thu-2',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-2',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 2,
     subject: 'French',
@@ -328,8 +328,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2a-thu-4',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-4',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 4,
     subject: 'Arabic',
@@ -339,10 +339,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2A Math (Week 2)
+  // KG1A Math (Week 2)
   {
-    id: 'cw-w2-g2a-sun-8-math',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-8-math',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 8,
     subject: 'Mathematics',
@@ -353,8 +353,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-mon-2-math',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-mon-2-math',
+    classId: 'KG1A',
     day: 'Monday',
     period: 2,
     subject: 'Mathematics',
@@ -365,8 +365,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-tue-3-math',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-tue-3-math',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 3,
     subject: 'Mathematics',
@@ -377,8 +377,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-wed-1-math',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-1-math',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 1,
     subject: 'Mathematics',
@@ -389,8 +389,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-thu-5-math',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-5-math',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 5,
     subject: 'Mathematics',
@@ -400,10 +400,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2A Social Studies (Week 2 - أ/ منار حسن)
+  // KG1A Social Studies (Week 2 - أ/ منار حسن)
   {
-    id: 'cw-w2-g2a-sun-2-soc',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-2-soc',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 2,
     subject: 'Social Studies',
@@ -414,8 +414,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-wed-4-soc',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-4-soc',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 4,
     subject: 'Social Studies',
@@ -426,8 +426,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-thu-7-soc',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-7-soc',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 7,
     subject: 'Social Studies',
@@ -437,10 +437,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2A English (Week 2 - Mr. Mustafa Mohammed)
+  // KG1A English (Week 2 - Mr. Mustafa Mohammed)
   {
-    id: 'cw-w2-g2a-sun-6-eng',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-6-eng',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 6,
     subject: 'English',
@@ -451,8 +451,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-mon-3-eng',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-mon-3-eng',
+    classId: 'KG1A',
     day: 'Monday',
     period: 3,
     subject: 'English',
@@ -463,8 +463,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-tue-1-eng',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-tue-1-eng',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 1,
     subject: 'English',
@@ -475,8 +475,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-wed-7-eng',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-7-eng',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 7,
     subject: 'English',
@@ -487,8 +487,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-thu-1-eng',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-1-eng',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 1,
     subject: 'English',
@@ -499,11 +499,11 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // ===================== G2B (Week 2) =====================
+  // ===================== KG1B (Week 2) =====================
   // Sunday
   {
-    id: 'cw-w2-g2b-sun-1',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-1',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 1,
     subject: 'French',
@@ -516,8 +516,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2b-sun-3',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-3',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 3,
     subject: 'Arabic',
@@ -529,8 +529,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Monday
   {
-    id: 'cw-w2-g2b-mon-7',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-mon-7',
+    classId: 'KG1B',
     day: 'Monday',
     period: 7,
     subject: 'French',
@@ -543,8 +543,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2b-mon-8',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-mon-8',
+    classId: 'KG1B',
     day: 'Monday',
     period: 8,
     subject: 'Arabic',
@@ -556,8 +556,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Tuesday
   {
-    id: 'cw-w2-g2b-tue-4',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-tue-4',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 4,
     subject: 'French',
@@ -570,8 +570,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2b-tue-6',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-tue-6',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 6,
     subject: 'Arabic',
@@ -584,8 +584,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Wednesday
   {
-    id: 'cw-w2-g2b-wed-3',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-3',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 3,
     subject: 'Arabic',
@@ -596,8 +596,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-wed-4',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-4',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 4,
     subject: 'Arabic',
@@ -609,8 +609,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Thursday
   {
-    id: 'cw-w2-g2b-thu-1',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-1',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 1,
     subject: 'Arabic',
@@ -620,10 +620,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2B Math (Week 2)
+  // KG1B Math (Week 2)
   {
-    id: 'cw-w2-g2b-sun-2-math',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-2-math',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 2,
     subject: 'Mathematics',
@@ -634,8 +634,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-mon-5-math',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-mon-5-math',
+    classId: 'KG1B',
     day: 'Monday',
     period: 5,
     subject: 'Mathematics',
@@ -646,8 +646,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-tue-1-math',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-tue-1-math',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 1,
     subject: 'Mathematics',
@@ -658,8 +658,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-wed-5-math',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-5-math',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 5,
     subject: 'Mathematics',
@@ -670,8 +670,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-thu-4-math',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-4-math',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 4,
     subject: 'Mathematics',
@@ -681,10 +681,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2B Social Studies (Week 2 - أ/ منار حسن)
+  // KG1B Social Studies (Week 2 - أ/ منار حسن)
   {
-    id: 'cw-w2-g2b-mon-1-soc',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-mon-1-soc',
+    classId: 'KG1B',
     day: 'Monday',
     period: 1,
     subject: 'Social Studies',
@@ -695,8 +695,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-wed-2-soc',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-2-soc',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 2,
     subject: 'Social Studies',
@@ -707,8 +707,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-thu-2-soc',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-2-soc',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 2,
     subject: 'Social Studies',
@@ -718,10 +718,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2B English (Week 2 - Mr. Mustafa Mohammed)
+  // KG1B English (Week 2 - Mr. Mustafa Mohammed)
   {
-    id: 'cw-w2-g2b-sun-5-eng',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-5-eng',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 5,
     subject: 'English',
@@ -732,8 +732,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-mon-3-eng',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-mon-3-eng',
+    classId: 'KG1B',
     day: 'Monday',
     period: 3,
     subject: 'English',
@@ -744,8 +744,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-tue-8-eng',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-tue-8-eng',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 8,
     subject: 'English',
@@ -756,8 +756,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-wed-1-eng',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-1-eng',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 1,
     subject: 'English',
@@ -768,8 +768,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-thu-5-eng',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-5-eng',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 5,
     subject: 'English',
@@ -780,11 +780,11 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // ===================== G2C (Week 2) =====================
+  // ===================== KG1C (Week 2) =====================
   // Sunday
   {
-    id: 'cw-w2-g2c-sun-2',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-2',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 2,
     subject: 'French',
@@ -797,8 +797,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2c-sun-6',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-6',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 6,
     subject: 'Arabic',
@@ -810,8 +810,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Monday
   {
-    id: 'cw-w2-g2c-mon-1',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-1',
+    classId: 'KG1C',
     day: 'Monday',
     period: 1,
     subject: 'Arabic',
@@ -822,8 +822,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-mon-2',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-2',
+    classId: 'KG1C',
     day: 'Monday',
     period: 2,
     subject: 'Arabic',
@@ -834,8 +834,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-mon-3',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-3',
+    classId: 'KG1C',
     day: 'Monday',
     period: 3,
     subject: 'French',
@@ -849,8 +849,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Tuesday
   {
-    id: 'cw-w2-g2c-tue-2',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-tue-2',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 2,
     subject: 'Arabic',
@@ -863,8 +863,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Wednesday
   {
-    id: 'cw-w2-g2c-wed-2',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-wed-2',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 2,
     subject: 'French',
@@ -877,8 +877,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     linkTitle: 'Compétition de français',
   },
   {
-    id: 'cw-w2-g2c-wed-6',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-wed-6',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 6,
     subject: 'Arabic',
@@ -890,8 +890,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   },
   // Thursday
   {
-    id: 'cw-w2-g2c-thu-7',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-thu-7',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 7,
     subject: 'Arabic',
@@ -901,10 +901,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2C Math (Week 2)
+  // KG1C Math (Week 2)
   {
-    id: 'cw-w2-g2c-sun-3-math',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-3-math',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 3,
     subject: 'Mathematics',
@@ -915,8 +915,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-mon-8-math',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-8-math',
+    classId: 'KG1C',
     day: 'Monday',
     period: 8,
     subject: 'Mathematics',
@@ -927,8 +927,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-tue-4-math',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-tue-4-math',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 4,
     subject: 'Mathematics',
@@ -939,8 +939,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-wed-7-math',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-wed-7-math',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 7,
     subject: 'Mathematics',
@@ -951,8 +951,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-thu-6-math',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-thu-6-math',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 6,
     subject: 'Mathematics',
@@ -962,10 +962,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2C Social Studies (Week 2 - أ/ منار حسن)
+  // KG1C Social Studies (Week 2 - أ/ منار حسن)
   {
-    id: 'cw-w2-g2c-sun-7-soc',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-7-soc',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 7,
     subject: 'Social Studies',
@@ -976,8 +976,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-mon-6-soc',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-6-soc',
+    classId: 'KG1C',
     day: 'Monday',
     period: 6,
     subject: 'Social Studies',
@@ -988,8 +988,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-wed-1-soc',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-wed-1-soc',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 1,
     subject: 'Social Studies',
@@ -999,10 +999,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     completed: false,
     week: 2,
   },
-  // G2C English (Week 2 - Mr. Mustafa Mohammed)
+  // KG1C English (Week 2 - Mr. Mustafa Mohammed)
   {
-    id: 'cw-w2-g2c-sun-1-eng',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-1-eng',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 1,
     subject: 'English',
@@ -1013,8 +1013,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-mon-4-eng',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-4-eng',
+    classId: 'KG1C',
     day: 'Monday',
     period: 4,
     subject: 'English',
@@ -1025,8 +1025,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-tue-7-eng',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-tue-7-eng',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 7,
     subject: 'English',
@@ -1037,8 +1037,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-wed-3-eng',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-wed-3-eng',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 3,
     subject: 'English',
@@ -1049,8 +1049,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-thu-4-eng',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-thu-4-eng',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 4,
     subject: 'English',
@@ -1067,10 +1067,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   // Teachers: Ms. Mariam Ahmed / Mrs. Rana Ali
   // Note: Pages omitted as per instruction.
   // ===========================================================
-  // --- G2A ICT (Sun P3, Mon P7, Wed P3) ---
+  // --- KG1A ICT (Sun P3, Mon P7, Wed P3) ---
   {
-    id: 'cw-w2-g2a-sun-3-ict',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-3-ict',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 3,
     subject: 'ICT',
@@ -1080,8 +1080,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-mon-7-ict',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-mon-7-ict',
+    classId: 'KG1A',
     day: 'Monday',
     period: 7,
     subject: 'ICT',
@@ -1091,8 +1091,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-wed-3-ict',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-3-ict',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 3,
     subject: 'ICT',
@@ -1102,10 +1102,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // --- G2B ICT (Sun P7, Tue P3, Thu P8) ---
+  // --- KG1B ICT (Sun P7, Tue P3, Thu P8) ---
   {
-    id: 'cw-w2-g2b-sun-7-ict',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-7-ict',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 7,
     subject: 'ICT',
@@ -1115,8 +1115,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-tue-3-ict',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-tue-3-ict',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 3,
     subject: 'ICT',
@@ -1126,8 +1126,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-thu-8-ict',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-8-ict',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 8,
     subject: 'ICT',
@@ -1137,10 +1137,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // --- G2C ICT (Sun P5, Tue P6, Thu P1) ---
+  // --- KG1C ICT (Sun P5, Tue P6, Thu P1) ---
   {
-    id: 'cw-w2-g2c-sun-5-ict',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-sun-5-ict',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 5,
     subject: 'ICT',
@@ -1150,8 +1150,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-tue-6-ict',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-tue-6-ict',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 6,
     subject: 'ICT',
@@ -1161,8 +1161,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-thu-1-ict',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-thu-1-ict',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 1,
     subject: 'ICT',
@@ -1179,10 +1179,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
   // Dates: 13/9/2026 - 17/9/2026
   // ===========================================================
 
-  // --- G2A Science (Sun P5, Wed P2, Thu P8) ---
+  // --- KG1A Science (Sun P5, Wed P2, Thu P8) ---
   {
-    id: 'cw-w2-g2a-sun-5-sci',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-sun-5-sci',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 5,
     subject: 'Science',
@@ -1193,8 +1193,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-wed-2-sci',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-wed-2-sci',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 2,
     subject: 'Science',
@@ -1205,8 +1205,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2a-thu-8-sci',
-    classId: 'G2A',
+    id: 'cw-w2-kg1a-thu-8-sci',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 8,
     subject: 'Science',
@@ -1217,10 +1217,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // --- G2B Science (Sun P4, Wed P7, Thu P7) ---
+  // --- KG1B Science (Sun P4, Wed P7, Thu P7) ---
   {
-    id: 'cw-w2-g2b-sun-4-sci',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-sun-4-sci',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 4,
     subject: 'Science',
@@ -1231,8 +1231,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-wed-7-sci',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-wed-7-sci',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 7,
     subject: 'Science',
@@ -1243,8 +1243,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2b-thu-7-sci',
-    classId: 'G2B',
+    id: 'cw-w2-kg1b-thu-7-sci',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 7,
     subject: 'Science',
@@ -1255,10 +1255,10 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
 
-  // --- G2C Science (Mon P5, Tue P3, Thu P2) ---
+  // --- KG1C Science (Mon P5, Tue P3, Thu P2) ---
   {
-    id: 'cw-w2-g2c-mon-5-sci',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-mon-5-sci',
+    classId: 'KG1C',
     day: 'Monday',
     period: 5,
     subject: 'Science',
@@ -1269,8 +1269,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-tue-3-sci',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-tue-3-sci',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 3,
     subject: 'Science',
@@ -1281,8 +1281,8 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = [
     week: 2,
   },
   {
-    id: 'cw-w2-g2c-thu-2-sci',
-    classId: 'G2C',
+    id: 'cw-w2-kg1c-thu-2-sci',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 2,
     subject: 'Science',
@@ -1307,8 +1307,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
 
   // --- Arabic HW: Sunday (Assigned Sunday 13/9, Due Monday 14/9) ---
   {
-    id: 'hw-w2-ar-sun-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-ar-sun-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'Arabic',
@@ -1320,8 +1320,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ar-sun-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-ar-sun-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'Arabic',
@@ -1333,8 +1333,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ar-sun-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-ar-sun-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'Arabic',
@@ -1348,8 +1348,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
 
   // --- Arabic HW: Tuesday Workbook p. 46 (Assigned Tuesday 15/9, Due Wednesday 16/9) ---
   {
-    id: 'hw-w2-ar-tue-g2a-wb',
-    classId: 'G2A',
+    id: 'hw-w2-ar-tue-kg1a-wb',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1361,8 +1361,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ar-tue-g2b-wb',
-    classId: 'G2B',
+    id: 'hw-w2-ar-tue-kg1b-wb',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1374,8 +1374,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ar-tue-g2c-wb',
-    classId: 'G2C',
+    id: 'hw-w2-ar-tue-kg1c-wb',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1388,10 +1388,10 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   },
 
   // --- French HW: 3rd Session Homework (Fiche de devoir Page 23) ---
-  // G2A: 3rd session is Thursday Period 2 -> Assigned Thursday, Due Sunday
+  // KG1A: 3rd session is Thursday Period 2 -> Assigned Thursday, Due Sunday
   {
-    id: 'hw-w2-fr-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-fr-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'French',
@@ -1402,10 +1402,10 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     priority: 'normal',
     week: 2,
   },
-  // G2B: 3rd session is Tuesday Period 4 -> Assigned Tuesday, Due Sunday
+  // KG1B: 3rd session is Tuesday Period 4 -> Assigned Tuesday, Due Sunday
   {
-    id: 'hw-w2-fr-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-fr-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Sunday',
     subject: 'French',
@@ -1416,10 +1416,10 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     priority: 'normal',
     week: 2,
   },
-  // G2C: 3rd session is Wednesday Period 2 -> Assigned Wednesday, Due Sunday
+  // KG1C: 3rd session is Wednesday Period 2 -> Assigned Wednesday, Due Sunday
   {
-    id: 'hw-w2-fr-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-fr-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Wednesday',
     dueDay: 'Sunday',
     subject: 'French',
@@ -1438,8 +1438,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ===========================================================
   // Tuesday Homework (Due next session / Wednesday)
   {
-    id: 'hw-w2-math-tue-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-math-tue-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1451,8 +1451,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-math-tue-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-math-tue-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1464,8 +1464,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-math-tue-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-math-tue-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1478,8 +1478,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   },
   // Thursday Homework (Due Sunday)
   {
-    id: 'hw-w2-math-thu-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-math-thu-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1491,8 +1491,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-math-thu-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-math-thu-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1504,8 +1504,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-math-thu-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-math-thu-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1522,8 +1522,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // Assigned Tuesday, Due Wednesday
   // ===========================================================
   {
-    id: 'hw-w2-soc-tue-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-soc-tue-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1535,8 +1535,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-soc-tue-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-soc-tue-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1548,8 +1548,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-soc-tue-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-soc-tue-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1568,8 +1568,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ===========================================================
   // Monday Homework (Due Tuesday)
   {
-    id: 'hw-w2-eng-mon-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-eng-mon-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Monday',
     dueDay: 'Tuesday',
     subject: 'English',
@@ -1581,8 +1581,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-eng-mon-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-eng-mon-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Monday',
     dueDay: 'Tuesday',
     subject: 'English',
@@ -1594,8 +1594,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-eng-mon-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-eng-mon-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Monday',
     dueDay: 'Tuesday',
     subject: 'English',
@@ -1608,8 +1608,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   },
   // Thursday Homework (Due Sunday)
   {
-    id: 'hw-w2-eng-thu-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-eng-thu-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1621,8 +1621,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-eng-thu-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-eng-thu-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1634,8 +1634,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-eng-thu-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-eng-thu-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1649,13 +1649,13 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
 
   // ===========================================================
   // WEEK 2: OFFICIAL ICT HOMEWORK (3rd Session per Class)
-  // G2A: 3rd session is Wednesday P3 -> Assigned Wednesday
-  // G2B: 3rd session is Thursday P8 -> Assigned Thursday
-  // G2C: 3rd session is Thursday P1 -> Assigned Thursday
+  // KG1A: 3rd session is Wednesday P3 -> Assigned Wednesday
+  // KG1B: 3rd session is Thursday P8 -> Assigned Thursday
+  // KG1C: 3rd session is Thursday P1 -> Assigned Thursday
   // ===========================================================
   {
-    id: 'hw-w2-ict-wed-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-ict-wed-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'ICT',
@@ -1667,8 +1667,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ict-thu-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-ict-thu-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1680,8 +1680,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-ict-thu-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-ict-thu-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1698,8 +1698,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ===========================================================
   // Mathematics Unit 1 Test on Thursday -> Hints assigned Wednesday
   {
-    id: 'hw-w2-hint-math-test-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-hint-math-test-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Mathematics',
@@ -1710,8 +1710,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-math-test-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-hint-math-test-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Mathematics',
@@ -1722,8 +1722,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-math-test-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-hint-math-test-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Mathematics',
@@ -1736,8 +1736,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
 
   // ICT Quiz on Sunday Session 1 -> Hint assigned Thursday (for Sunday)
   {
-    id: 'hw-w2-hint-ict-quiz-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-hint-ict-quiz-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1748,8 +1748,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-ict-quiz-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-hint-ict-quiz-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1760,8 +1760,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-ict-quiz-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-hint-ict-quiz-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1778,10 +1778,10 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // Unit 1: Sound Sources
   // ===========================================================
 
-  // --- Monday Science HW: G2C (Due Tuesday next science session) ---
+  // --- Monday Science HW: KG1C (Due Tuesday next science session) ---
   {
-    id: 'hw-w2-sci-mon-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-sci-mon-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Monday',
     dueDay: 'Tuesday',
     subject: 'Science',
@@ -1793,10 +1793,10 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
 
-  // --- Wednesday Science HW: G2A & G2B (Due Thursday next science session) ---
+  // --- Wednesday Science HW: KG1A & KG1B (Due Thursday next science session) ---
   {
-    id: 'hw-w2-sci-wed-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-sci-wed-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1808,8 +1808,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-sci-wed-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-sci-wed-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1823,8 +1823,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
 
   // --- Science Quiz Hints: Assigned Wednesday (Due Thursday for Quiz on Unit 1) ---
   {
-    id: 'hw-w2-hint-sci-quiz-g2a',
-    classId: 'G2A',
+    id: 'hw-w2-hint-sci-quiz-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1836,8 +1836,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-sci-quiz-g2b',
-    classId: 'G2B',
+    id: 'hw-w2-hint-sci-quiz-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1849,8 +1849,8 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = [
     week: 2,
   },
   {
-    id: 'hw-w2-hint-sci-quiz-g2c',
-    classId: 'G2C',
+    id: 'hw-w2-hint-sci-quiz-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',

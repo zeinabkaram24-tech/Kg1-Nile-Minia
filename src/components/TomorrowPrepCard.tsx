@@ -15,6 +15,7 @@ import {
   RotateCcw,
   BookOpen,
   Palette,
+  AlertCircle,
 } from 'lucide-react';
 
 interface TomorrowPrepCardProps {

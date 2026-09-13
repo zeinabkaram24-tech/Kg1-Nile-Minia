@@ -17,10 +17,10 @@ export interface TomorrowSpecialNote {
   week?: number;
 }
 
-export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
+const BASE_SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   // --- PREPARING FOR MONDAY (Packed on Sunday night) ---
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -28,7 +28,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart (لوحة بيضاء وقلم سبورة ومخطط المائة)',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -36,7 +36,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart (لوحة بيضاء وقلم سبورة ومخطط المائة)',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Monday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -44,7 +44,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart (لوحة بيضاء وقلم سبورة ومخطط المائة)',
   },
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Monday',
     subject: 'English',
     note: 'English Diagnostic Test tomorrow. Pack sharp HB pencils and an eraser.',
@@ -52,7 +52,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Sharpened HB Pencils & Eraser for Diagnostic Test',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Monday',
     subject: 'English',
     note: 'English Diagnostic Test & Review (p. 1-3) tomorrow. Pack sharp HB pencils and an eraser.',
@@ -60,7 +60,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Sharpened HB Pencils & Eraser for Diagnostic Test',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Monday',
     subject: 'English',
     note: 'English Diagnostic Test tomorrow. Pack sharp HB pencils and an eraser.',
@@ -70,7 +70,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
 
   // --- PREPARING FOR TUESDAY (Packed on Monday night) ---
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -78,7 +78,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart (لوحة بيضاء وقلم سبورة ومخطط المائة)',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -86,7 +86,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart (لوحة بيضاء وقلم سبورة ومخطط المائة)',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Tuesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -96,7 +96,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
 
   // --- PREPARING FOR WEDNESDAY (Packed on Tuesday night) ---
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -104,7 +104,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -112,7 +112,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Wednesday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -122,7 +122,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
 
   // --- PREPARING FOR THURSDAY (Packed on Wednesday night) ---
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -130,7 +130,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -138,7 +138,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Thursday',
     subject: 'Mathematics',
     note: 'Please bring a small white board, marker and 100 chart.',
@@ -146,7 +146,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Small Whiteboard, Dry-Erase Marker & 100-Chart',
   },
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Thursday',
     subject: 'Social Studies',
     note: 'يرجى إحضار ألوان خشبية للتلوين والرسم لدرس "العودة إلى المدرسة" ص 7.',
@@ -154,7 +154,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Wooden Colored Pencils (ألوان خشبية للتلوين والرسم لدراسات ص 7)',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Thursday',
     subject: 'Social Studies',
     note: 'يرجى إحضار ألوان خشبية للتلوين والرسم لدرس "العودة إلى المدرسة" ص 7.',
@@ -162,7 +162,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'Wooden Colored Pencils (ألوان خشبية للتلوين والرسم لدراسات ص 7)',
   },
   {
-    classId: 'G2A',
+    classId: 'KG1A',
     targetDay: 'Thursday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب المخصصة لحصة الإملاء.',
@@ -170,7 +170,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'كراسة الطالب لإملاء اللغة العربية',
   },
   {
-    classId: 'G2B',
+    classId: 'KG1B',
     targetDay: 'Thursday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب المخصصة لحصة الإملاء.',
@@ -178,7 +178,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
     bagItem: 'كراسة الطالب لإملاء اللغة العربية',
   },
   {
-    classId: 'G2C',
+    classId: 'KG1C',
     targetDay: 'Thursday',
     subject: 'Arabic',
     note: 'إملاء - كراسة الطالب. يرجى إحضار كراسة الطالب المخصصة لحصة الإملاء.',
@@ -192,11 +192,11 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
 // BLOCK 1 - WEEK 1 OFFICIAL CLASSWORK (6/9/2026 - 10/9/2026)
 // -------------------------------------------------------------
 const WEEK1_CLASSWORK: ClassworkEntry[] = [
-  // ===================== G2A =====================
+  // ===================== KG1A =====================
   // Sunday
   {
-    id: 'cw-g2a-sun-1',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-1',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 1,
     subject: 'PE',
@@ -205,8 +205,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2a-sun-2',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-2',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 2,
     subject: 'Social Studies',
@@ -215,8 +215,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2a-sun-3',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-3',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 3,
     subject: 'ICT',
@@ -228,8 +228,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2a-sun-4',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-4',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 4,
     subject: 'Arts',
@@ -238,8 +238,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-sun-5',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-5',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 5,
     subject: 'Science',
@@ -248,18 +248,18 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-sun-6',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-6',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 6,
     subject: 'English',
     title: 'Welcome Day & Orientation',
-    details: 'Welcoming Grade 2 students, classroom language, greeting songs and getting to know each other.',
+    details: 'Welcoming KG 1 students, classroom language, greeting songs and getting to know each other.',
     completed: false,
   },
   {
-    id: 'cw-g2a-sun-7',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-7',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 7,
     subject: 'Arabic',
@@ -270,20 +270,20 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
-    id: 'cw-g2a-sun-8',
-    classId: 'G2A',
+    id: 'cw-kg1a-sun-8',
+    classId: 'KG1A',
     day: 'Sunday',
     period: 8,
     subject: 'Mathematics',
     title: 'Welcome Day & Math Exploration',
-    details: 'Welcoming Grade 2 learners to Mathematics, introducing classroom routines and math kits.',
+    details: 'Welcoming KG 1 learners to Mathematics, introducing classroom routines and math kits.',
     completed: false,
   },
 
-  // Monday (G2A)
+  // Monday (KG1A)
   {
-    id: 'cw-g2a-mon-1',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-1',
+    classId: 'KG1A',
     day: 'Monday',
     period: 1,
     subject: 'Music',
@@ -292,8 +292,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-2',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-2',
+    classId: 'KG1A',
     day: 'Monday',
     period: 2,
     subject: 'Mathematics',
@@ -303,8 +303,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-3',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-3',
+    classId: 'KG1A',
     day: 'Monday',
     period: 3,
     subject: 'English',
@@ -313,8 +313,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-4',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-4',
+    classId: 'KG1A',
     day: 'Monday',
     period: 4,
     subject: 'English',
@@ -323,8 +323,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-5',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-5',
+    classId: 'KG1A',
     day: 'Monday',
     period: 5,
     subject: 'Arabic',
@@ -334,8 +334,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-6',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-6',
+    classId: 'KG1A',
     day: 'Monday',
     period: 6,
     subject: 'Arabic',
@@ -345,8 +345,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-7',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-7',
+    classId: 'KG1A',
     day: 'Monday',
     period: 7,
     subject: 'ICT',
@@ -355,8 +355,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-mon-8',
-    classId: 'G2A',
+    id: 'cw-kg1a-mon-8',
+    classId: 'KG1A',
     day: 'Monday',
     period: 8,
     subject: 'PE',
@@ -365,10 +365,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Tuesday (G2A)
+  // Tuesday (KG1A)
   {
-    id: 'cw-g2a-tue-1',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-1',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 1,
     subject: 'English',
@@ -378,8 +378,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-2',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-2',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 2,
     subject: 'English',
@@ -389,8 +389,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-3',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-3',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 3,
     subject: 'Mathematics',
@@ -400,8 +400,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-4',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-4',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 4,
     subject: 'Mathematics',
@@ -411,8 +411,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-5',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-5',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 5,
     subject: 'Religion',
@@ -421,8 +421,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-6',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-6',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 6,
     subject: 'French',
@@ -431,8 +431,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-7',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-7',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 7,
     subject: 'Arts',
@@ -441,8 +441,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-tue-8',
-    classId: 'G2A',
+    id: 'cw-kg1a-tue-8',
+    classId: 'KG1A',
     day: 'Tuesday',
     period: 8,
     subject: 'Arabic',
@@ -453,10 +453,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
 
-  // Wednesday (G2A)
+  // Wednesday (KG1A)
   {
-    id: 'cw-g2a-wed-1',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-1',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 1,
     subject: 'Mathematics',
@@ -466,8 +466,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-2',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-2',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 2,
     subject: 'Science',
@@ -477,8 +477,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-3',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-3',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 3,
     subject: 'ICT',
@@ -487,8 +487,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-4',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-4',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 4,
     subject: 'Social Studies',
@@ -497,8 +497,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-5',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-5',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 5,
     subject: 'French',
@@ -508,8 +508,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-6',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-6',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 6,
     subject: 'Arabic',
@@ -520,8 +520,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
-    id: 'cw-g2a-wed-7',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-7',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 7,
     subject: 'English',
@@ -531,8 +531,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-wed-8',
-    classId: 'G2A',
+    id: 'cw-kg1a-wed-8',
+    classId: 'KG1A',
     day: 'Wednesday',
     period: 8,
     subject: 'English',
@@ -542,10 +542,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Thursday (G2A)
+  // Thursday (KG1A)
   {
-    id: 'cw-g2a-thu-1',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-1',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 1,
     subject: 'English',
@@ -555,8 +555,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-2',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-2',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 2,
     subject: 'French',
@@ -566,8 +566,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-3',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-3',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 3,
     subject: 'Religion',
@@ -576,8 +576,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-4',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-4',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 4,
     subject: 'Arabic',
@@ -587,8 +587,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-5',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-5',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 5,
     subject: 'Mathematics',
@@ -598,8 +598,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-6',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-6',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 6,
     subject: 'Music',
@@ -608,8 +608,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-7',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-7',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 7,
     subject: 'Social Studies',
@@ -619,8 +619,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2a-thu-8',
-    classId: 'G2A',
+    id: 'cw-kg1a-thu-8',
+    classId: 'KG1A',
     day: 'Thursday',
     period: 8,
     subject: 'Science',
@@ -629,11 +629,11 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // ===================== G2B =====================
-  // Sunday (G2B)
+  // ===================== KG1B =====================
+  // Sunday (KG1B)
   {
-    id: 'cw-g2b-sun-1',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-1',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 1,
     subject: 'French',
@@ -642,8 +642,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2b-sun-2',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-2',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 2,
     subject: 'Mathematics',
@@ -652,8 +652,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2b-sun-3',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-3',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 3,
     subject: 'Arabic',
@@ -664,8 +664,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
-    id: 'cw-g2b-sun-4',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-4',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 4,
     subject: 'Science',
@@ -674,8 +674,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-sun-5',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-5',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 5,
     subject: 'English',
@@ -684,8 +684,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-sun-6',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-6',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 6,
     subject: 'English',
@@ -694,8 +694,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-sun-7',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-7',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 7,
     subject: 'ICT',
@@ -707,8 +707,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-sun-8',
-    classId: 'G2B',
+    id: 'cw-kg1b-sun-8',
+    classId: 'KG1B',
     day: 'Sunday',
     period: 8,
     subject: 'Music',
@@ -717,10 +717,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Monday (G2B)
+  // Monday (KG1B)
   {
-    id: 'cw-g2b-mon-1',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-1',
+    classId: 'KG1B',
     day: 'Monday',
     period: 1,
     subject: 'Social Studies',
@@ -729,8 +729,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-2',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-2',
+    classId: 'KG1B',
     day: 'Monday',
     period: 2,
     subject: 'PE',
@@ -739,8 +739,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-3',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-3',
+    classId: 'KG1B',
     day: 'Monday',
     period: 3,
     subject: 'English',
@@ -750,8 +750,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-4',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-4',
+    classId: 'KG1B',
     day: 'Monday',
     period: 4,
     subject: 'English',
@@ -761,8 +761,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-5',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-5',
+    classId: 'KG1B',
     day: 'Monday',
     period: 5,
     subject: 'Mathematics',
@@ -772,8 +772,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-6',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-6',
+    classId: 'KG1B',
     day: 'Monday',
     period: 6,
     subject: 'Mathematics',
@@ -783,8 +783,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-7',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-7',
+    classId: 'KG1B',
     day: 'Monday',
     period: 7,
     subject: 'French',
@@ -794,8 +794,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-mon-8',
-    classId: 'G2B',
+    id: 'cw-kg1b-mon-8',
+    classId: 'KG1B',
     day: 'Monday',
     period: 8,
     subject: 'Arabic',
@@ -805,10 +805,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Tuesday (G2B)
+  // Tuesday (KG1B)
   {
-    id: 'cw-g2b-tue-1',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-1',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 1,
     subject: 'Mathematics',
@@ -818,8 +818,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-2',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-2',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 2,
     subject: 'Arts',
@@ -828,8 +828,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-3',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-3',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 3,
     subject: 'ICT',
@@ -838,8 +838,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-4',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-4',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 4,
     subject: 'French',
@@ -849,8 +849,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-5',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-5',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 5,
     subject: 'Religion',
@@ -859,8 +859,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-6',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-6',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 6,
     subject: 'Arabic',
@@ -871,8 +871,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
   {
-    id: 'cw-g2b-tue-7',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-7',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 7,
     subject: 'Music',
@@ -881,8 +881,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-tue-8',
-    classId: 'G2B',
+    id: 'cw-kg1b-tue-8',
+    classId: 'KG1B',
     day: 'Tuesday',
     period: 8,
     subject: 'English',
@@ -892,10 +892,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Wednesday (G2B)
+  // Wednesday (KG1B)
   {
-    id: 'cw-g2b-wed-1',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-1',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 1,
     subject: 'English',
@@ -905,8 +905,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-2',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-2',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 2,
     subject: 'Social Studies',
@@ -915,8 +915,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-3',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-3',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 3,
     subject: 'Arabic',
@@ -927,8 +927,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
-    id: 'cw-g2b-wed-4',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-4',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 4,
     subject: 'Arabic',
@@ -938,8 +938,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-5',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-5',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 5,
     subject: 'Mathematics',
@@ -949,8 +949,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-6',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-6',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 6,
     subject: 'PE',
@@ -959,8 +959,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-7',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-7',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 7,
     subject: 'Science',
@@ -970,8 +970,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-wed-8',
-    classId: 'G2B',
+    id: 'cw-kg1b-wed-8',
+    classId: 'KG1B',
     day: 'Wednesday',
     period: 8,
     subject: 'Arts',
@@ -980,10 +980,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Thursday (G2B)
+  // Thursday (KG1B)
   {
-    id: 'cw-g2b-thu-1',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-1',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 1,
     subject: 'Arabic',
@@ -993,8 +993,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-2',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-2',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 2,
     subject: 'Social Studies',
@@ -1004,8 +1004,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-3',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-3',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 3,
     subject: 'Religion',
@@ -1014,8 +1014,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-4',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-4',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 4,
     subject: 'Mathematics',
@@ -1025,8 +1025,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-5',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-5',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 5,
     subject: 'English',
@@ -1036,8 +1036,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-6',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-6',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 6,
     subject: 'English',
@@ -1047,8 +1047,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-7',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-7',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 7,
     subject: 'Science',
@@ -1057,8 +1057,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2b-thu-8',
-    classId: 'G2B',
+    id: 'cw-kg1b-thu-8',
+    classId: 'KG1B',
     day: 'Thursday',
     period: 8,
     subject: 'ICT',
@@ -1067,21 +1067,21 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // ===================== G2C =====================
-  // Sunday (G2C)
+  // ===================== KG1C =====================
+  // Sunday (KG1C)
   {
-    id: 'cw-g2c-sun-1',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-1',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 1,
     subject: 'English',
     title: 'Welcome Day & Orientation',
-    details: 'Welcome to Grade 2, getting acquainted, and classroom language with Mr. Mostafa.',
+    details: 'Welcome to KG 1, getting acquainted, and classroom language with Mr. Mostafa.',
     completed: true,
   },
   {
-    id: 'cw-g2c-sun-2',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-2',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 2,
     subject: 'French',
@@ -1090,18 +1090,18 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: true,
   },
   {
-    id: 'cw-g2c-sun-3',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-3',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 3,
     subject: 'Mathematics',
     title: 'Welcome Day & Math Class Introduction',
-    details: 'Welcome to Grade 2 Mathematics with Mrs. Sandy Samir.',
+    details: 'Welcome to KG 1 Mathematics with Mrs. Sandy Samir.',
     completed: true,
   },
   {
-    id: 'cw-g2c-sun-4',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-4',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 4,
     subject: 'Mathematics',
@@ -1110,8 +1110,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-sun-5',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-5',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 5,
     subject: 'ICT',
@@ -1123,8 +1123,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-sun-6',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-6',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 6,
     subject: 'Arabic',
@@ -1135,8 +1135,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=فيديو+ترحيبي+الصف+الثاني+العودة+إلى+المدرسة',
   },
   {
-    id: 'cw-g2c-sun-7',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-7',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 7,
     subject: 'Social Studies',
@@ -1145,8 +1145,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-sun-8',
-    classId: 'G2C',
+    id: 'cw-kg1c-sun-8',
+    classId: 'KG1C',
     day: 'Sunday',
     period: 8,
     subject: 'PE',
@@ -1155,10 +1155,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Monday (G2C)
+  // Monday (KG1C)
   {
-    id: 'cw-g2c-mon-1',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-1',
+    classId: 'KG1C',
     day: 'Monday',
     period: 1,
     subject: 'Arabic',
@@ -1168,8 +1168,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-2',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-2',
+    classId: 'KG1C',
     day: 'Monday',
     period: 2,
     subject: 'Arabic',
@@ -1179,8 +1179,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-3',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-3',
+    classId: 'KG1C',
     day: 'Monday',
     period: 3,
     subject: 'French',
@@ -1190,8 +1190,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-4',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-4',
+    classId: 'KG1C',
     day: 'Monday',
     period: 4,
     subject: 'English',
@@ -1200,8 +1200,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-5',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-5',
+    classId: 'KG1C',
     day: 'Monday',
     period: 5,
     subject: 'Science',
@@ -1210,8 +1210,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-6',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-6',
+    classId: 'KG1C',
     day: 'Monday',
     period: 6,
     subject: 'Social Studies',
@@ -1220,8 +1220,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-7',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-7',
+    classId: 'KG1C',
     day: 'Monday',
     period: 7,
     subject: 'Music',
@@ -1230,8 +1230,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-mon-8',
-    classId: 'G2C',
+    id: 'cw-kg1c-mon-8',
+    classId: 'KG1C',
     day: 'Monday',
     period: 8,
     subject: 'Mathematics',
@@ -1241,10 +1241,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Tuesday (G2C)
+  // Tuesday (KG1C)
   {
-    id: 'cw-g2c-tue-1',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-1',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 1,
     subject: 'PE',
@@ -1253,8 +1253,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-2',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-2',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 2,
     subject: 'Arabic',
@@ -1265,8 +1265,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=شرح+المدود+والمقاطع+الساكنة+الصف+الثاني',
   },
   {
-    id: 'cw-g2c-tue-3',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-3',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 3,
     subject: 'Science',
@@ -1276,8 +1276,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-4',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-4',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 4,
     subject: 'Mathematics',
@@ -1287,8 +1287,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-5',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-5',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 5,
     subject: 'Religion',
@@ -1297,8 +1297,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-6',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-6',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 6,
     subject: 'ICT',
@@ -1307,8 +1307,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-7',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-7',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 7,
     subject: 'English',
@@ -1318,8 +1318,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-tue-8',
-    classId: 'G2C',
+    id: 'cw-kg1c-tue-8',
+    classId: 'KG1C',
     day: 'Tuesday',
     period: 8,
     subject: 'English',
@@ -1329,10 +1329,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Wednesday (G2C)
+  // Wednesday (KG1C)
   {
-    id: 'cw-g2c-wed-1',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-1',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 1,
     subject: 'Social Studies',
@@ -1341,8 +1341,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-2',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-2',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 2,
     subject: 'French',
@@ -1352,8 +1352,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-3',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-3',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 3,
     subject: 'English',
@@ -1363,8 +1363,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-4',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-4',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 4,
     subject: 'English',
@@ -1374,8 +1374,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-5',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-5',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 5,
     subject: 'Arts',
@@ -1384,8 +1384,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-6',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-6',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 6,
     subject: 'Arabic',
@@ -1396,8 +1396,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     linkUrl: 'https://www.youtube.com/results?search_query=الفرق+بين+التاء+المربوطة+والمفتوحة+والهاء+للصف+الثاني',
   },
   {
-    id: 'cw-g2c-wed-7',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-7',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 7,
     subject: 'Mathematics',
@@ -1407,8 +1407,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-wed-8',
-    classId: 'G2C',
+    id: 'cw-kg1c-wed-8',
+    classId: 'KG1C',
     day: 'Wednesday',
     period: 8,
     subject: 'Music',
@@ -1417,10 +1417,10 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
 
-  // Thursday (G2C)
+  // Thursday (KG1C)
   {
-    id: 'cw-g2c-thu-1',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-1',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 1,
     subject: 'ICT',
@@ -1429,8 +1429,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-2',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-2',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 2,
     subject: 'Science',
@@ -1439,8 +1439,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-3',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-3',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 3,
     subject: 'Religion',
@@ -1449,8 +1449,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-4',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-4',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 4,
     subject: 'English',
@@ -1460,8 +1460,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-5',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-5',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 5,
     subject: 'English',
@@ -1471,8 +1471,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-6',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-6',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 6,
     subject: 'Mathematics',
@@ -1482,8 +1482,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-7',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-7',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 7,
     subject: 'Arabic',
@@ -1493,8 +1493,8 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
     completed: false,
   },
   {
-    id: 'cw-g2c-thu-8',
-    classId: 'G2C',
+    id: 'cw-kg1c-thu-8',
+    classId: 'KG1C',
     day: 'Thursday',
     period: 8,
     subject: 'Arts',
@@ -1504,7 +1504,7 @@ const WEEK1_CLASSWORK: ClassworkEntry[] = [
   },
 ];
 
-export const INITIAL_CLASSWORK: ClassworkEntry[] = [
+const BASE_INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK1_CLASSWORK.map((c) => ({ ...c, block: 1, week: 1 })),
   ...WEEK2_CLASSWORK.map((c) => ({ ...c, block: 1, week: 2 })),
 ];
@@ -1515,10 +1515,10 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
 // -------------------------------------------------------------
 const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
   // --- Week 1 Hints for Tests & Quizzes ---
-  // English Diagnostic Test on Monday -> Hint assigned Sunday for G2A, G2B, G2C
+  // English Diagnostic Test on Monday -> Hint assigned Sunday for KG1A, KG1B, KG1C
   {
-    id: 'hw-w1-hint-eng-diag-g2a',
-    classId: 'G2A',
+    id: 'hw-w1-hint-eng-diag-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'English',
@@ -1529,8 +1529,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-eng-diag-g2b',
-    classId: 'G2B',
+    id: 'hw-w1-hint-eng-diag-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'English',
@@ -1541,8 +1541,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-eng-diag-g2c',
-    classId: 'G2C',
+    id: 'hw-w1-hint-eng-diag-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Sunday',
     dueDay: 'Monday',
     subject: 'English',
@@ -1553,10 +1553,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
 
-  // Social Studies Pre-Test (الاختبار القبلي) on Wednesday -> Hint assigned Tuesday for G2A, G2B, G2C
+  // Social Studies Pre-Test (الاختبار القبلي) on Wednesday -> Hint assigned Tuesday for KG1A, KG1B, KG1C
   {
-    id: 'hw-w1-hint-soc-test-g2a',
-    classId: 'G2A',
+    id: 'hw-w1-hint-soc-test-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1567,8 +1567,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-soc-test-g2b',
-    classId: 'G2B',
+    id: 'hw-w1-hint-soc-test-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1579,8 +1579,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-soc-test-g2c',
-    classId: 'G2C',
+    id: 'hw-w1-hint-soc-test-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Social Studies',
@@ -1591,10 +1591,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
 
-  // --- Arabic Weekly Dictation (إملاء) on Thursday -> Alert assigned Wednesday for G2A, G2B, G2C ---
+  // --- Arabic Weekly Dictation (إملاء) on Thursday -> Alert assigned Wednesday for KG1A, KG1B, KG1C ---
   {
-    id: 'hw-w1-hint-ar-dict-g2a',
-    classId: 'G2A',
+    id: 'hw-w1-hint-ar-dict-kg1a',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Arabic',
@@ -1605,8 +1605,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-ar-dict-g2b',
-    classId: 'G2B',
+    id: 'hw-w1-hint-ar-dict-kg1b',
+    classId: 'KG1B',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Arabic',
@@ -1617,8 +1617,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-hint-ar-dict-g2c',
-    classId: 'G2C',
+    id: 'hw-w1-hint-ar-dict-kg1c',
+    classId: 'KG1C',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Arabic',
@@ -1630,10 +1630,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
   },
 
   // --- ICT Homework (Page 14) — Assigned in the 3rd (last) session per class ---
-  // G2A: 3rd session is Wednesday Period 3 -> Assigned Wednesday, due Sunday Week 2
+  // KG1A: 3rd session is Wednesday Period 3 -> Assigned Wednesday, due Sunday Week 2
   {
-    id: 'hw-w1-ict-g2a-wed',
-    classId: 'G2A',
+    id: 'hw-w1-ict-kg1a-wed',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1645,10 +1645,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     priority: 'urgent',
     week: 1,
   },
-  // G2B: 3rd session is Thursday Period 8 -> Assigned Thursday, due Sunday Week 2
+  // KG1B: 3rd session is Thursday Period 8 -> Assigned Thursday, due Sunday Week 2
   {
-    id: 'hw-w1-ict-g2b-thu',
-    classId: 'G2B',
+    id: 'hw-w1-ict-kg1b-thu',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1660,10 +1660,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     priority: 'urgent',
     week: 1,
   },
-  // G2C: 3rd session is Thursday Period 1 -> Assigned Thursday, due Sunday Week 2
+  // KG1C: 3rd session is Thursday Period 1 -> Assigned Thursday, due Sunday Week 2
   {
-    id: 'hw-w1-ict-g2c-thu',
-    classId: 'G2C',
+    id: 'hw-w1-ict-kg1c-thu',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'ICT',
@@ -1678,8 +1678,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 
   // --- Arabic Sound Analysis (Assigned Tuesday, Due Wednesday) ---
   {
-    id: 'hw-ar-g2a-1',
-    classId: 'G2A',
+    id: 'hw-ar-kg1a-1',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1691,8 +1691,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-ar-g2b-1',
-    classId: 'G2B',
+    id: 'hw-ar-kg1b-1',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1704,8 +1704,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-ar-g2c-1',
-    classId: 'G2C',
+    id: 'hw-ar-kg1c-1',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Arabic',
@@ -1719,8 +1719,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 
   // --- Mathematics Homework (Tuesday -> Due Wednesday) ---
   {
-    id: 'hw-w1-math-g2a-tue',
-    classId: 'G2A',
+    id: 'hw-w1-math-kg1a-tue',
+    classId: 'KG1A',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1732,8 +1732,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-math-g2b-tue',
-    classId: 'G2B',
+    id: 'hw-w1-math-kg1b-tue',
+    classId: 'KG1B',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1745,8 +1745,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-math-g2c-tue',
-    classId: 'G2C',
+    id: 'hw-w1-math-kg1c-tue',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Wednesday',
     subject: 'Mathematics',
@@ -1760,8 +1760,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 
   // --- Mathematics Homework (Thursday -> Due Sunday Week 2) ---
   {
-    id: 'hw-w1-math-g2a-thu',
-    classId: 'G2A',
+    id: 'hw-w1-math-kg1a-thu',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1773,8 +1773,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-math-g2b-thu',
-    classId: 'G2B',
+    id: 'hw-w1-math-kg1b-thu',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1786,8 +1786,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-math-g2c-thu',
-    classId: 'G2C',
+    id: 'hw-w1-math-kg1c-thu',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'Mathematics',
@@ -1801,8 +1801,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
 
   // --- English Homework (Thursday -> Due Sunday Week 2) ---
   {
-    id: 'hw-w1-eng-g2a-thu',
-    classId: 'G2A',
+    id: 'hw-w1-eng-kg1a-thu',
+    classId: 'KG1A',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1814,8 +1814,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-eng-g2b-thu',
-    classId: 'G2B',
+    id: 'hw-w1-eng-kg1b-thu',
+    classId: 'KG1B',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1827,8 +1827,8 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     week: 1,
   },
   {
-    id: 'hw-w1-eng-g2c-thu',
-    classId: 'G2C',
+    id: 'hw-w1-eng-kg1c-thu',
+    classId: 'KG1C',
     assignedDay: 'Thursday',
     dueDay: 'Sunday',
     subject: 'English',
@@ -1841,10 +1841,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
   },
 
   // --- Science Homework (Assigned mid-week -> Due Thursday) ---
-  // G2A: Assigned Wednesday Period 2 -> Due Thursday Period 8
+  // KG1A: Assigned Wednesday Period 2 -> Due Thursday Period 8
   {
-    id: 'hw-w1-sci-g2a-wed',
-    classId: 'G2A',
+    id: 'hw-w1-sci-kg1a-wed',
+    classId: 'KG1A',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1855,10 +1855,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     priority: 'urgent',
     week: 1,
   },
-  // G2B: Assigned Wednesday Period 7 -> Due Thursday Period 7
+  // KG1B: Assigned Wednesday Period 7 -> Due Thursday Period 7
   {
-    id: 'hw-w1-sci-g2b-wed',
-    classId: 'G2B',
+    id: 'hw-w1-sci-kg1b-wed',
+    classId: 'KG1B',
     assignedDay: 'Wednesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1869,10 +1869,10 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
     priority: 'urgent',
     week: 1,
   },
-  // G2C: Assigned Tuesday Period 3 -> Due Thursday Period 2
+  // KG1C: Assigned Tuesday Period 3 -> Due Thursday Period 2
   {
-    id: 'hw-w1-sci-g2c-tue',
-    classId: 'G2C',
+    id: 'hw-w1-sci-kg1c-tue',
+    classId: 'KG1C',
     assignedDay: 'Tuesday',
     dueDay: 'Thursday',
     subject: 'Science',
@@ -1885,7 +1885,59 @@ const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = [
   },
 ];
 
-export const INITIAL_HOMEWORK: HomeworkEntry[] = [
+const BASE_INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_BASE_HOMEWORK.map((h) => ({ ...h, block: 1, week: 1 })),
   ...ALL_LINK_AND_WEEK2_HOMEWORK.map((h) => ({ ...h, block: 1, week: 2 })),
+];
+
+// Expand for KG 1 D & KG 1 E
+const KG1D_CLASSWORK: ClassworkEntry[] = BASE_INITIAL_CLASSWORK.filter((c) => c.classId === 'KG1A').map((c) => ({
+  ...c,
+  id: c.id.replace('kg1a', 'kg1d'),
+  classId: 'KG1D',
+}));
+
+const KG1E_CLASSWORK: ClassworkEntry[] = BASE_INITIAL_CLASSWORK.filter((c) => c.classId === 'KG1B').map((c) => ({
+  ...c,
+  id: c.id.replace('kg1b', 'kg1e'),
+  classId: 'KG1E',
+}));
+
+export const INITIAL_CLASSWORK: ClassworkEntry[] = [
+  ...BASE_INITIAL_CLASSWORK,
+  ...KG1D_CLASSWORK,
+  ...KG1E_CLASSWORK,
+];
+
+const KG1D_HOMEWORK: HomeworkEntry[] = BASE_INITIAL_HOMEWORK.filter((h) => h.classId === 'KG1A').map((h) => ({
+  ...h,
+  id: h.id.replace('kg1a', 'kg1d'),
+  classId: 'KG1D',
+}));
+
+const KG1E_HOMEWORK: HomeworkEntry[] = BASE_INITIAL_HOMEWORK.filter((h) => h.classId === 'KG1B').map((h) => ({
+  ...h,
+  id: h.id.replace('kg1b', 'kg1e'),
+  classId: 'KG1E',
+}));
+
+export const INITIAL_HOMEWORK: HomeworkEntry[] = [
+  ...BASE_INITIAL_HOMEWORK,
+  ...KG1D_HOMEWORK,
+  ...KG1E_HOMEWORK,
+];
+
+const KG1D_NOTES = BASE_SPECIAL_TEACHER_NOTES.filter((n) => n.classId === 'KG1A').map((n) => ({
+  ...n,
+  classId: 'KG1D' as const,
+}));
+const KG1E_NOTES = BASE_SPECIAL_TEACHER_NOTES.filter((n) => n.classId === 'KG1B').map((n) => ({
+  ...n,
+  classId: 'KG1E' as const,
+}));
+
+export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
+  ...BASE_SPECIAL_TEACHER_NOTES,
+  ...KG1D_NOTES,
+  ...KG1E_NOTES,
 ];

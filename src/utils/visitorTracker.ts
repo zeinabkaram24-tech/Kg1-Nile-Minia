@@ -65,7 +65,7 @@ export async function fetchVisitorStats(): Promise<VisitorStatsSummary | null> {
 // 2. Register student login by name
 export async function registerStudentLogin(
   studentName: string,
-  studentGrade = 'Grade 2',
+  studentGrade = 'KG 1',
   section?: string
 ): Promise<{ success: boolean; visitor?: VisitorItem; stats?: VisitorStatsSummary; error?: string }> {
   try {

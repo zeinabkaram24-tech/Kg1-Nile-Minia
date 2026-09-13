@@ -24,7 +24,7 @@ interface WeeklyPlanModalProps {
   onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[]) => void;
 }
 
-const SAMPLE_WEEKLY_PLAN = `Grade 2 Weekly Plan - Nile Egyptian International School
+const SAMPLE_WEEKLY_PLAN = `KG 1 Weekly Plan - Nile Egyptian International School
 
 Sunday:
 - French: Unité 1 Salutations. CW: Manuel p. 6-8. HW: None
@@ -163,7 +163,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
                 className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-1"
               >
                 <Copy className="w-3.5 h-3.5" />
-                Fill Sample Grade 2 Plan
+                Fill Sample KG 1 Plan
               </button>
             </div>
 

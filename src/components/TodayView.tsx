@@ -181,7 +181,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
     }
 
     lines.push('--------------------------------');
-    lines.push(`Weekly Plan Tracker - Grade 2 (${selectedSection})`);
+    lines.push(`Weekly Plan Tracker - KG 1 (${selectedSection})`);
 
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
       setCopiedText(true);
@@ -200,7 +200,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-indigo-300 text-xs font-bold uppercase tracking-wider font-sans block">
-                Nile Egyptian International Schools • Grade 2
+                Nile Egyptian International Schools • KG 1
               </span>
               <span className="px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 text-[10px] font-bold border border-indigo-400/30 font-sans">
                 فصل {selectedSection}

@@ -90,7 +90,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               {editingTask ? 'تعديل خطة المادة / المهمة' : 'إضافة خطة مادة جديدة'}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 font-sans">
-              Weekly Plan Task Entry • Grade 2B
+              Weekly Plan Task Entry • KG 1
             </p>
           </div>
           <button

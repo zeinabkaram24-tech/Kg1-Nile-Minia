@@ -35,7 +35,7 @@ export const VisitorWelcomeModal: React.FC<VisitorWelcomeModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       const savedName = getSavedStudentName() || currentStudentName;
-      if (savedName && savedName !== 'طالب Grade 2' && savedName !== 'فصل G2B') {
+      if (savedName && savedName !== 'طالب KG 1' && savedName !== 'فصل KG 1A' && savedName !== 'فصل G2B') {
         setName(savedName);
       }
       setRememberMe(isStudentRemembered() || true);
@@ -60,7 +60,7 @@ export const VisitorWelcomeModal: React.FC<VisitorWelcomeModalProps> = ({
 
     setLoading(true);
     // 2. Register with the backend for visit tracking
-    const res = await registerStudentLogin(cleanName, `Grade ${selectedSection}`, selectedSection);
+    const res = await registerStudentLogin(cleanName, `KG 1 - ${selectedSection}`, selectedSection);
     setLoading(false);
 
     if (res.success && res.visitor) {
@@ -71,7 +71,7 @@ export const VisitorWelcomeModal: React.FC<VisitorWelcomeModalProps> = ({
         id: `local-${Date.now()}`,
         name: cleanName,
         loginType: 'student',
-        studentGrade: `Grade ${selectedSection}`,
+        studentGrade: `KG 1 - ${selectedSection}`,
         section: selectedSection,
         firstSeenAt: Date.now(),
         lastSeenAt: Date.now(),
@@ -103,7 +103,7 @@ export const VisitorWelcomeModal: React.FC<VisitorWelcomeModalProps> = ({
           </button>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-indigo-100 text-xs font-bold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>تسجيل الدخول باسم الطالب • Grade 2</span>
+            <span>تسجيل الدخول باسم الطالب • KG 1</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black mb-1.5">
             مرحباً بك في الخطة الأسبوعية 🎒

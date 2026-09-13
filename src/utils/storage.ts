@@ -463,6 +463,16 @@ export function getInitialWeeklyPlansArchive(): WeeklyPlanArchiveEntry[] {
     startDate: 'الأحد 31 أغسطس',
     endDate: 'الخميس 4 سبتمبر',
     tasksBySection: {
+      'KG1A': filterOutArtTasks(TASKS_2A),
+      'KG1B': filterOutArtTasks(TASKS_2B),
+      'KG1C': filterOutArtTasks(TASKS_2C),
+      'KG1D': filterOutArtTasks(TASKS_2A),
+      'KG1E': filterOutArtTasks(TASKS_2B),
+      '1A': filterOutArtTasks(TASKS_2A),
+      '1B': filterOutArtTasks(TASKS_2B),
+      '1C': filterOutArtTasks(TASKS_2C),
+      '1D': filterOutArtTasks(TASKS_2A),
+      '1E': filterOutArtTasks(TASKS_2B),
       '2A': filterOutArtTasks(TASKS_2A),
       '2B': filterOutArtTasks(TASKS_2B),
       '2C': filterOutArtTasks(TASKS_2C),
@@ -496,18 +506,36 @@ export function loadWeeklyPlansArchive(): WeeklyPlanArchiveEntry[] {
         }
 
         // Ensure each entry has tasks filtered and default title set to Block 1 - Week 1
-        return entries.map((entry) => ({
-          ...entry,
-          title:
-            entry.id === 'b1-w1' && (!entry.title || entry.title.includes('الأسبوع الأول') || entry.title.includes('Week 1 Plan'))
-              ? 'Block 1 - Week 1'
-              : entry.title,
-          tasksBySection: {
-            '2A': mergeWithDefaultTasks(entry.tasksBySection?.['2A'] || [], '2A'),
-            '2B': mergeWithDefaultTasks(entry.tasksBySection?.['2B'] || [], '2B'),
-            '2C': mergeWithDefaultTasks(entry.tasksBySection?.['2C'] || [], '2C'),
-          },
-        }));
+        return entries.map((entry) => {
+          const rawSec = entry.tasksBySection || ({} as any);
+          const a = mergeWithDefaultTasks(rawSec['KG1A'] || rawSec['1A'] || rawSec['2A'] || [], 'KG1A');
+          const b = mergeWithDefaultTasks(rawSec['KG1B'] || rawSec['1B'] || rawSec['2B'] || [], 'KG1B');
+          const c = mergeWithDefaultTasks(rawSec['KG1C'] || rawSec['1C'] || rawSec['2C'] || [], 'KG1C');
+          const d = mergeWithDefaultTasks(rawSec['KG1D'] || rawSec['1D'] || a, 'KG1D');
+          const e = mergeWithDefaultTasks(rawSec['KG1E'] || rawSec['1E'] || b, 'KG1E');
+          return {
+            ...entry,
+            title:
+              entry.id === 'b1-w1' && (!entry.title || entry.title.includes('الأسبوع الأول') || entry.title.includes('Week 1 Plan'))
+                ? 'Block 1 - Week 1'
+                : entry.title,
+            tasksBySection: {
+              'KG1A': a,
+              'KG1B': b,
+              'KG1C': c,
+              'KG1D': d,
+              'KG1E': e,
+              '1A': a,
+              '1B': b,
+              '1C': c,
+              '1D': d,
+              '1E': e,
+              '2A': a,
+              '2B': b,
+              '2C': c,
+            },
+          };
+        });
       }
     }
   } catch (e) {

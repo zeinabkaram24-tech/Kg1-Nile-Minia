@@ -103,7 +103,7 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
                 Full Weekly Schedule
               </span>
               <span className="text-xs text-indigo-700 bg-indigo-50 font-bold px-2.5 py-0.5 rounded-full border border-indigo-200">
-                Grade 2 ({currentSection}) • Nile International Schools
+                KG 1 ({currentSection}) • Nile International Schools
               </span>
             </div>
 

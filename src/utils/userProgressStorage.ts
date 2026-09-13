@@ -11,7 +11,7 @@ const USER_TASKS_PREFIX = 'g2_user_personal_tasks_';
  */
 export function resolveCurrentUserId(studentName?: string | null): string {
   const activeName = (studentName || getStoredVisitorName() || '').trim();
-  if (activeName && activeName !== 'زائر' && activeName !== 'طالب Grade 2') {
+  if (activeName && activeName !== 'زائر' && activeName !== 'طالب KG 1' && activeName !== 'طالب Grade 2') {
     // Clean and normalize arabic/english name for key safety
     const normalized = activeName.toLowerCase().replace(/\s+/g, '_');
     return `user_${encodeURIComponent(normalized)}`;

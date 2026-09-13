@@ -469,7 +469,7 @@ export function generateSheetHtml(item: MaterialItem, subjectNameAr: string): st
       <div class="school-header">
         <div>
           <div class="school-title">مدارس النيل المصرية الدولية</div>
-          <div class="school-sub">Nile Egyptian International Schools • Grade 2</div>
+          <div class="school-sub">Nile Egyptian International Schools • KG 1</div>
         </div>
         <div class="school-badge-box">
           عام 2025 / 2026<br/>
@@ -485,7 +485,7 @@ export function generateSheetHtml(item: MaterialItem, subjectNameAr: string): st
         </div>
         <div class="info-item">
           <span class="info-label">الفصل:</span>
-          <span>Grade 2 ( &nbsp;&nbsp;&nbsp;&nbsp; )</span>
+          <span>KG 1 ( &nbsp;&nbsp;&nbsp;&nbsp; )</span>
         </div>
         <div class="info-item">
           <span class="info-label">المادة:</span>

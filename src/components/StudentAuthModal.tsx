@@ -182,22 +182,22 @@ export const StudentAuthModal: React.FC<StudentAuthModalProps> = ({
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   اختر الفصل الدراسي:
                 </label>
-                <div className="flex items-center gap-2">
-                  {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
+                <div className="grid grid-cols-5 gap-1.5">
+                  {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
                     const isSelected = selectedClass === cls;
-                    const label = cls.replace('G', '');
+                    const letter = cls.replace('KG1', '');
                     return (
                       <button
                         key={cls}
                         type="button"
                         onClick={() => setSelectedClass(cls)}
-                        className={`flex-1 py-1.5 px-3 rounded-xl font-black text-xs border transition-all ${
+                        className={`py-1.5 px-1 sm:px-2 rounded-xl font-black text-xs border transition-all text-center ${
                           isSelected
                             ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        Grade {label}
+                        KG 1 {letter}
                       </button>
                     );
                   })}

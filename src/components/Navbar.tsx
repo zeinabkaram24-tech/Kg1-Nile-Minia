@@ -97,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Nile Egyptian International School</span>
                 </h1>
                 <p className="text-[10px] sm:text-[11px] text-blue-200 font-bold mt-1 leading-none flex items-center gap-1.5">
-                  <span>Grade 2</span>
+                  <span>KG 1</span>
                   <span className="text-indigo-300">•</span>
                   <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
                 </p>
@@ -155,16 +155,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Class Buttons Side-by-Side (2A, 2B, 2C) */}
-            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
-              {(['G2A', 'G2B', 'G2C'] as const).map((cls) => {
+            {/* Class Buttons Side-by-Side (KG 1 A - E) */}
+            <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0 overflow-x-auto">
+              {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
                 const isSelected = currentClass === cls;
-                const label = cls.replace('G', ''); // '2A', '2B', '2C'
+                const label = cls.replace('KG1', 'KG 1 '); // 'KG 1 A', 'KG 1 B', etc.
                 return (
                   <button
                     key={cls}
                     onClick={() => onSelectClass(cls)}
-                    className={`px-3 py-1 text-xs font-black rounded-lg transition-all ${
+                    className={`px-2 sm:px-2.5 py-1 text-xs font-black rounded-lg transition-all whitespace-nowrap ${
                       isSelected
                         ? 'bg-slate-900 text-white shadow-2xs'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'

@@ -5,7 +5,7 @@ export { TASKS_2A, TASKS_2B, TASKS_2C };
 
 export const GRADE_SECTIONS: GradeSectionOption[] = [
   {
-    id: '2A',
+    id: 'KG1A',
     nameAr: 'فصل KG 1A',
     nameEn: 'KG 1 - A',
     badgeColor: 'bg-indigo-600 text-white',
@@ -14,7 +14,7 @@ export const GRADE_SECTIONS: GradeSectionOption[] = [
     lightBg: 'bg-indigo-50',
   },
   {
-    id: '2B',
+    id: 'KG1B',
     nameAr: 'فصل KG 1B',
     nameEn: 'KG 1 - B',
     badgeColor: 'bg-purple-600 text-white',
@@ -23,13 +23,31 @@ export const GRADE_SECTIONS: GradeSectionOption[] = [
     lightBg: 'bg-purple-50',
   },
   {
-    id: '2C',
+    id: 'KG1C',
     nameAr: 'فصل KG 1C',
     nameEn: 'KG 1 - C',
     badgeColor: 'bg-emerald-600 text-white',
     textColor: 'text-emerald-700',
     borderColor: 'border-emerald-300',
     lightBg: 'bg-emerald-50',
+  },
+  {
+    id: 'KG1D',
+    nameAr: 'فصل KG 1D',
+    nameEn: 'KG 1 - D',
+    badgeColor: 'bg-amber-600 text-white',
+    textColor: 'text-amber-700',
+    borderColor: 'border-amber-300',
+    lightBg: 'bg-amber-50',
+  },
+  {
+    id: 'KG1E',
+    nameAr: 'فصل KG 1E',
+    nameEn: 'KG 1 - E',
+    badgeColor: 'bg-rose-600 text-white',
+    textColor: 'text-rose-700',
+    borderColor: 'border-rose-300',
+    lightBg: 'bg-rose-50',
   },
 ];
 
@@ -96,6 +114,16 @@ const filterAllowedTimetable = (timetable: Timetable): Timetable =>
   ) as Timetable;
 
 export const GRADE_TASKS: Record<GradeSection, PlanTask[]> = {
+  'KG1A': filterAllowedTasks(TASKS_2A),
+  'KG1B': filterAllowedTasks(TASKS_2B),
+  'KG1C': filterAllowedTasks(TASKS_2C),
+  'KG1D': filterAllowedTasks(TASKS_2A),
+  'KG1E': filterAllowedTasks(TASKS_2B),
+  '1A': filterAllowedTasks(TASKS_2A),
+  '1B': filterAllowedTasks(TASKS_2B),
+  '1C': filterAllowedTasks(TASKS_2C),
+  '1D': filterAllowedTasks(TASKS_2A),
+  '1E': filterAllowedTasks(TASKS_2B),
   '2A': filterAllowedTasks(TASKS_2A),
   '2B': filterAllowedTasks(TASKS_2B),
   '2C': filterAllowedTasks(TASKS_2C),
@@ -105,7 +133,7 @@ export const GRADE_TASKS: Record<GradeSection, PlanTask[]> = {
 export const DEFAULT_STUDENT: StudentProfile = {
   name: 'طالب KG 1',
   grade: 'KG 1',
-  section: '2A',
+  section: 'KG1A',
   schoolName: 'Nile Egyptian International Schools',
   branch: 'Minia Branch (فرع المنيا)',
 };
@@ -285,13 +313,23 @@ export const TIMETABLE_G2C: Timetable = {
 };
 
 export const GRADE_TIMETABLES: Record<GradeSection, Timetable> = {
+  'KG1A': filterAllowedTimetable(TIMETABLE_G2A),
+  'KG1B': filterAllowedTimetable(TIMETABLE_G2B),
+  'KG1C': filterAllowedTimetable(TIMETABLE_G2C),
+  'KG1D': filterAllowedTimetable(TIMETABLE_G2A),
+  'KG1E': filterAllowedTimetable(TIMETABLE_G2B),
+  '1A': filterAllowedTimetable(TIMETABLE_G2A),
+  '1B': filterAllowedTimetable(TIMETABLE_G2B),
+  '1C': filterAllowedTimetable(TIMETABLE_G2C),
+  '1D': filterAllowedTimetable(TIMETABLE_G2A),
+  '1E': filterAllowedTimetable(TIMETABLE_G2B),
   '2A': filterAllowedTimetable(TIMETABLE_G2A),
   '2B': filterAllowedTimetable(TIMETABLE_G2B),
   '2C': filterAllowedTimetable(TIMETABLE_G2C),
 };
 
-// Default fallback timetable (2A or 2B)
-export const DEFAULT_TIMETABLE: Timetable = GRADE_TIMETABLES['2A'];
+// Default fallback timetable (KG1A)
+export const DEFAULT_TIMETABLE: Timetable = GRADE_TIMETABLES['KG1A'];
 
 // Default fallback tasks
 export const DEFAULT_TASKS: PlanTask[] = TASKS_2A;
