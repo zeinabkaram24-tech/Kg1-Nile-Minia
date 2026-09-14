@@ -1,6 +1,11 @@
 import { MaterialItem } from '../types';
 import { INITIAL_MATERIALS_DATA } from '../data/materialsData';
-import { deleteMaterialBlob, deleteMultipleMaterialBlobs, clearAllMaterialBlobs } from './materialsDb';
+import {
+  getMaterialBlob,
+  deleteMaterialBlob,
+  deleteMultipleMaterialBlobs,
+  clearAllMaterialBlobs,
+} from './materialsDb';
 import { isAdminLoggedIn } from './storage';
 
 const DB_NAME = 'SchoolMaterialsDB';
@@ -156,16 +161,46 @@ export function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([u8arr], { type: mime });
 }
 
-// Open PDF Directly in a new browser tab (No modal, opens natively)
-export function openPdfItem(item: MaterialItem): void {
+// Resolve Blob for MaterialItem safely
+export async function getMaterialItemBlob(item: MaterialItem): Promise<Blob | null> {
   try {
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
+    const dbBlob = await getMaterialBlob(item.id);
+    if (dbBlob) return dbBlob;
+  } catch (e) {
+    console.warn('Could not retrieve blob from IndexedDB:', e);
+  }
 
-    // Attempt direct window.open first
+  if (item.fileData) {
+    try {
+      if (item.fileData.startsWith('data:')) {
+        return dataUrlToBlob(item.fileData);
+      }
+    } catch (e) {
+      console.warn('Could not parse dataUrl:', e);
+    }
+  }
+
+  if (item.fileUrl) {
+    try {
+      const res = await fetch(item.fileUrl);
+      if (res.ok) return await res.blob();
+    } catch (e) {
+      console.warn('Could not fetch fileUrl:', e);
+    }
+  }
+
+  return null;
+}
+
+// Open PDF Directly in a new browser tab or fallback
+export async function openPdfItem(item: MaterialItem): Promise<void> {
+  try {
+    const blob = await getMaterialItemBlob(item);
+    const blobUrl = blob ? URL.createObjectURL(blob) : item.fileUrl || null;
+    if (!blobUrl) return;
+
     const newWin = window.open(blobUrl, '_blank');
     if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
-      // Fallback via anchor click if window.open was intercepted
       const a = document.createElement('a');
       a.href = blobUrl;
       a.target = '_blank';
@@ -180,12 +215,12 @@ export function openPdfItem(item: MaterialItem): void {
 }
 
 // Universal Print Function for PDF item
-export function printPdfItem(item: MaterialItem): void {
+export async function printPdfItem(item: MaterialItem): Promise<void> {
   try {
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
+    const blob = await getMaterialItemBlob(item);
+    const blobUrl = blob ? URL.createObjectURL(blob) : item.fileUrl || null;
+    if (!blobUrl) return;
 
-    // Create a hidden iframe with the blob URL to trigger browser print dialog
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -206,11 +241,8 @@ export function printPdfItem(item: MaterialItem): void {
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
       } catch {
-        // If iframe printing is blocked, open in new tab for direct printing
         const newTab = window.open(blobUrl, '_blank');
-        if (newTab) {
-          newTab.focus();
-        }
+        if (newTab) newTab.focus();
       }
     };
 
@@ -227,17 +259,21 @@ export function printPdfItem(item: MaterialItem): void {
 }
 
 // Universal Download Function
-export function downloadPdfItem(item: MaterialItem): void {
+export async function downloadPdfItem(item: MaterialItem): Promise<void> {
   try {
-    const blob = dataUrlToBlob(item.fileData);
-    const blobUrl = URL.createObjectURL(blob);
+    const blob = await getMaterialItemBlob(item);
+    const blobUrl = blob ? URL.createObjectURL(blob) : item.fileUrl || null;
+    if (!blobUrl) return;
+
     const a = document.createElement('a');
     a.href = blobUrl;
     a.download = item.fileName?.endsWith('.pdf') ? item.fileName : `${item.fileName || 'document'}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+    if (blob) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+    }
   } catch (e) {
     console.error('Download error:', e);
   }

@@ -26,6 +26,8 @@ import {
   downloadPdfItem,
   clearAllMaterialsStorage,
 } from '../utils/materialsStorage';
+import { saveMaterialBlob } from '../utils/materialsDb';
+import { PdfViewerModal } from './PdfViewerModal';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -40,7 +42,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [showUploadForm, setShowUploadForm] = useState(true);
+  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Upload Form State
   const [targetBlock, setTargetBlock] = useState<number>(1);
@@ -123,6 +126,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           };
 
           await saveMaterial(newItem);
+          try {
+            await saveMaterialBlob(newItem.id, selectedFile);
+          } catch (blobSaveErr) {
+            console.warn('Could not cache blob in IndexedDB:', blobSaveErr);
+          }
           await refreshMaterials();
 
           setSuccessMessage(
@@ -174,9 +182,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Helper to open PDF directly in new tab
+  // Helper to open PDF in interactive in-app preview modal
   const handlePreview = (item: MaterialItem) => {
-    openPdfItem(item);
+    setPreviewItem(item);
   };
 
   // Handle Clear All Materials
@@ -268,10 +276,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   </div>
                   <div>
                     <h3 className="text-sm sm:text-base font-black text-amber-950">
-                      زر تحميل وتوزيع الـ PDF على الـ Materials
+                      إضافة شيتات PDF إلى الـ Materials مباشرة
                     </h3>
                     <p className="text-xs text-amber-800/80 font-medium">
-                      اختر الـ Block والقسم لتحميل ملف الـ PDF بنفس ألوانه وتنسيقه الأصلي
+                      اختر الـ Topic والقسم لتحميل ملف الـ PDF وينزل دايركت على الـ Materials بنفس جودته وتنسيقه
                     </p>
                   </div>
                 </div>
@@ -449,7 +457,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <span>
                         {isUploading
                           ? 'جاري حفظ ورفع الملف...'
-                          : `تأكيد الرفع في Block ${targetBlock} (${targetSection})`}
+                          : `تأكيد الرفع في Topic ${targetBlock} (${targetSection})`}
                       </span>
                     </button>
                   </div>
@@ -589,6 +597,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App Interactive PDF Preview Modal */}
+      <PdfViewerModal
+        isOpen={!!previewItem}
+        onClose={() => setPreviewItem(null)}
+        item={previewItem}
+      />
     </>
   );
 };

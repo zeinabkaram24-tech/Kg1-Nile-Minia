@@ -366,10 +366,9 @@ export default function App() {
         onSelectTab={setActiveTab}
         onSelectBlock={setCurrentBlock}
         onSelectWeek={setCurrentWeek}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onOpenAdminAuthModal={() => setIsAdminAuthOpen(true)}
-        onOpenAdminDashboardModal={() => setIsAdminDashboardOpen(true)}
-        onOpenMaterialsModal={() => setIsMaterialsModalOpen(true)}
+        onOpenProfileModal={() => setIsAuthModalOpen(true)}
+        onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
+        onOpenMaterials={() => setIsMaterialsModalOpen(true)}
         onPrint={handlePrint}
       />
 

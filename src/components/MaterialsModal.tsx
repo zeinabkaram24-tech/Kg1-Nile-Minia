@@ -19,6 +19,7 @@ import {
   printPdfItem,
   downloadPdfItem,
 } from '../utils/materialsStorage';
+import { PdfViewerModal } from './PdfViewerModal';
 
 interface MaterialsModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
   // Load materials from storage
   const loadMaterials = async () => {
@@ -61,12 +63,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const handleClose = () => {
     setSelectedBlock(null);
     setSelectedSection(null);
+    setPreviewItem(null);
     onClose();
   };
 
-  // Helper to open PDF directly in new tab (no extra steps/modals)
+  // Helper to open in-app PDF preview modal
   const handlePreview = (item: MaterialItem) => {
-    openPdfItem(item);
+    setPreviewItem(item);
   };
 
   // Helper to trigger Print
@@ -376,6 +379,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App Interactive PDF Preview Modal */}
+      <PdfViewerModal
+        isOpen={!!previewItem}
+        onClose={() => setPreviewItem(null)}
+        item={previewItem}
+      />
     </>
   );
 };
