@@ -496,14 +496,18 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       key={item.id}
                       className="p-3.5 bg-white border border-slate-200 hover:border-slate-300 rounded-2xl shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all"
                     >
-                      {/* Left: Info */}
-                      <div className="flex items-start gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                      {/* Left: Info (Clickable to preview) */}
+                      <div
+                        className="flex items-start gap-3 min-w-0 cursor-pointer group/file"
+                        onClick={() => handlePreview(item)}
+                        title="انقر لمعاينة الـ PDF"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 mt-0.5 group-hover/file:scale-105 transition-transform">
                           <FileText className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs font-black text-slate-900 truncate">
+                            <span className="text-xs font-black text-slate-900 group-hover/file:text-indigo-600 truncate transition-colors">
                               {item.fileName}
                             </span>
                             <span className="text-[10px] font-extrabold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">

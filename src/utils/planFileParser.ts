@@ -1,3 +1,5 @@
+import { getPdfDocument } from './pdfSetup';
+
 /** Extracts readable rows from common weekly-plan file formats. */
 export async function extractWeeklyPlanText(file: File): Promise<string> {
   const name = file.name.toLowerCase();
@@ -33,8 +35,7 @@ export async function extractWeeklyPlanText(file: File): Promise<string> {
   }
 
   if (name.endsWith('.pdf')) {
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const pdf = await pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise;
+    const pdf = await getPdfDocument(new Uint8Array(buffer));
     const pages: string[] = [];
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
       const page = await pdf.getPage(pageNumber);

@@ -286,13 +286,17 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         key={file.id}
                         className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
                       >
-                        {/* File Details */}
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                        {/* File Details (Clickable to open PDF directly) */}
+                        <div
+                          className="flex items-center gap-3 cursor-pointer group/file"
+                          onClick={() => handlePreview(file)}
+                          title="انقر لفتح ومعاينة الـ PDF"
+                        >
+                          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 group-hover/file:scale-105 transition-transform">
                             <FileText className="w-5 h-5" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-black text-slate-900 truncate">
+                            <h4 className="text-sm font-black text-slate-900 group-hover/file:text-indigo-600 truncate transition-colors">
                               {file.fileName}
                             </h4>
                             <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
