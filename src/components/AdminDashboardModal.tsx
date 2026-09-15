@@ -13,6 +13,11 @@ import {
   Calendar,
   Layers,
   X,
+  Database,
+  Cloud,
+  RefreshCw,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
@@ -28,6 +33,8 @@ import {
 } from '../utils/materialsStorage';
 import { saveMaterialBlob } from '../utils/materialsDb';
 import { PdfViewerModal } from './PdfViewerModal';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { seedInitialDataIfNeeded } from '../services/supabaseService';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
@@ -52,8 +59,33 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [adminTab, setAdminTab] = useState<'materials' | 'supabase'>('materials');
+  const [isSeeding, setIsSeeding] = useState<boolean>(false);
+  const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSeedDatabase = async () => {
+    setIsSeeding(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      const res = await seedInitialDataIfNeeded(true);
+      if (res.seeded) {
+        setSuccessMessage(
+          `تم استيراد وحفظ البيانات الأولية في Supabase بنجاح! (${res.classworkCount} درس، ${res.homeworkCount} واجب، ${res.timetablesCount} جداول).`
+        );
+      } else {
+        setErrorMessage(
+          res.message || 'لم يتم استيراد البيانات. يرجى التأكد من تشغيل كود SQL وإنشاء الجداول في Supabase.'
+        );
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'خطأ أثناء الاتصال بـ Supabase');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Load materials
   const refreshMaterials = async () => {
@@ -233,10 +265,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
               <div>
                 <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                  لوحة الأدمن — إدارة Materials
+                  لوحة تحكم الأدمن (Admin Dashboard)
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5 font-semibold">
-                  رفع وتحميل ملفات الـ PDF وتوزيعها ومسحها
+                  إدارة الماتيريال وقاعدة بيانات Supabase السحابية
                 </p>
               </div>
             </div>
@@ -248,6 +280,37 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             >
               <span>خروج</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Navigation Tabs (Materials vs Supabase) */}
+          <div className="flex items-center gap-2 pt-3 border-b border-slate-100 pb-2">
+            <button
+              type="button"
+              onClick={() => setAdminTab('materials')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 ${
+                adminTab === 'materials'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>ملفات الماتيريال ({materials.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdminTab('supabase')}
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 ${
+                adminTab === 'supabase'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Database className="w-4 h-4" />
+              <span>قاعدة بيانات Supabase السحابية</span>
+              {isSupabaseConfigured && (
+                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+              )}
             </button>
           </div>
 
@@ -267,6 +330,214 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
+            {adminTab === 'supabase' ? (
+              /* SUPABASE TAB CONTENT */
+              <div className="space-y-5 animate-in fade-in duration-150">
+                {/* Connection Status Card */}
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xs ${
+                          isSupabaseConfigured ? 'bg-emerald-600' : 'bg-slate-500'
+                        }`}
+                      >
+                        <Cloud className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm sm:text-base font-black text-slate-900">
+                            حالة اتصال Supabase:
+                          </h3>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              isSupabaseConfigured
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : 'bg-rose-100 text-rose-800 border border-rose-300'
+                            }`}
+                          >
+                            {isSupabaseConfigured ? 'متصل وجاهز (Configured)' : 'غير متصل (Check .env)'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 font-medium">
+                          {isSupabaseConfigured
+                            ? 'تم ضبط مفاتيح VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY بنجاح. العمليات الحالية تتجه لـ Supabase.'
+                            : 'يرجى التأكد من إضافة VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف البيئة.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleSeedDatabase}
+                      disabled={isSeeding || !isSupabaseConfigured}
+                      className="px-4 py-2.5 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isSeeding ? 'animate-spin' : ''}`} />
+                      <span>{isSeeding ? 'جاري الاستيراد...' : 'استيراد وحفظ initialData.json في Supabase'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Schema Information & SQL Code */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900">
+                        كود SQL لإنشاء الجداول في Supabase SQL Editor
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        قم بنسخ هذا الكود وتشغيله في Supabase Dashbord &gt; SQL Editor لإنشاء الجداول والصلاحيات بنقرة واحدة:
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const sqlCode = `-- Nile Egyptian International School - Supabase Database Schema
+CREATE TABLE IF NOT EXISTS public.classwork (
+    id TEXT PRIMARY KEY,
+    class_id TEXT NOT NULL,
+    day TEXT NOT NULL,
+    period INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    title TEXT NOT NULL,
+    details TEXT,
+    pages TEXT,
+    completed BOOLEAN DEFAULT false,
+    block INTEGER DEFAULT 1,
+    week INTEGER DEFAULT 1,
+    link_url TEXT,
+    link_title TEXT,
+    links JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.homework (
+    id TEXT PRIMARY KEY,
+    class_id TEXT NOT NULL,
+    assigned_day TEXT NOT NULL,
+    due_day TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    task TEXT NOT NULL,
+    details TEXT,
+    pages TEXT,
+    completed BOOLEAN DEFAULT false,
+    priority TEXT DEFAULT 'normal',
+    block INTEGER DEFAULT 1,
+    week INTEGER DEFAULT 1,
+    link_url TEXT,
+    link_title TEXT,
+    links JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.timetables (
+    class_id TEXT PRIMARY KEY,
+    schedule JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.student_progress (
+    student_name TEXT PRIMARY KEY,
+    class_id TEXT,
+    completed_classwork_ids JSONB DEFAULT '[]'::jsonb,
+    completed_homework_ids JSONB DEFAULT '[]'::jsonb,
+    last_active BIGINT DEFAULT 0,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.classwork ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.homework ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.timetables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public access to classwork" ON public.classwork FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to homework" ON public.homework FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to timetables" ON public.timetables FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to student_progress" ON public.student_progress FOR ALL USING (true) WITH CHECK (true);
+`;
+                        navigator.clipboard.writeText(sqlCode);
+                        setCopiedSql(true);
+                        setTimeout(() => setCopiedSql(false), 3000);
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {copiedSql ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700">تم النسخ للحافظة!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>نسخ كود SQL</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="bg-slate-900 text-slate-200 p-3.5 rounded-xl font-mono text-xs overflow-x-auto max-h-56 leading-relaxed select-all" dir="ltr">
+                    <pre>{`-- 1. classwork (الدروس والخطة)
+CREATE TABLE IF NOT EXISTS public.classwork (
+  id TEXT PRIMARY KEY,
+  class_id TEXT NOT NULL,
+  day TEXT NOT NULL,
+  period INTEGER NOT NULL,
+  subject TEXT NOT NULL,
+  title TEXT NOT NULL,
+  details TEXT,
+  pages TEXT,
+  completed BOOLEAN DEFAULT false,
+  block INTEGER DEFAULT 1,
+  week INTEGER DEFAULT 1,
+  link_url TEXT,
+  link_title TEXT,
+  links JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. homework (الواجبات)
+CREATE TABLE IF NOT EXISTS public.homework (
+  id TEXT PRIMARY KEY,
+  class_id TEXT NOT NULL,
+  assigned_day TEXT NOT NULL,
+  due_day TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  task TEXT NOT NULL,
+  details TEXT,
+  pages TEXT,
+  completed BOOLEAN DEFAULT false,
+  priority TEXT DEFAULT 'normal',
+  block INTEGER DEFAULT 1,
+  week INTEGER DEFAULT 1,
+  link_url TEXT,
+  link_title TEXT,
+  links JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 3. timetables (الجداول)
+CREATE TABLE IF NOT EXISTS public.timetables (
+  class_id TEXT PRIMARY KEY,
+  schedule JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 4. student_progress (إنجاز الطلاب)
+CREATE TABLE IF NOT EXISTS public.student_progress (
+  student_name TEXT PRIMARY KEY,
+  class_id TEXT,
+  completed_classwork_ids JSONB DEFAULT '[]'::jsonb,
+  completed_homework_ids JSONB DEFAULT '[]'::jsonb,
+  last_active BIGINT DEFAULT 0,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);`}</pre>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* MATERIALS TAB CONTENT */
+              <>
             {/* Top Action Card: Primary Upload Button */}
             <div className="bg-amber-50/60 border border-amber-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -598,6 +869,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </div>
               )}
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>

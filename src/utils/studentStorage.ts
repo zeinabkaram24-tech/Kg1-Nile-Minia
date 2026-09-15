@@ -1,4 +1,5 @@
 import { ClassId, UserMode, UserProfile } from '../types';
+import { supabaseSaveStudentProgress } from '../services/supabaseService';
 
 const PROFILE_KEY = 'nile_planner_active_user_profile_v1';
 const KNOWN_STUDENTS_KEY = 'nile_planner_known_students_list_v1';
@@ -128,6 +129,9 @@ export function saveStudentProgress(
   try {
     localStorage.setItem(PROGRESS_PREFIX + norm, JSON.stringify(data));
     addKnownStudent(cleanName, classId);
+    supabaseSaveStudentProgress(cleanName, completedClassworkIds, completedHomeworkIds, classId).catch(
+      (err) => console.warn('Supabase student progress save warning:', err)
+    );
   } catch (e) {
     console.error('Error saving student progress', e);
   }

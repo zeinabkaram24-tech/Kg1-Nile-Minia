@@ -1,5 +1,6 @@
 import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, createEmptyWeekSchedule } from '../data/timetables';
+import { supabaseSaveAllTimetables, supabaseClearAllTimetables } from '../services/supabaseService';
 
 const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v1';
 
@@ -60,6 +61,10 @@ export function saveAllStoredTimetables(timetables: Record<ClassId, Record<Schoo
   try {
     localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(timetables));
     window.dispatchEvent(new Event('timetableUpdated'));
+    // Asynchronously sync to Supabase
+    supabaseSaveAllTimetables(timetables).catch((err) => {
+      console.warn('Background Supabase timetable save warning:', err);
+    });
   } catch (e) {
     console.error('Failed to save timetables to localStorage:', e);
   }
@@ -122,6 +127,7 @@ export function clearClassTimetable(classId: ClassId): Record<ClassId, Record<Sc
 
 export function clearAllStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodSlot[]>> {
   localStorage.removeItem(TIMETABLE_STORAGE_KEY);
+  supabaseClearAllTimetables().catch((err) => console.warn(err));
   const empty: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
     KG1A: createEmptyWeekSchedule(),
     KG1B: createEmptyWeekSchedule(),

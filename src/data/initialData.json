@@ -1,0 +1,765 @@
+{
+  "classwork": [
+    {
+      "id": "cw-kg1a-mon-ar",
+      "classId": "KG1A",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "أستقبال الأطفال\nالعودة إلى المدرسة",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1a-tue-ar",
+      "classId": "KG1A",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الروتين اليومي\nالتعرف على أنواع الخطوط",
+      "pages": "حل ورق العمل ص 3 \\ 4 \\ 5",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "title": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1a-wed-ar",
+      "classId": "KG1A",
+      "day": "Wednesday",
+      "period": 5,
+      "subject": "Arabic",
+      "title": "التعرف على القواعد الصفية و التعرف على حجرات المدرسة",
+      "pages": "حل ورق العمل ص 6",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "title": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1a-thu-ar",
+      "classId": "KG1A",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الرقم 1",
+      "pages": "حل ورق العمل ص 7",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-mon-ar",
+      "classId": "KG1B",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "أستقبال الأطفال\nالعودة إلى المدرسة",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1b-tue-ar",
+      "classId": "KG1B",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الروتين اليومي\nالتعرف على أنواع الخطوط",
+      "pages": "حل ورق العمل ص 3 \\ 4 \\ 5",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "title": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-wed-ar",
+      "classId": "KG1B",
+      "day": "Wednesday",
+      "period": 5,
+      "subject": "Arabic",
+      "title": "التعرف على القواعد الصفية و التعرف على حجرات المدرسة",
+      "pages": "حل ورق العمل ص 6",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "title": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-thu-ar",
+      "classId": "KG1B",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الرقم 1",
+      "pages": "حل ورق العمل ص 7",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-mon-ar",
+      "classId": "KG1C",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "أستقبال الأطفال\nالعودة إلى المدرسة",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1c-tue-ar",
+      "classId": "KG1C",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الروتين اليومي\nالتعرف على أنواع الخطوط",
+      "pages": "حل ورق العمل ص 3 \\ 4 \\ 5",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "title": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-wed-ar",
+      "classId": "KG1C",
+      "day": "Wednesday",
+      "period": 5,
+      "subject": "Arabic",
+      "title": "التعرف على القواعد الصفية و التعرف على حجرات المدرسة",
+      "pages": "حل ورق العمل ص 6",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "title": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-thu-ar",
+      "classId": "KG1C",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الرقم 1",
+      "pages": "حل ورق العمل ص 7",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-mon-ar",
+      "classId": "KG1D",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "أستقبال الأطفال\nالعودة إلى المدرسة",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1d-tue-ar",
+      "classId": "KG1D",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الروتين اليومي\nالتعرف على أنواع الخطوط",
+      "pages": "حل ورق العمل ص 3 \\ 4 \\ 5",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "title": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-wed-ar",
+      "classId": "KG1D",
+      "day": "Wednesday",
+      "period": 5,
+      "subject": "Arabic",
+      "title": "التعرف على القواعد الصفية و التعرف على حجرات المدرسة",
+      "pages": "حل ورق العمل ص 6",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "title": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-thu-ar",
+      "classId": "KG1D",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الرقم 1",
+      "pages": "حل ورق العمل ص 7",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-mon-ar",
+      "classId": "KG1E",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "أستقبال الأطفال\nالعودة إلى المدرسة",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1e-tue-ar",
+      "classId": "KG1E",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الروتين اليومي\nالتعرف على أنواع الخطوط",
+      "pages": "حل ورق العمل ص 3 \\ 4 \\ 5",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "title": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-wed-ar",
+      "classId": "KG1E",
+      "day": "Wednesday",
+      "period": 5,
+      "subject": "Arabic",
+      "title": "التعرف على القواعد الصفية و التعرف على حجرات المدرسة",
+      "pages": "حل ورق العمل ص 6",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "title": "https://youtu.be/TCiQ8F2xdvQ?si=Ib5Sq_w_0n0QzFCZ",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-thu-ar",
+      "classId": "KG1E",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على الرقم 1",
+      "pages": "حل ورق العمل ص 7",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    }
+  ],
+  "homework": [
+    {
+      "id": "hw-kg1a-tue-ar",
+      "classId": "KG1A",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "links": [
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1a-wed-ar",
+      "classId": "KG1A",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "linkTitle": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1a-thu-ar",
+      "classId": "KG1A",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "linkTitle": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1b-tue-ar",
+      "classId": "KG1B",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "links": [
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1b-wed-ar",
+      "classId": "KG1B",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "linkTitle": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1b-thu-ar",
+      "classId": "KG1B",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "linkTitle": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1c-tue-ar",
+      "classId": "KG1C",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "links": [
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1c-wed-ar",
+      "classId": "KG1C",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "linkTitle": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1c-thu-ar",
+      "classId": "KG1C",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "linkTitle": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1d-tue-ar",
+      "classId": "KG1D",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "links": [
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1d-wed-ar",
+      "classId": "KG1D",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "linkTitle": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1d-thu-ar",
+      "classId": "KG1D",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "linkTitle": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1e-tue-ar",
+      "classId": "KG1E",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "links": [
+        {
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "title": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1e-wed-ar",
+      "classId": "KG1E",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "linkTitle": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+      "links": [
+        {
+          "url": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "title": "https://youtu.be/5kU7OcIX7BY?si=7xef9jFupDxvBBt0",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "hw-kg1e-thu-ar",
+      "classId": "KG1E",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "linkTitle": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+      "links": [
+        {
+          "url": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "title": "https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws",
+          "type": "video"
+        }
+      ]
+    }
+  ],
+  "timetables": {
+    "KG1A": {
+      "Saturday": [],
+      "Sunday": [
+        { "period": 1, "time": "7:45 - 8:35", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 2, "time": "8:35 - 9:25", "subject": "Music", "teacher": "Sara Khalifa" },
+        { "period": 3, "time": "9:55 - 10:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 4, "time": "10:45 - 11:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 5, "time": "12:05 - 12:55", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 6, "time": "12:55 - 1:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" }
+      ],
+      "Monday": [
+        { "period": 1, "time": "7:45 - 8:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 2, "time": "8:35 - 9:25", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 3, "time": "9:55 - 10:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 4, "time": "10:45 - 11:35", "subject": "Music", "teacher": "Sara Khalifa" },
+        { "period": 5, "time": "12:05 - 12:55", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 6, "time": "12:55 - 1:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" }
+      ],
+      "Tuesday": [
+        { "period": 1, "time": "7:45 - 8:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 2, "time": "8:35 - 9:25", "subject": "Arabic", "teacher": "Nourhan Mahmoud Sary" },
+        { "period": 3, "time": "9:55 - 10:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 4, "time": "10:45 - 11:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 5, "time": "12:05 - 12:55", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 6, "time": "12:55 - 1:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" }
+      ],
+      "Wednesday": [
+        { "period": 1, "time": "7:45 - 8:35", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 2, "time": "8:35 - 9:25", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 3, "time": "9:55 - 10:45", "subject": "PE", "teacher": "Shreen Emad" },
+        { "period": 4, "time": "10:45 - 11:35", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 5, "time": "12:05 - 12:55", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 6, "time": "12:55 - 1:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" }
+      ],
+      "Thursday": [
+        { "period": 1, "time": "7:45 - 8:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 2, "time": "8:35 - 9:25", "subject": "Arabic", "teacher": "Nourhan Mahmoud Sary" },
+        { "period": 3, "time": "9:55 - 10:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" },
+        { "period": 4, "time": "10:45 - 11:35", "subject": "Arabic", "teacher": "Mai Gamal / Hager M. Khalaf" },
+        { "period": 5, "time": "12:05 - 12:55", "subject": "PE", "teacher": "Shreen Emad" },
+        { "period": 6, "time": "12:55 - 1:45", "subject": "English", "teacher": "Naglaa Mohamed / Rawan Wael" }
+      ]
+    },
+    "KG1B": { "Saturday": [], "Sunday": [], "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [] },
+    "KG1C": { "Saturday": [], "Sunday": [], "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [] },
+    "KG1D": { "Saturday": [], "Sunday": [], "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [] },
+    "KG1E": { "Saturday": [], "Sunday": [], "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [] }
+  }
+}

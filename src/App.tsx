@@ -25,7 +25,26 @@ import {
   getStudentProgress,
   saveStudentProgress,
 } from './utils/studentStorage';
-import { Sparkles, Trash2, RotateCcw } from 'lucide-react';
+import { Sparkles, Trash2, RotateCcw, Database, Cloud, CheckCircle } from 'lucide-react';
+import { isSupabaseConfigured, supabase } from './lib/supabase';
+import {
+  seedInitialDataIfNeeded,
+  supabaseFetchClasswork,
+  supabaseUpsertClasswork,
+  supabaseDeleteClasswork,
+  supabaseBatchInsertClasswork,
+  supabaseClearAllClasswork,
+  supabaseFetchHomework,
+  supabaseUpsertHomework,
+  supabaseDeleteHomework,
+  supabaseBatchInsertHomework,
+  supabaseClearAllHomework,
+  supabaseFetchTimetables,
+  supabaseSaveAllTimetables,
+  supabaseClearAllTimetables,
+  supabaseFetchStudentProgress,
+  supabaseSaveStudentProgress,
+} from './services/supabaseService';
 
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
@@ -158,6 +177,99 @@ export default function App() {
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
+  const [isSupabaseSyncing, setIsSupabaseSyncing] = useState<boolean>(false);
+  const [supabaseStatus, setSupabaseStatus] = useState<'connected' | 'offline' | 'checking'>(
+    isSupabaseConfigured ? 'checking' : 'offline'
+  );
+
+  // Initial load, Auto-seeding and Real-time syncing with Supabase
+  useEffect(() => {
+    let isMounted = true;
+
+    async function syncFromSupabase() {
+      if (!isSupabaseConfigured) {
+        setSupabaseStatus('offline');
+        return;
+      }
+
+      setIsSupabaseSyncing(true);
+      try {
+        // 1. Seed initial data if tables are empty
+        const seedResult = await seedInitialDataIfNeeded();
+        if (seedResult.seeded) {
+          console.log('Seeded initial data into Supabase:', seedResult);
+        }
+
+        // 2. Fetch classwork
+        const remoteCw = await supabaseFetchClasswork();
+        if (isMounted && remoteCw.length > 0) {
+          setClassworkList(remoteCw);
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
+        }
+
+        // 3. Fetch homework
+        const remoteHw = await supabaseFetchHomework();
+        if (isMounted && remoteHw.length > 0) {
+          setHomeworkList(remoteHw);
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
+        }
+
+        // 4. Fetch timetables
+        const remoteTt = await supabaseFetchTimetables();
+        if (isMounted && remoteTt) {
+          setTimetables(remoteTt);
+          saveAllStoredTimetables(remoteTt);
+        }
+
+        if (isMounted) {
+          setSupabaseStatus('connected');
+        }
+      } catch (err) {
+        console.error('Failed to sync initial data from Supabase:', err);
+        if (isMounted) setSupabaseStatus('offline');
+      } finally {
+        if (isMounted) setIsSupabaseSyncing(false);
+      }
+    }
+
+    syncFromSupabase();
+
+    // Setup Supabase Real-time listener for multi-device sync
+    if (isSupabaseConfigured) {
+      const channel = supabase
+        .channel('school-realtime-channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, async () => {
+          const fresh = await supabaseFetchClasswork();
+          if (isMounted && fresh.length > 0) {
+            setClassworkList(fresh);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fresh));
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, async () => {
+          const fresh = await supabaseFetchHomework();
+          if (isMounted && fresh.length > 0) {
+            setHomeworkList(fresh);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fresh));
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'timetables' }, async () => {
+          const fresh = await supabaseFetchTimetables();
+          if (isMounted && fresh) {
+            setTimetables(fresh);
+          }
+        })
+        .subscribe();
+
+      return () => {
+        isMounted = false;
+        supabase.removeChannel(channel);
+      };
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Listen to timetable updates from other components
   useEffect(() => {
@@ -187,7 +299,7 @@ export default function App() {
   };
 
   // Switch student profile
-  const handleSelectProfile = (newProfile: UserProfile | null) => {
+  const handleSelectProfile = async (newProfile: UserProfile | null) => {
     setUserProfile(newProfile);
     setActiveUserProfile(newProfile);
 
@@ -195,9 +307,20 @@ export default function App() {
       if (newProfile.classId) {
         setCurrentClass(newProfile.classId);
       }
-      const progress = getStudentProgress(newProfile.studentName);
-      const cwSet = new Set(progress.completedClassworkIds);
-      const hwSet = new Set(progress.completedHomeworkIds);
+
+      let cwSet: Set<string>;
+      let hwSet: Set<string>;
+
+      // Try fetching student progress from Supabase first
+      const remoteProgress = await supabaseFetchStudentProgress(newProfile.studentName);
+      if (remoteProgress) {
+        cwSet = new Set(remoteProgress.completedClassworkIds);
+        hwSet = new Set(remoteProgress.completedHomeworkIds);
+      } else {
+        const progress = getStudentProgress(newProfile.studentName);
+        cwSet = new Set(progress.completedClassworkIds);
+        hwSet = new Set(progress.completedHomeworkIds);
+      }
 
       setClassworkList((prev) =>
         prev.map((c) => ({
@@ -220,15 +343,20 @@ export default function App() {
     }
   };
 
-  // Classwork handlers
-  const handleToggleClasswork = (id: string) => {
+  // Classwork handlers (CRUD -> Supabase + local cache)
+  const handleToggleClasswork = async (id: string) => {
     setClassworkList((prev) => {
       const updated = prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c));
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(updated));
+      const target = updated.find((c) => c.id === id);
+      if (target) {
+        supabaseUpsertClasswork(target).catch(console.warn);
+      }
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = updated.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       } else {
         showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
       }
@@ -236,7 +364,7 @@ export default function App() {
     });
   };
 
-  const handleSaveClasswork = (entry: ClassworkEntry) => {
+  const handleSaveClasswork = async (entry: ClassworkEntry) => {
     setClassworkList((prev) => {
       const idx = prev.findIndex((c) => c.id === entry.id);
       let next: ClassworkEntry[];
@@ -251,13 +379,20 @@ export default function App() {
         const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
-    showToast('تم حفظ الدرس بنجاح!');
+
+    const res = await supabaseUpsertClasswork(entry);
+    if (res.success) {
+      showToast('تم حفظ الدرس في Supabase بنجاح!');
+    } else {
+      showToast('تم حفظ الدرس محلياً.');
+    }
   };
 
-  const handleDeleteClasswork = (id: string) => {
+  const handleDeleteClasswork = async (id: string) => {
     setClassworkList((prev) => {
       const next = prev.filter((c) => c.id !== id);
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
@@ -265,21 +400,29 @@ export default function App() {
         const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
-    showToast('تم حذف الدرس من الخطة بنجاح');
+
+    await supabaseDeleteClasswork(id);
+    showToast('تم حذف الدرس من الخطة وقاعدة البيانات بنجاح');
   };
 
-  // Homework handlers
-  const handleToggleHomework = (id: string) => {
+  // Homework handlers (CRUD -> Supabase + local cache)
+  const handleToggleHomework = async (id: string) => {
     setHomeworkList((prev) => {
       const updated = prev.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h));
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(updated));
+      const target = updated.find((h) => h.id === id);
+      if (target) {
+        supabaseUpsertHomework(target).catch(console.warn);
+      }
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = updated.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       } else {
         showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
       }
@@ -287,7 +430,7 @@ export default function App() {
     });
   };
 
-  const handleAddHomework = (entry: HomeworkEntry) => {
+  const handleAddHomework = async (entry: HomeworkEntry) => {
     setHomeworkList((prev) => {
       const next = [entry, ...prev];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
@@ -295,13 +438,20 @@ export default function App() {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
-    showToast('تمت إضافة الواجب بنجاح!');
+
+    const res = await supabaseUpsertHomework(entry);
+    if (res.success) {
+      showToast('تمت إضافة الواجب وحفظه في Supabase بنجاح!');
+    } else {
+      showToast('تمت إضافة الواجب محلياً.');
+    }
   };
 
-  const handleDeleteHomework = (id: string) => {
+  const handleDeleteHomework = async (id: string) => {
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
@@ -309,13 +459,16 @@ export default function App() {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
-    showToast('تم حذف الواجب.');
+
+    await supabaseDeleteHomework(id);
+    showToast('تم حذف الواجب من قاعدة البيانات بنجاح.');
   };
 
-  const handleApplyWeeklyPlan = (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
+  const handleApplyWeeklyPlan = async (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
     setClassworkList((prev) => {
       const next = [...newClasswork, ...prev];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
@@ -326,25 +479,40 @@ export default function App() {
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       return next;
     });
-    showToast('تم استيراد وتطبيق الخطة الأسبوعية بنجاح!');
+
+    // Batch insert to Supabase
+    await supabaseBatchInsertClasswork(newClasswork);
+    await supabaseBatchInsertHomework(newHomework);
+
+    showToast('تم استيراد وحفظ الخطة الأسبوعية في Supabase بنجاح!');
+  };
+
+  const handleUpdateTimetable = async (updated: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>) => {
+    setTimetables(updated);
+    saveAllStoredTimetables(updated);
+    await supabaseSaveAllTimetables(updated);
+    showToast('تم تحديث جدول الحصص وحفظه في Supabase!');
   };
 
   // Complete data reset / Clean slate
   const handleClearAllData = async () => {
     const confirmed = window.confirm(
       'هل أنتِ متأكدة من تفريغ كافة البيانات؟\n' +
-      'سيتم مسح جدول الحصص، والواجبات، والدروس، وكافة ملفات الماتيريال للبدء ببيانات جديدة تماماً.'
+      'سيتم مسح جدول الحصص، والواجبات، والدروس، وكافة ملفات الماتيريال من Supabase والتخزين المحلي للبدء ببيانات جديدة تماماً.'
     );
     if (!confirmed) return;
 
-    // 1. Clear classwork and homework
+    // 1. Clear classwork and homework in Supabase & local
+    await supabaseClearAllClasswork();
+    await supabaseClearAllHomework();
     localStorage.removeItem(STORAGE_KEYS.CUSTOM_CLASSWORK);
     localStorage.removeItem(STORAGE_KEYS.CUSTOM_HOMEWORK);
     localStorage.removeItem('nile_planner_tasks_v2');
     setClassworkList([]);
     setHomeworkList([]);
 
-    // 2. Clear timetables
+    // 2. Clear timetables in Supabase & local
+    await supabaseClearAllTimetables();
     const emptyTimetables = clearAllStoredTimetables();
     setTimetables(emptyTimetables);
 
@@ -354,6 +522,7 @@ export default function App() {
     // 4. Clear student progress
     if (userProfile?.mode === 'student' && userProfile.studentName) {
       saveStudentProgress(userProfile.studentName, [], [], currentClass);
+      await supabaseSaveStudentProgress(userProfile.studentName, [], [], currentClass);
     }
 
     showToast('تم تفريغ كافة البيانات والملفات بنجاح! الأبليكيشن جاهز لبياناتك الجديدة بالكامل.');
@@ -453,7 +622,7 @@ export default function App() {
               currentClass={currentClass}
               selectedDay={selectedDay}
               timetables={timetables}
-              onUpdateTimetable={(updated) => setTimetables(updated)}
+              onUpdateTimetable={handleUpdateTimetable}
               onSelectDay={(d) => {
                 setSelectedDay(d);
                 setActiveTab('classwork');
@@ -479,6 +648,26 @@ export default function App() {
             <span className="font-bold text-slate-700">{SCHOOL_NAME}</span>
             <span>•</span>
             <span>{SCHOOL_BRANCH} Campus</span>
+            <span>•</span>
+            {isSupabaseConfigured ? (
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-medium ${
+                  supabaseStatus === 'connected'
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                }`}
+                title="مربوط بقاعدة بيانات Supabase السحابية"
+              >
+                <Cloud className="w-3 h-3" />
+                {supabaseStatus === 'connected' ? 'Supabase متصل' : 'جاري الاتصال بـ Supabase...'}
+                {isSupabaseSyncing && <span className="animate-spin text-xs">↻</span>}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                <Database className="w-3 h-3" />
+                تخزين محلي (Offline)
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
