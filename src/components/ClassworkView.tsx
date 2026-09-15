@@ -66,7 +66,6 @@ const PERIOD_TIMES: Record<number, string> = {
 interface GroupedPeriodSlot {
   periods: number[];
   periodLabel: string;
-  arabicPeriodLabel: string;
   time: string;
   subject: SubjectName;
   teacher: string;
@@ -127,22 +126,13 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
 
       let periods: number[];
       let periodLabel: string;
-      let arabicPeriodLabel: string;
       let teacher: string;
       let time: string;
 
       if (matchingSlots.length > 0) {
         periods = Array.from(new Set<number>(matchingSlots.map((s) => s.period))).sort((a: number, b: number) => a - b);
-        // Format as requested: "b1, b2, b4" or "b2, b3" or "b4, b6" or "b1"
-        periodLabel = periods.map((p) => `b${p}`).join(', ');
-
-        if (periods.length === 1) {
-          arabicPeriodLabel = `الحصة ${periods[0]}`;
-        } else if (periods.length === 2) {
-          arabicPeriodLabel = `الحصص ${periods[0]} و ${periods[1]}`;
-        } else {
-          arabicPeriodLabel = `الحصص ${periods.slice(0, -1).join('، ')} و ${periods[periods.length - 1]}`;
-        }
+        // Format as requested: P1, P2, P4 (P with loop on top, no Arabic period words)
+        periodLabel = periods.map((p) => `P${p}`).join(', ');
 
         // Unique teachers across all matching periods
         const teacherNames = Array.from(
@@ -187,8 +177,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       } else {
         const p = Math.min(Math.max(cwEntry.period || 1, 1), 6);
         periods = [p];
-        periodLabel = `b${p}`;
-        arabicPeriodLabel = `الحصة ${p}`;
+        periodLabel = `P${p}`;
         teacher = 'معلم المادة';
         time = PERIOD_TIMES[p] || '7:45 - 8:35';
       }
@@ -196,7 +185,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       const slot: GroupedPeriodSlot = {
         periods,
         periodLabel,
-        arabicPeriodLabel,
         time,
         subject: cwEntry.subject as SubjectName,
         teacher,
@@ -452,12 +440,9 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                     <div
                       className={`${
                         cwEntry.completed ? 'bg-emerald-700 text-white' : theme.cwPeriodBox
-                      } font-black py-2 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
+                      } font-black py-2 sm:py-2.5 px-2 rounded-xl flex items-center justify-center text-center shadow-2xs transition-colors`}
                     >
-                      <div className="flex flex-col items-center justify-center leading-tight">
-                        <span className="text-xs sm:text-sm font-black tracking-tight">{slot.periodLabel}</span>
-                        <span className="text-[10px] sm:text-[11px] opacity-90 font-bold">{slot.arabicPeriodLabel}</span>
-                      </div>
+                      <span className="text-xs sm:text-sm font-black tracking-wider">{slot.periodLabel}</span>
                     </div>
 
                     {/* Box 2: اسم المادة */}

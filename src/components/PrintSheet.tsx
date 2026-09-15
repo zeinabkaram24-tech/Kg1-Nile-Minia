@@ -59,7 +59,7 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
       matchingSlots.length > 0
         ? Array.from(new Set<number>(matchingSlots.map((s) => s.period))).sort((a: number, b: number) => a - b)
         : [cw.period || 1];
-    const periodLabel = periods.map((p) => `b${p}`).join(', ');
+    const periodLabel = periods.map((p) => `P${p}`).join(', ');
     const teacherNames = Array.from(
       new Set(
         matchingSlots
