@@ -31,7 +31,7 @@ const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CUSTOM_CLASSWORK: 'nile_planner_custom_classwork_v3',
+  CUSTOM_CLASSWORK: 'nile_planner_custom_classwork_v4',
   CUSTOM_HOMEWORK: 'nile_planner_custom_homework_v3',
 };
 
@@ -257,6 +257,20 @@ export default function App() {
     showToast('تم حفظ الدرس بنجاح!');
   };
 
+  const handleDeleteClasswork = (id: string) => {
+    setClassworkList((prev) => {
+      const next = prev.filter((c) => c.id !== id);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
+        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
+        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
+      }
+      return next;
+    });
+    showToast('تم حذف الدرس من الخطة بنجاح');
+  };
+
   // Homework handlers
   const handleToggleHomework = (id: string) => {
     setHomeworkList((prev) => {
@@ -406,6 +420,7 @@ export default function App() {
               timetables={timetables}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
+              onDeleteClasswork={handleDeleteClasswork}
             />
           )}
 

@@ -119,7 +119,7 @@ export const QuickTimetableModal: React.FC<QuickTimetableModalProps> = ({
             <span>•</span>
             <span><strong>Lunch break:</strong> 13:05 - 13:25</span>
           </div>
-          <span className="text-indigo-700 font-bold">8 Periods Daily (الحصص من 1 إلى 8)</span>
+          <span className="text-indigo-700 font-bold">6 Periods Daily (الحصص من 1 إلى 6)</span>
         </div>
 
         {/* Table Content */}

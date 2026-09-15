@@ -96,7 +96,7 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
       classwork.push({
         classId,
         day: currentDay as any,
-        period: (classwork.length % 8) + 1,
+        period: (classwork.length % 6) + 1,
         subject: currentSubject as any,
         title: clean,
         completed: false,

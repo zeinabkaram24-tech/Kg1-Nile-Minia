@@ -3,6 +3,17 @@ import { CLASS_TIMETABLES, createEmptyWeekSchedule } from '../data/timetables';
 
 const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v1';
 
+function sanitizeSchedule(schedule?: Record<SchoolDay, PeriodSlot[]>): Record<SchoolDay, PeriodSlot[]> | null {
+  if (!schedule) return null;
+  const cleaned: Record<SchoolDay, PeriodSlot[]> = createEmptyWeekSchedule();
+  for (const day of Object.keys(schedule) as SchoolDay[]) {
+    if (Array.isArray(schedule[day])) {
+      cleaned[day] = schedule[day].filter((slot) => slot && slot.period >= 1 && slot.period <= 6);
+    }
+  }
+  return cleaned;
+}
+
 function hasAnySlots(schedule?: Record<SchoolDay, PeriodSlot[]>): boolean {
   if (!schedule) return false;
   return Object.values(schedule).some((slots) => Array.isArray(slots) && slots.length > 0);
@@ -24,15 +35,20 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
       };
     }
     const parsed = JSON.parse(raw);
+    const getCleaned = (classId: ClassId) => {
+      const sanitized = sanitizeSchedule(parsed[classId]);
+      return hasAnySlots(sanitized) ? sanitized! : (CLASS_TIMETABLES[classId] || createEmptyWeekSchedule());
+    };
+
     return {
-      KG1A: hasAnySlots(parsed.KG1A) ? parsed.KG1A : CLASS_TIMETABLES.KG1A,
-      KG1B: hasAnySlots(parsed.KG1B) ? parsed.KG1B : CLASS_TIMETABLES.KG1B,
-      KG1C: hasAnySlots(parsed.KG1C) ? parsed.KG1C : CLASS_TIMETABLES.KG1C,
-      KG1D: hasAnySlots(parsed.KG1D) ? parsed.KG1D : CLASS_TIMETABLES.KG1D,
-      KG1E: hasAnySlots(parsed.KG1E) ? parsed.KG1E : CLASS_TIMETABLES.KG1E,
-      G2A: hasAnySlots(parsed.G2A) ? parsed.G2A : CLASS_TIMETABLES.G2A,
-      G2B: hasAnySlots(parsed.G2B) ? parsed.G2B : CLASS_TIMETABLES.G2B,
-      G2C: hasAnySlots(parsed.G2C) ? parsed.G2C : CLASS_TIMETABLES.G2C,
+      KG1A: getCleaned('KG1A'),
+      KG1B: getCleaned('KG1B'),
+      KG1C: getCleaned('KG1C'),
+      KG1D: getCleaned('KG1D'),
+      KG1E: getCleaned('KG1E'),
+      G2A: getCleaned('G2A'),
+      G2B: getCleaned('G2B'),
+      G2C: getCleaned('G2C'),
     };
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);

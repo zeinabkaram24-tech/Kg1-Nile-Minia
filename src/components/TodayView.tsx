@@ -358,7 +358,7 @@ export const TodayView: React.FC<TodayViewProps> = ({
         </div>
       </header>
 
-      {/* 3. TODAY'S 8 PERIODS STRIP (From uploaded timetable G2B) */}
+      {/* 3. TODAY'S 6 PERIODS STRIP */}
       {dayPeriods.length > 0 && (
         <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between gap-2 mb-3">
@@ -371,14 +371,14 @@ export const TodayView: React.FC<TodayViewProps> = ({
                   حصص يوم {currentDayInfo.nameAr} وفقاً لجدول فصل Grade {selectedSection} المدرسي:
                 </span>
                 <span className="text-[11px] text-slate-400 font-sans block">
-                  (8 حصص - من 7:45 ص إلى 3:05 م)
+                  (6 حصص - من 7:45 ص إلى 1:45 م)
                 </span>
               </div>
             </div>
           </div>
 
           {/* Periods Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
             {dayPeriods.map((slot) => {
               const subj = subjectMap.get(slot.subjectId);
               return (

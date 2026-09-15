@@ -16,7 +16,7 @@ export type SubjectName =
   | 'PE';
 
 export interface PeriodSlot {
-  period: number; // 1 to 8
+  period: number; // 1 to 6
   time: string; // e.g., "7:45 - 8:35"
   subject: SubjectName;
   teacher: string;

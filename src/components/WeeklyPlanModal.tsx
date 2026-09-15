@@ -98,7 +98,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       id: `cw-imported-${Date.now()}-${idx}`,
       classId: currentClass,
       day: cw.day || 'Sunday',
-      period: cw.period || (idx % 8) + 1,
+      period: cw.period || (idx % 6) + 1,
       subject: cw.subject || 'English',
       title: cw.title || 'Lesson',
       details: cw.details,

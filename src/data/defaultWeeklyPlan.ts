@@ -102,7 +102,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => 
     ],
   },
 
-  // Wednesday (الأربعاء 16/9/2026)
+  // Wednesday (الأربعاء 16/9/2026) - Period 5
   {
     id: `cw-${cls.toLowerCase()}-wed-ar`,
     classId: cls,

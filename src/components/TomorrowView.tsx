@@ -84,8 +84,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             <p className="text-xs font-bold">لا توجد حصص مسجلة ليوم {ARABIC_DAY_NAMES[tomorrowDay]}</p>
           </div>
         ) : (
-          /* 2x4 Grid: 4 columns on desktop/tablet, 2 columns on mobile, exactly 8 blocks */
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          /* 6 Periods Grid: 6 columns on desktop/tablet, 2 or 3 columns on mobile */
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
             {targetPeriods.map((slot) => {
               const meta = SUBJECT_METADATA[slot.subject];
               return (

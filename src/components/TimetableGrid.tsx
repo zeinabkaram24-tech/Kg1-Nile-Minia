@@ -76,7 +76,7 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
               {currentClass} Timetable
             </span>
             <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              جدول الحصص الأسبوعي (8 حصص يومياً)
+              جدول الحصص الأسبوعي (6 حصص يومياً)
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -129,18 +129,18 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
           {/* Table Header with Periods & Times */}
           <thead>
             <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
-              <th className="p-1 sm:p-2 font-black text-center border-r border-slate-300 w-[11%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
+              <th className="p-1.5 sm:p-2.5 font-black text-center border-r border-slate-300 w-[13%] sm:w-[13%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
                 اليوم
               </th>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => (
+              {[1, 2, 3, 4, 5, 6].map((pNum) => (
                 <th
                   key={pNum}
-                  className={`p-1 sm:p-1.5 font-extrabold text-center w-[11.125%] ${
-                    pNum === 8 ? '' : 'border-r border-slate-300'
+                  className={`p-1 sm:p-2 font-extrabold text-center w-[14.5%] ${
+                    pNum === 6 ? '' : 'border-r border-slate-300'
                   }`}
                 >
-                  <div className="text-slate-900 font-black text-[10px] sm:text-xs">P{pNum}</div>
-                  <div className="text-[8.5px] sm:text-[10px] text-slate-500 font-semibold hidden md:block">
+                  <div className="text-slate-900 font-black text-xs sm:text-sm">P{pNum}</div>
+                  <div className="text-[9px] sm:text-[11px] text-slate-500 font-semibold hidden md:block">
                     {PERIOD_TIMES[pNum]}
                   </div>
                 </th>
@@ -181,12 +181,12 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
                     )}
                   </td>
 
-                  {/* 8 Periods */}
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => (
+                  {/* 6 Periods */}
+                  {[1, 2, 3, 4, 5, 6].map((pNum) => (
                     <SlotCell
                       key={pNum}
                       slot={getPeriod(pNum)}
-                      isLast={pNum === 8}
+                      isLast={pNum === 6}
                       onClick={() => handleCellClick(day, pNum)}
                     />
                   ))}

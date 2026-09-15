@@ -39,8 +39,45 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
       c.classId === currentClass &&
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
-      (c.week || 1) === currentWeek
+      (c.week || 1) === currentWeek &&
+      Boolean(c.title && c.title.trim())
   );
+
+  const uniqueDayClassworkMap = new Map<string, ClassworkEntry>();
+  for (const cw of dayClasswork) {
+    const key = cw.subject.toLowerCase();
+    if (!uniqueDayClassworkMap.has(key)) {
+      uniqueDayClassworkMap.set(key, cw);
+    }
+  }
+
+  const plannedLessons = Array.from(uniqueDayClassworkMap.values()).map((cw) => {
+    const matchingSlots = todayPeriods.filter(
+      (p) => p.subject.toLowerCase() === cw.subject.toLowerCase()
+    );
+    const periods =
+      matchingSlots.length > 0
+        ? Array.from(new Set<number>(matchingSlots.map((s) => s.period))).sort((a: number, b: number) => a - b)
+        : [cw.period || 1];
+    const periodLabel = periods.map((p) => `b${p}`).join(', ');
+    const teacherNames = Array.from(
+      new Set(
+        matchingSlots
+          .flatMap((s) => (s.teacher || '').split(/[\/,]/))
+          .map((t) => t.trim())
+          .filter(Boolean)
+      )
+    );
+    const teacher = teacherNames.length > 0 ? teacherNames.join(' / ') : 'معلم المادة';
+
+    return {
+      periodLabel,
+      subject: cw.subject,
+      title: cw.title,
+      pages: cw.pages,
+      teacher,
+    };
+  });
 
   const dueTomorrowHomework = homeworkList.filter(
     (h) =>
@@ -95,18 +132,19 @@ export const PrintSheet: React.FC<PrintSheetProps> = ({
           <h3 className="font-bold text-sm border-b border-black pb-1 mb-2">
             1. Classwork - {selectedDay} (Today's Lessons)
           </h3>
-          <ol className="space-y-1.5 list-decimal pl-4">
-            {todayPeriods.map((slot) => {
-              const cw = dayClasswork.find((c) => c.period === slot.period);
-              return (
-                <li key={slot.period} className="leading-tight">
-                  <strong>P{slot.period} ({slot.subject}):</strong> {cw ? cw.title : 'Standard Curriculum'}{' '}
-                  {cw?.pages && <span className="italic font-normal">[{cw.pages}]</span>}
-                  <span className="text-slate-600 text-[10px]"> — {slot.teacher}</span>
+          {plannedLessons.length === 0 ? (
+            <p className="text-slate-600 italic text-xs py-1">لا توجد دروس كلاس وورك مسجلة في الخطة لهذا اليوم.</p>
+          ) : (
+            <ol className="space-y-1.5 list-decimal pl-4">
+              {plannedLessons.map((item, idx) => (
+                <li key={idx} className="leading-tight">
+                  <strong>{item.periodLabel} ({item.subject}):</strong> {item.title}{' '}
+                  {item.pages && <span className="italic font-normal">[{item.pages}]</span>}
+                  <span className="text-slate-600 text-[10px]"> — {item.teacher}</span>
                 </li>
-              );
-            })}
-          </ol>
+              ))}
+            </ol>
+          )}
         </div>
 
         {/* Homework to Complete & Submit */}

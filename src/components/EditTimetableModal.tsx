@@ -112,7 +112,7 @@ export const EditTimetableModal: React.FC<EditTimetableModalProps> = ({
   const handleClearDay = () => {
     if (confirm(`هل أنتِ متأكدة من مسح جميع حصص يوم ${ARABIC_DAYS[activeDay]} لفصل ${currentClass}؟`)) {
       let updated = timetables;
-      for (let p = 1; p <= 8; p++) {
+      for (let p = 1; p <= 6; p++) {
         updated = deletePeriodSlot(currentClass, activeDay, p);
       }
       onTimetableChange(updated);
@@ -189,7 +189,7 @@ export const EditTimetableModal: React.FC<EditTimetableModalProps> = ({
             })}
           </div>
 
-          {/* 8 Periods Grid for selected day */}
+          {/* 6 Periods Grid for selected day */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-slate-700">
@@ -205,8 +205,8 @@ export const EditTimetableModal: React.FC<EditTimetableModalProps> = ({
               </button>
             </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((pNum) => {
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {[1, 2, 3, 4, 5, 6].map((pNum) => {
                 const slot = currentDaySlots.find((s) => s.period === pNum);
                 const isCurrent = selectedPeriod === pNum;
                 const meta = slot ? SUBJECT_METADATA[slot.subject] : null;

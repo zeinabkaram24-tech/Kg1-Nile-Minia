@@ -64,12 +64,10 @@ export const DAYS_LIST: DayInfo[] = [
 export const PERIODS_TIMING = [
   { period: 1, time: '7:45 - 8:35', label: 'الحصة 1' },
   { period: 2, time: '8:35 - 9:25', label: 'الحصة 2' },
-  { period: 3, time: '9:45 - 10:35', label: 'الحصة 3' },
-  { period: 4, time: '10:35 - 11:25', label: 'الحصة 4' },
-  { period: 5, time: '11:25 - 12:15', label: 'الحصة 5' },
-  { period: 6, time: '12:15 - 13:05', label: 'الحصة 6' },
-  { period: 7, time: '13:25 - 14:15', label: 'الحصة 7' },
-  { period: 8, time: '14:15 - 15:05', label: 'الحصة 8' },
+  { period: 3, time: '9:55 - 10:45', label: 'الحصة 3' },
+  { period: 4, time: '10:45 - 11:35', label: 'الحصة 4' },
+  { period: 5, time: '12:05 - 12:55', label: 'الحصة 5' },
+  { period: 6, time: '12:55 - 1:45', label: 'الحصة 6' },
 ];
 
 export const DEFAULT_SUBJECTS: Subject[] = [

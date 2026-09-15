@@ -20,8 +20,6 @@ export const PERIOD_TIMES: Record<number, string> = {
   4: '10:45 - 11:35',
   5: '12:05 - 12:55',
   6: '12:55 - 1:45',
-  7: '1:50 - 2:25',
-  8: '2:25 - 3:00',
 };
 
 export const BREAK_SLOTS: BreakSlot[] = [

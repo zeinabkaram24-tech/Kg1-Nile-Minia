@@ -117,7 +117,7 @@ function heuristicParser(planText: string, classId: string) {
       classwork.push({
         classId: classId || 'KG1A',
         day: currentDay,
-        period: (classwork.length % 8) + 1,
+        period: (classwork.length % 6) + 1,
         subject: currentSubject,
         title: cleanText || line,
         completed: false,
@@ -151,7 +151,7 @@ Your job is to categorize and extract:
    Each classwork item must have:
    - "classId": "${classId || 'KG1A'}"
    - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "period": Number (1 to 8, or estimate 1-8 based on typical school day schedule)
+   - "period": Number (1 to 6, or estimate 1-6 based on typical school day schedule)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
    - "title": Short descriptive title of the topic/lesson (e.g. "Chapter 2: Subtraction with regrouping")
    - "details": Optional additional instructions or practice details
