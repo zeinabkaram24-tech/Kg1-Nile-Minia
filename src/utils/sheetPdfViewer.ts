@@ -37,11 +37,11 @@ function getDefaultSubjectExercises(subjectId: string, title: string): string[] 
   }
   if (lower.includes('english')) {
     return [
-      'سؤال 1 (English): Read the sentence and circle the NOUN: "The clever boy found a little puppy in the garden."',
+      'سؤال 1 (English Phonics): Practice the letter P (heavy p - circle on top): Circle words that begin with the /p/ sound: (Pen - Ball - Pan - Dog - Pot - Boy).',
       'سؤال 2 (English): Choose the correct verb: (She / plays / play / playing) tennis every Friday.',
       'سؤال 3 (English): Complete with (a / an): [   ] apple, [   ] elephant, [   ] school bag, [   ] umbrella.',
       'سؤال 4 (English): Write two complete sentences describing what you did in school today.',
-      'سؤال 5 (English): Phonics practice - Match words with the same vowel sound: (Cake, Tree, Boat) -> (Rain, Sea, Coat).',
+      'سؤال 5 (English): Trace uppercase P and lowercase p correctly (remember: letter p has the circle at the top, unlike b which has its circle at the bottom).',
     ];
   }
   if (lower.includes('arabic') || lower.includes('عربي')) {

@@ -34,8 +34,11 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
   const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
   const classwork: any[] = [];
   const homework: any[] = [];
+  const tomorrowNotes: any[] = [];
   let currentDay = 'Sunday';
   let currentSubject = 'English';
+
+  const URL_REGEX = /(https?:\/\/[^\s<>"'()]+|www\.[^\s<>"'()]+)/gi;
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
   const subjects = [
@@ -61,7 +64,7 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
     if (/الأحد/i.test(line)) currentDay = 'Sunday';
     else if (/الاثنين|الإثنين/i.test(line)) currentDay = 'Monday';
     else if (/الثلاثاء/i.test(line)) currentDay = 'Tuesday';
-    else if (/الأربعاء/i.test(line)) currentDay = 'Wednesday';
+    else if (/الأربعاء|الاربعاء/i.test(line)) currentDay = 'Wednesday';
     else if (/الخميس/i.test(line)) currentDay = 'Thursday';
 
     for (const s of subjects) {
@@ -79,18 +82,52 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
     else if (/موسيقى|music/i.test(line)) currentSubject = 'Music';
     else if (/ألعاب|رياضية|pe/i.test(line)) currentSubject = 'PE';
 
-    const isHw = /hw|homework|واجب|h\.w/i.test(line);
-    const clean = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة)[:\-–\s]*/i, '').trim();
+    // Extract links
+    const rawUrls = line.match(URL_REGEX) || [];
+    const links = rawUrls.map((u) => {
+      const cleanUrl = u.startsWith('www.') ? `https://${u}` : u;
+      const isVideo = /youtube|youtu\.be|vimeo|mp4/i.test(cleanUrl);
+      return {
+        url: cleanUrl,
+        title: isVideo ? 'فيديو الشرح / التدريب' : 'رابط الدرس والمصدر',
+        type: isVideo ? ('video' as const) : ('sheet' as const),
+      };
+    });
+    const linkUrl = links.length > 0 ? links[0].url : undefined;
 
-    if (isHw) {
+    // Identify Notes / Tomorrow indicators (Arabic & English)
+    const isNote = /^(notes?|ملاحظات|ملاحظة|تنبيه|remarque|bring|please\s+bring|إحضار|برجاء|ضرورة)[:\-–\s]*/i.test(line) ||
+                   /\b(notes?|ملاحظات|ملاحظة|تنبيه|remarque)\b/i.test(line);
+
+    const isHw = /hw|homework|واجب|h\.w/i.test(line);
+    const clean = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة|notes?|ملاحظات|ملاحظة|تنبيه|remarque)[:\-–\s]*/i, '').trim();
+
+    if (isNote) {
+      tomorrowNotes.push({
+        day: currentDay as any,
+        subject: currentSubject,
+        note: clean || line,
+        arabicNote: clean || line,
+        bagItem: /bring|إحضار|أدوات|كشكول|كتاب|ألوان|sketch/i.test(line) ? clean : undefined,
+      });
+    } else if (isHw) {
+      const nextDayMap: Record<string, string> = {
+        Sunday: 'Monday',
+        Monday: 'Tuesday',
+        Tuesday: 'Wednesday',
+        Wednesday: 'Thursday',
+        Thursday: 'Sunday',
+      };
       homework.push({
         classId,
         assignedDay: currentDay as any,
-        dueDay: currentDay === 'Thursday' ? 'Sunday' : 'Monday',
+        dueDay: (nextDayMap[currentDay] || 'Monday') as any,
         subject: currentSubject as any,
         task: clean || line,
         completed: false,
         priority: /urgent|هام|اختبار|quiz/i.test(line) ? 'urgent' : 'normal',
+        linkUrl,
+        links: links.length > 0 ? links : undefined,
       });
     } else if (clean.length > 3) {
       classwork.push({
@@ -100,9 +137,11 @@ function fallbackClientParser(text: string, classId: ClassId): ParsedWeeklyPlanR
         subject: currentSubject as any,
         title: clean,
         completed: false,
+        linkUrl,
+        links: links.length > 0 ? links : undefined,
       });
     }
   }
 
-  return { classwork, homework };
+  return { classwork, homework, tomorrowNotes };
 }

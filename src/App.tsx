@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, PeriodSlot } from './types';
-import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, TomorrowSpecialNote } from './data/defaultWeeklyPlan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
 import {
   getStoredTimetables,
@@ -170,6 +170,16 @@ export default function App() {
   // Homework state initialized with storage
   const [homeworkList, setHomeworkList] = useState<HomeworkEntry[]>(() => {
     return getStoredCustomHomework(getActiveUserProfile());
+  });
+
+  // Tomorrow Notes state (Teacher notes, supply bag items, Arabic & English notes)
+  const [customTomorrowNotes, setCustomTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
+    try {
+      const saved = localStorage.getItem('nile_custom_tomorrow_notes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -492,17 +502,30 @@ export default function App() {
     showToast('تم حذف الواجب من قاعدة البيانات بنجاح.');
   };
 
-  const handleApplyWeeklyPlan = async (newClasswork: ClassworkEntry[], newHomework: HomeworkEntry[]) => {
+  const handleApplyWeeklyPlan = async (
+    newClasswork: ClassworkEntry[],
+    newHomework: HomeworkEntry[],
+    newTomorrowNotes?: TomorrowSpecialNote[],
+    replaceExisting: boolean = false
+  ) => {
     setClassworkList((prev) => {
-      const next = [...newClasswork, ...prev];
+      const next = replaceExisting ? newClasswork : [...newClasswork, ...prev];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
       return next;
     });
     setHomeworkList((prev) => {
-      const next = [...newHomework, ...prev];
+      const next = replaceExisting ? newHomework : [...newHomework, ...prev];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       return next;
     });
+
+    if (newTomorrowNotes && newTomorrowNotes.length > 0) {
+      setCustomTomorrowNotes((prev) => {
+        const next = replaceExisting ? newTomorrowNotes : [...newTomorrowNotes, ...prev];
+        localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
+        return next;
+      });
+    }
 
     // Batch insert to Supabase
     await supabaseBatchInsertClasswork(newClasswork);
@@ -532,8 +555,10 @@ export default function App() {
     localStorage.removeItem(STORAGE_KEYS.CUSTOM_CLASSWORK);
     localStorage.removeItem(STORAGE_KEYS.CUSTOM_HOMEWORK);
     localStorage.removeItem('nile_planner_tasks_v2');
+    localStorage.removeItem('nile_custom_tomorrow_notes');
     setClassworkList([]);
     setHomeworkList([]);
+    setCustomTomorrowNotes([]);
 
     // 2. Clear timetables in Supabase & local
     await supabaseClearAllTimetables();
@@ -556,6 +581,8 @@ export default function App() {
   const handleRestoreArabicWeeklyPlan = async () => {
     setClassworkList(INITIAL_CLASSWORK);
     setHomeworkList(INITIAL_HOMEWORK);
+    setCustomTomorrowNotes([]);
+    localStorage.removeItem('nile_custom_tomorrow_notes');
     localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(INITIAL_CLASSWORK));
     localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(INITIAL_HOMEWORK));
 
@@ -656,6 +683,7 @@ export default function App() {
               currentBlock={currentBlock}
               currentWeek={currentWeek}
               timetables={timetables}
+              customTomorrowNotes={customTomorrowNotes}
             />
           )}
 
@@ -765,6 +793,10 @@ export default function App() {
         onClose={() => setIsAdminDashboardOpen(false)}
         onClearAllAppData={handleClearAllData}
         onRestoreArabicWeeklyPlan={handleRestoreArabicWeeklyPlan}
+        onApplyWeeklyPlan={handleApplyWeeklyPlan}
+        currentClass={currentClass}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
       />
 
       {/* School Materials Modal */}

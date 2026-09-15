@@ -20,7 +20,8 @@ import {
   Check,
   Sparkles,
 } from 'lucide-react';
-import { ClassId, MaterialItem } from '../types';
+import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
+import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
 import {
   getAllMaterials,
   syncMaterialsFromCloud,
@@ -37,12 +38,22 @@ import { saveMaterialBlob } from '../utils/materialsDb';
 import { PdfViewerModal } from './PdfViewerModal';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { seedInitialDataIfNeeded } from '../services/supabaseService';
+import { AdminWeeklyPlanManager } from './AdminWeeklyPlanManager';
 
 interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onClearAllAppData?: () => void;
   onRestoreArabicWeeklyPlan?: () => void;
+  onApplyWeeklyPlan?: (
+    classwork: ClassworkEntry[],
+    homework: HomeworkEntry[],
+    tomorrowNotes?: TomorrowSpecialNote[],
+    replaceExisting?: boolean
+  ) => Promise<void> | void;
+  currentClass?: ClassId;
+  currentBlock?: number;
+  currentWeek?: number;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -50,6 +61,10 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   onClose,
   onClearAllAppData,
   onRestoreArabicWeeklyPlan,
+  onApplyWeeklyPlan,
+  currentClass = 'KG1A',
+  currentBlock = 1,
+  currentWeek = 1,
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -63,7 +78,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [adminTab, setAdminTab] = useState<'materials' | 'supabase'>('materials');
+  const [adminTab, setAdminTab] = useState<'materials' | 'weekly_plan' | 'supabase'>('materials');
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
   const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
@@ -299,12 +314,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </button>
           </div>
 
-          {/* Navigation Tabs (Materials vs Supabase) */}
-          <div className="flex items-center gap-2 pt-3 border-b border-slate-100 pb-2">
+          {/* Navigation Tabs (Materials vs Weekly Plan vs Supabase) */}
+          <div className="flex items-center gap-2 pt-3 border-b border-slate-100 pb-2 overflow-x-auto">
             <button
               type="button"
               onClick={() => setAdminTab('materials')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 shrink-0 ${
                 adminTab === 'materials'
                   ? 'bg-amber-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -315,8 +330,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             </button>
             <button
               type="button"
+              onClick={() => setAdminTab('weekly_plan')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 shrink-0 ${
+                adminTab === 'weekly_plan'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>إضافة وتحليل Weekly Plan 🪄</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setAdminTab('supabase')}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer inline-flex items-center gap-2 shrink-0 ${
                 adminTab === 'supabase'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -346,7 +373,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
               </div>
             )}
 
-            {adminTab === 'supabase' ? (
+            {adminTab === 'weekly_plan' ? (
+              /* WEEKLY PLAN SMART PARSER TAB CONTENT */
+              <AdminWeeklyPlanManager
+                currentClass={currentClass}
+                currentBlock={currentBlock}
+                currentWeek={currentWeek}
+                onApplyPlan={async (cw, hw, notes, replace) => {
+                  if (onApplyWeeklyPlan) {
+                    await onApplyWeeklyPlan(cw, hw, notes, replace);
+                  }
+                  setSuccessMessage('تم حفظ الخطة الأسبوعية ومزامنتها بنجاح!');
+                  setTimeout(() => setSuccessMessage(null), 4000);
+                }}
+              />
+            ) : adminTab === 'supabase' ? (
               /* SUPABASE TAB CONTENT */
               <div className="space-y-5 animate-in fade-in duration-150">
                 {/* Connection Status Card */}
@@ -615,6 +656,17 @@ CREATE TABLE IF NOT EXISTS public.materials (
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isSyncingCloud ? 'animate-spin' : ''}`} />
                     <span>{isSyncingCloud ? 'جاري المزامنة...' : 'مزامنة السحابة (Mobile ⇄ Laptop)'}</span>
+                  </button>
+
+                  {/* Smart Weekly Plan Parsing Quick Button */}
+                  <button
+                    type="button"
+                    onClick={() => setAdminTab('weekly_plan')}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="إضافة وتحليل Weekly Plan بالذكاء الاصطناعي وتوزيعه آلياً"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>إضافة وتحليل Weekly Plan 🪄</span>
                   </button>
 
                   {/* Restore Arabic Weekly Plan Button */}

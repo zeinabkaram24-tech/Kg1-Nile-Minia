@@ -5,33 +5,8 @@ export async function extractWeeklyPlanText(file: File): Promise<string> {
   const name = file.name.toLowerCase();
   const buffer = await file.arrayBuffer();
 
-  if (name.endsWith('.csv')) {
+  if (name.endsWith('.csv') || name.endsWith('.txt')) {
     return normalizeWeeklyPlanDigits(await file.text());
-  }
-
-  if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-    try {
-      // @ts-ignore
-      const XLSX = await import('xlsx');
-      const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-      return normalizeWeeklyPlanDigits(workbook.SheetNames.map((sheetName: string) => {
-        const sheet = workbook.Sheets[sheetName];
-        return XLSX.utils.sheet_to_csv(sheet, { FS: '\t', RS: '\n', blankrows: false });
-      }).join('\n'));
-    } catch {
-      return normalizeWeeklyPlanDigits(await file.text());
-    }
-  }
-
-  if (name.endsWith('.docx')) {
-    try {
-      // @ts-ignore
-      const mammoth = await import('mammoth');
-      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
-      return normalizeWeeklyPlanDigits(result.value);
-    } catch {
-      return normalizeWeeklyPlanDigits(await file.text());
-    }
   }
 
   if (name.endsWith('.pdf')) {

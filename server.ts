@@ -133,9 +133,12 @@ function heuristicParser(planText: string, classId: string) {
 
   const classwork: any[] = [];
   const homework: any[] = [];
+  const tomorrowNotes: any[] = [];
 
   let currentDay = 'Sunday';
   let currentSubject = 'English';
+
+  const URL_REGEX = /(https?:\/\/[^\s<>"'()]+|www\.[^\s<>"'()]+)/gi;
 
   for (const line of lines) {
     // Check if line indicates a day
@@ -150,7 +153,7 @@ function heuristicParser(planText: string, classId: string) {
     if (/الأحد/i.test(line)) currentDay = 'Sunday';
     else if (/الاثنين|الإثنين/i.test(line)) currentDay = 'Monday';
     else if (/الثلاثاء/i.test(line)) currentDay = 'Tuesday';
-    else if (/الأربعاء/i.test(line)) currentDay = 'Wednesday';
+    else if (/الأربعاء|الاربعاء/i.test(line)) currentDay = 'Wednesday';
     else if (/الخميس/i.test(line)) currentDay = 'Thursday';
 
     // Check subject
@@ -172,14 +175,41 @@ function heuristicParser(planText: string, classId: string) {
     else if (/موسيقى|music/i.test(line)) currentSubject = 'Music';
     else if (/ألعاب|رياضية|pe/i.test(line)) currentSubject = 'PE';
 
+    // Extract links in the line
+    const rawUrls = line.match(URL_REGEX) || [];
+    const links = rawUrls.map((u) => {
+      const cleanUrl = u.startsWith('www.') ? `https://${u}` : u;
+      const isVideo = /youtube|youtu\.be|vimeo|mp4/i.test(cleanUrl);
+      return {
+        url: cleanUrl,
+        title: isVideo ? 'فيديو الشرح / التدريب' : 'رابط الدرس والمصدر',
+        type: isVideo ? 'video' : 'sheet',
+      };
+    });
+    const linkUrl = links.length > 0 ? links[0].url : undefined;
+
+    // Identify Notes / Tomorrow indicators (Arabic & English)
+    const isNote = /^(notes?|ملاحظات|ملاحظة|تنبيه|remarque|bring|please\s+bring|إحضار|برجاء|ضرورة)[:\-–\s]*/i.test(line) ||
+                   /\b(notes?|ملاحظات|ملاحظة|تنبيه|remarque)\b/i.test(line);
+
     // Identify Homework indicators
     const isHw = /hw|homework|واجب|h\.w/i.test(line);
     // Identify Classwork indicators
     const isCw = /cw|classwork|صف|حصة|درس|c\.w/i.test(line);
 
-    const cleanText = line.replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة)[:\-–\s]*/i, '').trim();
+    const cleanText = line
+      .replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة|notes?|ملاحظات|ملاحظة|تنبيه|remarque)[:\-–\s]*/i, '')
+      .trim();
 
-    if (isHw) {
+    if (isNote) {
+      tomorrowNotes.push({
+        day: currentDay,
+        subject: currentSubject,
+        note: cleanText || line,
+        arabicNote: cleanText || line,
+        bagItem: /bring|إحضار|أدوات|كشكول|كتاب|ألوان|sketch/i.test(line) ? cleanText : undefined,
+      });
+    } else if (isHw) {
       const nextDayMap: Record<string, string> = {
         Sunday: 'Monday',
         Monday: 'Tuesday',
@@ -195,6 +225,8 @@ function heuristicParser(planText: string, classId: string) {
         task: cleanText || line,
         completed: false,
         priority: /urgent|هام|ضروري|quiz|امتحان/i.test(line) ? 'urgent' : 'normal',
+        linkUrl,
+        links: links.length > 0 ? links : undefined,
       });
     } else if (isCw || cleanText.length > 5) {
       classwork.push({
@@ -204,11 +236,13 @@ function heuristicParser(planText: string, classId: string) {
         subject: currentSubject,
         title: cleanText || line,
         completed: false,
+        linkUrl,
+        links: links.length > 0 ? links : undefined,
       });
     }
   }
 
-  return { classwork, homework };
+  return { classwork, homework, tomorrowNotes };
 }
 
 // API endpoint to parse Weekly Plan using Gemini or fallback
@@ -230,32 +264,48 @@ app.post('/api/parse-weekly-plan', async (req, res) => {
 You are an expert school coordinator assistant for Nile Egyptian International School, KG 1 (${classId || 'KG1A'}).
 The user provided their weekly plan text (which can be in English, Arabic, or mixed).
 Your job is to categorize and extract:
-1. "classwork": An array of items studied in class for that day and period.
+
+CRITICAL RULES & LOGIC:
+1. "classwork": Array of lessons/activities studied in class for that day and period.
    Each classwork item must have:
    - "classId": "${classId || 'KG1A'}"
    - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "period": Number (1 to 6, or estimate 1-6 based on typical school day schedule)
+   - "period": Number (1 to 6)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "title": Short descriptive title of the topic/lesson (e.g. "Chapter 2: Subtraction with regrouping")
-   - "details": Optional additional instructions or practice details
+   - "title": Clean descriptive title of the lesson/topic
+   - "details": Optional details
    - "pages": Optional page numbers (e.g. "Student Book p. 24-26")
    - "completed": false
+   - "linkUrl": Optional first detected URL in the item
+   - "links": Optional array of objects { url: string, title: string, type: 'video' | 'sheet' | 'link' }
 
-2. "homework": An array of homework tasks assigned.
+2. "homework": Array of homework tasks assigned.
    Each homework item must have:
    - "classId": "${classId || 'KG1A'}"
    - "assignedDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" (usually the next school day or next subject period)
+   - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" (usually next school day)
    - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "task": The homework description (e.g. "Workbook p. 14 exercises 1-5")
-   - "details": Extra notes or materials needed
-   - "pages": Page reference
+   - "task": The homework description
+   - "pages": Page reference if any
    - "completed": false
-   - "priority": "normal" or "urgent" (urgent if it mentions a quiz, test, spelling bee, project, or due tomorrow)
+   - "priority": "normal" or "urgent" (urgent if quiz, exam, dictation, or project)
+   - "linkUrl": Optional first detected URL in the task
+   - "links": Optional array of objects { url: string, title: string, type: 'video' | 'sheet' | 'link' }
 
-3. "tomorrowNotes": Optional list of items to pack or special preparations for tomorrow:
-   - "day": Day of the week
-   - "note": What to pack/bring (e.g. "Bring Art sketch and water colors", "PE sports uniform")
+3. "tomorrowNotes": ALL teacher instructions, parent notes, and remarks in Arabic or English:
+   - Convert ANY notes column, "Notes:", "ملاحظات:", "تنبيه:", "Remarque:", or "Please bring..." into "tomorrowNotes" items!
+   - "day": School day the note belongs to or applies for
+   - "subject": The related subject (e.g. "Arabic", "English", "French", "General")
+   - "note": Clear text of the instruction/note
+   - "arabicNote": Arabic phrasing of the note
+   - "bagItem": Optional supplies/bag item to pack (e.g. "كشكول رسم وألوان", "100 chart")
+
+4. CRITICAL PHONICS & LETTER ORTHOGRAPHY RULE:
+   - In English phonics and letter lessons, ensure the letter "P" / "p" (sound /p/, heavy P with circle on top) is strictly preserved and never confused with "B" / "b".
+   - In Nile Egyptian School KG 1, students learn letter "P" / "p" (البي التقيلة p). Always spell it correctly as Letter P / p.
+
+5. LINKS & URLS PRESERVATION:
+   - Any URLs (such as YouTube videos, Google Drive sheets, audio links) must be extracted and preserved with their exact URLs in both classwork and homework.
 
 Return ONLY valid JSON matching this structure without Markdown fences or commentary:
 {

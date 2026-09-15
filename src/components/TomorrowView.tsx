@@ -6,7 +6,7 @@ import {
   NEXT_SCHOOL_DAY,
   SUBJECT_METADATA,
 } from '../data/timetables';
-import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { SPECIAL_TEACHER_NOTES, TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
 
@@ -16,6 +16,7 @@ interface TomorrowViewProps {
   currentBlock?: number;
   currentWeek?: number;
   timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
+  customTomorrowNotes?: TomorrowSpecialNote[];
 }
 
 const ARABIC_DAY_NAMES: Record<SchoolDay, string> = {
@@ -33,6 +34,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentBlock = 1,
   currentWeek = 1,
   timetables,
+  customTomorrowNotes = [],
 }) => {
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
@@ -47,8 +49,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     return lower.includes('واجب') || lower.includes('homework') || lower.includes('devoir');
   };
 
+  const matchingCustomNotes = customTomorrowNotes.filter(
+    (n) => (n.classId === currentClass || (n.classId as string) === 'ALL') && n.targetDay === tomorrowDay
+  );
+
   const rawTomorrowNotes =
-    currentBlock === 1 && currentWeek === 2
+    matchingCustomNotes.length > 0
+      ? matchingCustomNotes
+      : currentBlock === 1 && currentWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
           (n) => n.classId === currentClass && n.targetDay === tomorrowDay
         )

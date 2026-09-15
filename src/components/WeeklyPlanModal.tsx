@@ -31,14 +31,16 @@ Sunday:
 - French: Unité 1 Salutations. CW: Manuel p. 6-8. HW: None
 - Mathematics: Place Value up to 100 with base-ten blocks. CW: Student Book p. 14-17. HW: Practice Book p. 11 exercises 1-8 (Due Monday)
 - Arabic: درس أنا أستطيع. CW: كتاب التلميذ ص 12-15. HW: كتابة الفقرة الأولى في كشكول الواجب (Due Tuesday)
+- Arabic: ملاحظات: ضرورة استماع التلميذ لرابط فيديو القراءة لتنمية مهارة الاستماع https://youtu.be/arabic-lesson
 - Science: Habitats & Living Things. CW: Learner's Book p. 18-21. HW: Workbook p. 15
-- English: Unit 1 Back to School (Phonics short a & e). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday)
+- English: Phonics: Letter P /p/ (heavy P with top circle) & words (pen, pig, pot). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday) https://youtu.be/phonics-letter-p
 
 Monday:
 - PE: Agility ladder & ball bouncing. Bring sports shoes!
-- English: Story Time The Kind Rabbit. CW: Pupil's Book p. 14-15. HW: Copybook sentences
+- English: Story Time The Kind Rabbit & Letter P practice. CW: Pupil's Book p. 14-15. HW: Copybook sentences
 - Mathematics: Comparing numbers with <, >, =. CW: Student Book p. 18-20. HW: Practice Book p. 12 (Due Tuesday)
 - Arabic: أسماء الإشارة (هذا وهذه). CW: كتاب المدرسة ص 16. HW: حل التدريب 3
+- Notes: Please pack extra water bottle and PE shoes for sports day.
 
 Tuesday:
 - Social Studies: My Community and Neighborhood. CW: Book p. 8-11. HW: Draw 3 places in notebook (Due Wednesday)
@@ -46,7 +48,7 @@ Tuesday:
 - Arts: Primary colors & watercolor painting. Bring sketch and watercolor set!
 - Religion: سورة الفلق وحفظ الآيات الكريمة. HW: حفظ السورة للتسميع (Urgent Quiz)
 - French: L'alphabet français A à H. CW: Cahier p. 11. HW: Cahier d'activités p. 7
-- English: Sight words & sentence building. CW: Workbook p. 16. HW: Practice spelling list
+- English: Phonics Letter P handwriting and sound practice. CW: Workbook p. 16. HW: Practice tracing letter p (البي التقيلة p)
 
 Wednesday:
 - English: Comprehension Animal Friends. CW: Pupil's Book p. 18. HW: Study 10 spelling words for Thursday Quiz (Urgent)
@@ -189,8 +191,9 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
               placeholder="Paste your weekly plan here... For example:
 Sunday:
 - Math: Classwork pages 14-17. Homework page 11 (Due Monday)
-- English: Phonics short a and e. Homework activity book p. 8
-- Arabic: درس أنا أستطيع، كتابة الفقرة الأولى في كشكول الواجب"
+- English: Phonics: Letter P /p/ (sound of heavy P with circle on top). Homework activity book p. 8 https://youtu.be/phonics-p
+- Arabic: درس أنا أستطيع، كتابة الفقرة الأولى في كشكول الواجب
+- Arabic: ملاحظات: الاستماع لفيديو القراءة لتنمية مهارة الاستماع"
               className="w-full text-xs sm:text-sm p-3 font-mono bg-slate-50 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
             />
           </div>
