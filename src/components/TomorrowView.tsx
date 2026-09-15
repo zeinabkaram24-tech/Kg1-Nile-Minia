@@ -31,13 +31,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   currentClass,
   selectedDay,
   currentBlock = 1,
-  currentWeek = 2,
+  currentWeek = 1,
   timetables,
 }) => {
   // Tomorrow's target day based on the active selected day
   const tomorrowDay: SchoolDay = NEXT_SCHOOL_DAY[selectedDay] || 'Sunday';
 
-  // Tomorrow's timetable periods (the 8 periods)
+  // Tomorrow's timetable periods
   const schedule = timetables ? timetables[currentClass] : CLASS_TIMETABLES[currentClass];
   const targetPeriods: PeriodSlot[] = (schedule && schedule[tomorrowDay]) || [];
 
@@ -67,14 +67,14 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* 2x4 Grid of Subject Blocks (8 periods) */}
+      {/* Grid of Subject Blocks */}
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100">
           <span className="text-sm font-black text-slate-900">
             جدول حصص الغد — يوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})
           </span>
           <span className="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
-            {currentClass} • 8 حصص
+            {currentClass} • {targetPeriods.length} حصص
           </span>
         </div>
 

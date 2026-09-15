@@ -16,18 +16,18 @@ export const SCHOOL_DAYS: SchoolDay[] = [
 export const PERIOD_TIMES: Record<number, string> = {
   1: '7:45 - 8:35',
   2: '8:35 - 9:25',
-  3: '9:45 - 10:35',
-  4: '10:35 - 11:25',
-  5: '11:25 - 12:15',
-  6: '12:15 - 13:05',
-  7: '13:25 - 14:15',
-  8: '14:15 - 15:05',
+  3: '9:55 - 10:45',
+  4: '10:45 - 11:35',
+  5: '12:05 - 12:55',
+  6: '12:55 - 1:45',
+  7: '1:50 - 2:25',
+  8: '2:25 - 3:00',
 };
 
 export const BREAK_SLOTS: BreakSlot[] = [
-  { name: 'Morning Line & Assembly', time: '7:30 - 7:45', type: 'line' },
-  { name: 'Breakfast Break', time: '9:25 - 9:45', type: 'breakfast' },
-  { name: 'Lunch Break', time: '13:05 - 13:25', type: 'lunch' },
+  { name: 'طابور الصباح (Morning Line)', time: '7:30 - 7:45', type: 'line' },
+  { name: 'فترة الإفطار (Breakfast)', time: '9:25 - 9:55', type: 'breakfast' },
+  { name: 'فترة الحديقة (Garden Break)', time: '11:35 - 12:05', type: 'lunch' },
 ];
 
 export interface ClassOption {
@@ -209,8 +209,52 @@ export const createEmptyWeekSchedule = (): Record<SchoolDay, PeriodSlot[]> => ({
   Thursday: createEmptyDaySchedule(),
 });
 
+export const KG1A_TIMETABLE: Record<SchoolDay, PeriodSlot[]> = {
+  Saturday: [],
+  Sunday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Music', teacher: 'Sara Khalifa' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 5, time: '12:05 - 12:55', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+  ],
+  Monday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Music', teacher: 'Sara Khalifa' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+  ],
+  Tuesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+  ],
+  Wednesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 3, time: '9:55 - 10:45', subject: 'PE', teacher: 'Shreen Emad' },
+    { period: 4, time: '10:45 - 11:35', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 5, time: '12:05 - 12:55', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+  ],
+  Thursday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Mai Gamal / Hager M. Khalaf' },
+    { period: 5, time: '12:05 - 12:55', subject: 'PE', teacher: 'Shreen Emad' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Naglaa Mohamed / Rawan Wael' },
+  ],
+};
+
 export const CLASS_TIMETABLES: Record<ClassId, Record<SchoolDay, PeriodSlot[]>> = {
-  KG1A: createEmptyWeekSchedule(),
+  KG1A: KG1A_TIMETABLE,
   KG1B: createEmptyWeekSchedule(),
   KG1C: createEmptyWeekSchedule(),
   KG1D: createEmptyWeekSchedule(),

@@ -7,6 +7,8 @@ import {
   User,
   BookOpen,
   ExternalLink,
+  Play,
+  Video,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
@@ -62,7 +64,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const timetablePeriods: GroupedPeriodSlot[] = [];
   for (const slot of rawTimetablePeriods) {
     const last = timetablePeriods[timetablePeriods.length - 1];
-    if (last && last.subject === slot.subject && (slot.subject === 'English' || slot.subject === 'Mathematics')) {
+    if (last && last.subject === slot.subject && (slot.subject === 'English' || slot.subject === 'Mathematics' || slot.subject === 'Arabic')) {
       last.periods.push(slot.period);
       const startTime = last.time.split(' - ')[0];
       const endTime = slot.time.split(' - ')[1] || slot.time;
@@ -222,13 +224,21 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               (c) =>
                 c.classId === currentClass &&
                 c.day === selectedDay &&
-                slot.periods.includes(c.period) &&
+                (slot.periods.includes(c.period) || (c.subject === slot.subject && slot.subject === 'Arabic')) &&
                 (c.block || 1) === currentBlock &&
                 (c.week || 1) === currentWeek
             );
 
-            const activeLinkUrl = cwEntry?.linkUrl;
-            const activeLinkTitle = cwEntry?.linkTitle || 'رابط الدرس 🔗';
+            const lessonLinks: { url: string; title: string; type?: string }[] = [];
+            if (cwEntry?.links && cwEntry.links.length > 0) {
+              lessonLinks.push(...cwEntry.links);
+            } else if (cwEntry?.linkUrl) {
+              lessonLinks.push({
+                url: cwEntry.linkUrl,
+                title: cwEntry.linkTitle || cwEntry.linkUrl,
+                type: cwEntry.linkUrl.includes('youtu') ? 'video' : 'general',
+              });
+            }
 
             const handleToggleLesson = () => {
               if (cwEntry) {
@@ -341,22 +351,31 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             {cwEntry.details}
                           </p>
                         )}
-                        {activeLinkUrl && (
-                          <div className="pt-2">
-                            <a
-                              href={activeLinkUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-2xs ${
-                                isFrench
-                                  ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-700'
-                                  : 'bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100'
-                              }`}
-                            >
-                              <ExternalLink className={`w-3.5 h-3.5 ${isFrench ? 'text-white' : 'text-blue-700'}`} />
-                              <span>{activeLinkTitle}</span>
-                              {isFrench && <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Kahoot 🎯</span>}
-                            </a>
+                        {lessonLinks.length > 0 && (
+                          <div className="pt-2 flex flex-wrap gap-2">
+                            {lessonLinks.map((linkItem, lIdx) => {
+                              const isVideo = linkItem.type === 'video' || linkItem.url.includes('youtu');
+                              return (
+                                <a
+                                  key={lIdx}
+                                  href={linkItem.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
+                                    isVideo
+                                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
+                                  }`}
+                                >
+                                  {isVideo ? (
+                                    <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                                  ) : (
+                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                  )}
+                                  <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{linkItem.url}</span>
+                                </a>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

@@ -34,6 +34,12 @@ export interface DaySchedule {
   periods: PeriodSlot[];
 }
 
+export interface PlanLink {
+  url: string;
+  title: string;
+  type?: 'video' | 'sheet' | 'game' | 'general';
+}
+
 export interface ClassworkEntry {
   id: string;
   classId: ClassId;
@@ -48,6 +54,7 @@ export interface ClassworkEntry {
   week?: number;
   linkUrl?: string;
   linkTitle?: string;
+  links?: PlanLink[];
 }
 
 export interface HomeworkEntry {
@@ -65,6 +72,8 @@ export interface HomeworkEntry {
   week?: number;
   isLinkTask?: boolean;
   linkUrl?: string;
+  linkTitle?: string;
+  links?: PlanLink[];
 }
 
 export interface TomorrowItem {

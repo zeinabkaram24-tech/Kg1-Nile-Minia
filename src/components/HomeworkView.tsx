@@ -6,6 +6,7 @@ import {
   BookOpen,
   AlertTriangle,
   AlertCircle,
+  Play,
 } from 'lucide-react';
 import { ClassId, SchoolDay, HomeworkEntry, ClassworkEntry } from '../types';
 import { SUBJECT_METADATA } from '../data/timetables';
@@ -257,28 +258,72 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     </div>
 
                     {/* Task Description */}
-                    <p
-                      className={`text-sm font-black leading-snug pt-0.5 ${
-                        hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
-                      }`}
-                    >
-                      {hw.task}
-                    </p>
-
-                    {/* Link if available */}
-                    {hw.linkUrl && (
+                    {hw.task.startsWith('http') ? (
                       <div className="pt-1">
                         <a
-                          href={hw.linkUrl}
+                          href={hw.task}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-900 border border-blue-200 hover:bg-blue-100 transition-colors"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full bg-red-600 hover:bg-red-700 text-white shadow-red-700/20"
                         >
-                          <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
-                          <span>رابط الواجب / النشاط</span>
+                          <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                          <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{hw.task}</span>
                         </a>
                       </div>
+                    ) : (
+                      <p
+                        className={`text-sm font-black leading-snug pt-0.5 ${
+                          hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
+                        }`}
+                      >
+                        {hw.task}
+                      </p>
                     )}
+
+                    {/* Links if available (and not already shown as task) */}
+                    {(() => {
+                      if (hw.task.startsWith('http')) return null;
+                      const hwLinks: { url: string; title: string; type?: string }[] = [];
+                      if (hw.links && hw.links.length > 0) {
+                        hwLinks.push(...hw.links);
+                      } else if (hw.linkUrl) {
+                        hwLinks.push({
+                          url: hw.linkUrl,
+                          title: hw.linkTitle || hw.linkUrl,
+                          type: hw.linkUrl.includes('youtu') ? 'video' : 'general',
+                        });
+                      }
+
+                      if (hwLinks.length === 0) return null;
+
+                      return (
+                        <div className="pt-1.5 flex flex-wrap gap-2">
+                          {hwLinks.map((lItem, lIdx) => {
+                            const isVid = lItem.type === 'video' || lItem.url.includes('youtu');
+                            return (
+                              <a
+                                key={lIdx}
+                                href={lItem.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
+                                  isVid
+                                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
+                                }`}
+                              >
+                                {isVid ? (
+                                  <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                                ) : (
+                                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                )}
+                                <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{lItem.url}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

@@ -3,44 +3,40 @@ import { CLASS_TIMETABLES, createEmptyWeekSchedule } from '../data/timetables';
 
 const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v1';
 
+function hasAnySlots(schedule?: Record<SchoolDay, PeriodSlot[]>): boolean {
+  if (!schedule) return false;
+  return Object.values(schedule).some((slots) => Array.isArray(slots) && slots.length > 0);
+}
+
 export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodSlot[]>> {
   try {
     const raw = localStorage.getItem(TIMETABLE_STORAGE_KEY);
     if (!raw) {
       return {
-        KG1A: createEmptyWeekSchedule(),
-        KG1B: createEmptyWeekSchedule(),
-        KG1C: createEmptyWeekSchedule(),
-        KG1D: createEmptyWeekSchedule(),
-        KG1E: createEmptyWeekSchedule(),
-        G2A: createEmptyWeekSchedule(),
-        G2B: createEmptyWeekSchedule(),
-        G2C: createEmptyWeekSchedule(),
+        KG1A: CLASS_TIMETABLES.KG1A || createEmptyWeekSchedule(),
+        KG1B: CLASS_TIMETABLES.KG1B || createEmptyWeekSchedule(),
+        KG1C: CLASS_TIMETABLES.KG1C || createEmptyWeekSchedule(),
+        KG1D: CLASS_TIMETABLES.KG1D || createEmptyWeekSchedule(),
+        KG1E: CLASS_TIMETABLES.KG1E || createEmptyWeekSchedule(),
+        G2A: CLASS_TIMETABLES.G2A || createEmptyWeekSchedule(),
+        G2B: CLASS_TIMETABLES.G2B || createEmptyWeekSchedule(),
+        G2C: CLASS_TIMETABLES.G2C || createEmptyWeekSchedule(),
       };
     }
     const parsed = JSON.parse(raw);
     return {
-      KG1A: parsed.KG1A || createEmptyWeekSchedule(),
-      KG1B: parsed.KG1B || createEmptyWeekSchedule(),
-      KG1C: parsed.KG1C || createEmptyWeekSchedule(),
-      KG1D: parsed.KG1D || createEmptyWeekSchedule(),
-      KG1E: parsed.KG1E || createEmptyWeekSchedule(),
-      G2A: parsed.G2A || createEmptyWeekSchedule(),
-      G2B: parsed.G2B || createEmptyWeekSchedule(),
-      G2C: parsed.G2C || createEmptyWeekSchedule(),
+      KG1A: hasAnySlots(parsed.KG1A) ? parsed.KG1A : CLASS_TIMETABLES.KG1A,
+      KG1B: hasAnySlots(parsed.KG1B) ? parsed.KG1B : CLASS_TIMETABLES.KG1B,
+      KG1C: hasAnySlots(parsed.KG1C) ? parsed.KG1C : CLASS_TIMETABLES.KG1C,
+      KG1D: hasAnySlots(parsed.KG1D) ? parsed.KG1D : CLASS_TIMETABLES.KG1D,
+      KG1E: hasAnySlots(parsed.KG1E) ? parsed.KG1E : CLASS_TIMETABLES.KG1E,
+      G2A: hasAnySlots(parsed.G2A) ? parsed.G2A : CLASS_TIMETABLES.G2A,
+      G2B: hasAnySlots(parsed.G2B) ? parsed.G2B : CLASS_TIMETABLES.G2B,
+      G2C: hasAnySlots(parsed.G2C) ? parsed.G2C : CLASS_TIMETABLES.G2C,
     };
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);
-    return {
-      KG1A: createEmptyWeekSchedule(),
-      KG1B: createEmptyWeekSchedule(),
-      KG1C: createEmptyWeekSchedule(),
-      KG1D: createEmptyWeekSchedule(),
-      KG1E: createEmptyWeekSchedule(),
-      G2A: createEmptyWeekSchedule(),
-      G2B: createEmptyWeekSchedule(),
-      G2C: createEmptyWeekSchedule(),
-    };
+    return CLASS_TIMETABLES;
   }
 }
 

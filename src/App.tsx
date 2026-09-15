@@ -31,8 +31,8 @@ const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CUSTOM_CLASSWORK: 'nile_planner_custom_classwork_v1',
-  CUSTOM_HOMEWORK: 'nile_planner_custom_homework_v1',
+  CUSTOM_CLASSWORK: 'nile_planner_custom_classwork_v3',
+  CUSTOM_HOMEWORK: 'nile_planner_custom_homework_v3',
 };
 
 function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[] {
@@ -40,15 +40,17 @@ function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[]
     const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_CLASSWORK);
     if (raw) {
       const list: ClassworkEntry[] = JSON.parse(raw);
-      if (profile?.mode === 'student' && profile.studentName) {
-        const progress = getStudentProgress(profile.studentName);
-        const set = new Set(progress.completedClassworkIds);
-        return list.map((c) => ({
-          ...c,
-          completed: set.has(c.id),
-        }));
+      if (Array.isArray(list) && list.length > 0 && list.some((c) => c.classId === 'KG1A')) {
+        if (profile?.mode === 'student' && profile.studentName) {
+          const progress = getStudentProgress(profile.studentName);
+          const set = new Set(progress.completedClassworkIds);
+          return list.map((c) => ({
+            ...c,
+            completed: set.has(c.id),
+          }));
+        }
+        return list.map((c) => ({ ...c, completed: false }));
       }
-      return list.map((c) => ({ ...c, completed: false }));
     }
   } catch (e) {
     console.error('Failed to load custom classwork:', e);
@@ -61,15 +63,17 @@ function getStoredCustomHomework(profile: UserProfile | null): HomeworkEntry[] {
     const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_HOMEWORK);
     if (raw) {
       const list: HomeworkEntry[] = JSON.parse(raw);
-      if (profile?.mode === 'student' && profile.studentName) {
-        const progress = getStudentProgress(profile.studentName);
-        const set = new Set(progress.completedHomeworkIds);
-        return list.map((h) => ({
-          ...h,
-          completed: set.has(h.id),
-        }));
+      if (Array.isArray(list) && list.length > 0 && list.some((h) => h.classId === 'KG1A')) {
+        if (profile?.mode === 'student' && profile.studentName) {
+          const progress = getStudentProgress(profile.studentName);
+          const set = new Set(progress.completedHomeworkIds);
+          return list.map((h) => ({
+            ...h,
+            completed: set.has(h.id),
+          }));
+        }
+        return list.map((h) => ({ ...h, completed: false }));
       }
-      return list.map((h) => ({ ...h, completed: false }));
     }
   } catch (e) {
     console.error('Failed to load custom homework:', e);
