@@ -7,7 +7,7 @@ import {
   saveAllStoredTimetables,
   clearAllStoredTimetables,
 } from './utils/timetableStorage';
-import { clearAllMaterialsStorage } from './utils/materialsStorage';
+import { clearAllMaterialsStorage, syncMaterialsFromCloud } from './utils/materialsStorage';
 import { Navbar } from './components/Navbar';
 import { ClassworkView } from './components/ClassworkView';
 import { HomeworkView } from './components/HomeworkView';
@@ -187,6 +187,13 @@ export default function App() {
     let isMounted = true;
 
     async function syncFromSupabase() {
+      // 1. Sync materials from Cloud (Supabase or server fallback) immediately
+      try {
+        await syncMaterialsFromCloud();
+      } catch (e) {
+        console.warn('Initial cloud materials sync warning:', e);
+      }
+
       if (!isSupabaseConfigured) {
         setSupabaseStatus('offline');
         return;
@@ -202,16 +209,30 @@ export default function App() {
 
         // 2. Fetch classwork
         const remoteCw = await supabaseFetchClasswork();
-        if (isMounted && remoteCw.length > 0) {
-          setClassworkList(remoteCw);
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
+        if (isMounted) {
+          if (remoteCw.length > 0) {
+            setClassworkList(remoteCw);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
+          } else {
+            // Seed default Arabic weekly plan if empty
+            setClassworkList(INITIAL_CLASSWORK);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(INITIAL_CLASSWORK));
+            supabaseBatchInsertClasswork(INITIAL_CLASSWORK).catch(console.warn);
+          }
         }
 
         // 3. Fetch homework
         const remoteHw = await supabaseFetchHomework();
-        if (isMounted && remoteHw.length > 0) {
-          setHomeworkList(remoteHw);
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
+        if (isMounted) {
+          if (remoteHw.length > 0) {
+            setHomeworkList(remoteHw);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
+          } else {
+            // Seed default Arabic homework if empty
+            setHomeworkList(INITIAL_HOMEWORK);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(INITIAL_HOMEWORK));
+            supabaseBatchInsertHomework(INITIAL_HOMEWORK).catch(console.warn);
+          }
         }
 
         // 4. Fetch timetables
@@ -257,6 +278,9 @@ export default function App() {
           if (isMounted && fresh) {
             setTimetables(fresh);
           }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, async () => {
+          await syncMaterialsFromCloud();
         })
         .subscribe();
 
@@ -528,6 +552,24 @@ export default function App() {
     showToast('تم تفريغ كافة البيانات والملفات بنجاح! الأبليكيشن جاهز لبياناتك الجديدة بالكامل.');
   };
 
+  // Restore original Arabic weekly plan with YouTube links & lessons
+  const handleRestoreArabicWeeklyPlan = async () => {
+    setClassworkList(INITIAL_CLASSWORK);
+    setHomeworkList(INITIAL_HOMEWORK);
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(INITIAL_CLASSWORK));
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(INITIAL_HOMEWORK));
+
+    if (isSupabaseConfigured) {
+      try {
+        await supabaseBatchInsertClasswork(INITIAL_CLASSWORK);
+        await supabaseBatchInsertHomework(INITIAL_HOMEWORK);
+      } catch (e) {
+        console.warn('Failed to push restored weekly plan to Supabase:', e);
+      }
+    }
+    showToast('تمت استعادة الويكلي بلان العربي بجميع الروابط والدروس بنجاح!');
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -722,6 +764,7 @@ export default function App() {
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
         onClearAllAppData={handleClearAllData}
+        onRestoreArabicWeeklyPlan={handleRestoreArabicWeeklyPlan}
       />
 
       {/* School Materials Modal */}

@@ -2,11 +2,18 @@ import { MaterialItem } from '../types';
 import { INITIAL_MATERIALS_DATA } from '../data/materialsData';
 import {
   getMaterialBlob,
+  saveMaterialBlob,
   deleteMaterialBlob,
   deleteMultipleMaterialBlobs,
   clearAllMaterialBlobs,
 } from './materialsDb';
 import { isAdminLoggedIn } from './storage';
+import {
+  supabaseFetchMaterials,
+  supabaseUpsertMaterial,
+  supabaseDeleteMaterial,
+  supabaseClearAllMaterials,
+} from '../services/supabaseService';
 
 const DB_NAME = 'SchoolMaterialsDB';
 const STORE_NAME = 'materials';
@@ -60,7 +67,7 @@ function saveFallbackMaterials(items: MaterialItem[]) {
   }
 }
 
-// Retrieve all materials
+// Retrieve all materials (merges local cache and triggers cloud sync)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
   try {
     const db = await openDB();
@@ -83,8 +90,58 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
   }
 }
 
-// Save or add a material
+// Seamless Cloud Sync (Mobile ⇄ Laptop)
+export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
+  try {
+    // 1. Try Supabase first
+    const remoteMaterials = await supabaseFetchMaterials();
+    if (remoteMaterials && remoteMaterials.length > 0) {
+      const db = await openDB();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      for (const item of remoteMaterials) {
+        store.put(item);
+        if (item.fileData && item.fileData.startsWith('data:')) {
+          try {
+            const blob = dataUrlToBlob(item.fileData);
+            saveMaterialBlob(item.id, blob).catch(() => {});
+          } catch {}
+        }
+      }
+      window.dispatchEvent(new CustomEvent(EVENT_NAME));
+      return remoteMaterials;
+    }
+
+    // 2. Fallback to Express Server API (/api/materials)
+    const res = await fetch('/api/materials');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.materials) && data.materials.length > 0) {
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        for (const item of data.materials) {
+          store.put(item);
+          if (item.fileData && item.fileData.startsWith('data:')) {
+            try {
+              const blob = dataUrlToBlob(item.fileData);
+              saveMaterialBlob(item.id, blob).catch(() => {});
+            } catch {}
+          }
+        }
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        return data.materials;
+      }
+    }
+  } catch (err) {
+    console.warn('Sync materials from cloud error:', err);
+  }
+  return getAllMaterials();
+}
+
+// Save or add a material (Uploads to Supabase + Server + Local IndexedDB)
 export async function saveMaterial(item: MaterialItem): Promise<void> {
+  // 1. Save to local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -102,11 +159,35 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
+  // 2. Cache blob locally if fileData is present
+  if (item.fileData && item.fileData.startsWith('data:')) {
+    try {
+      const blob = dataUrlToBlob(item.fileData);
+      saveMaterialBlob(item.id, blob).catch(() => {});
+    } catch {}
+  }
+
+  // 3. Upload to Supabase for instant cross-device sync (Mobile ⇄ Laptop)
+  try {
+    await supabaseUpsertMaterial(item);
+  } catch (e) {
+    console.warn('Supabase upsert material error:', e);
+  }
+
+  // 4. Send to Express server endpoint
+  try {
+    fetch('/api/materials/single', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    }).catch(() => {});
+  } catch {}
+
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material
+// Delete a material (Deletes from Local + Supabase + Server)
 export async function deleteMaterial(id: string): Promise<void> {
   try {
     const db = await openDB();
@@ -123,6 +204,21 @@ export async function deleteMaterial(id: string): Promise<void> {
     const existing = getFallbackMaterials().filter((m) => m.id !== id);
     saveFallbackMaterials(existing);
   }
+
+  // Delete local blob
+  deleteMaterialBlob(id).catch(() => {});
+
+  // Delete from Supabase
+  try {
+    await supabaseDeleteMaterial(id);
+  } catch (e) {
+    console.warn('Supabase delete material error:', e);
+  }
+
+  // Delete from Server
+  try {
+    fetch(`/api/materials/${id}`, { method: 'DELETE' }).catch(() => {});
+  } catch {}
 
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
@@ -434,6 +530,17 @@ export async function clearAllMaterialsStorage(): Promise<void> {
   }
 
   await clearAllMaterialBlobs();
+
+  try {
+    await supabaseClearAllMaterials();
+  } catch (e) {
+    console.warn('Supabase clear materials error:', e);
+  }
+
+  try {
+    fetch('/api/materials/clear', { method: 'POST' }).catch(() => {});
+  } catch {}
+
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 

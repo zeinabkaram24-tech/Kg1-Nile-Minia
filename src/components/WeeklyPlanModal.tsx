@@ -14,6 +14,7 @@ import {
 import { ClassId, ClassworkEntry, HomeworkEntry, ParsedWeeklyPlanResponse } from '../types';
 import { parseWeeklyPlanWithAI } from '../services/aiClassifier';
 import { SUBJECT_METADATA } from '../data/timetables';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 
 interface WeeklyPlanModalProps {
   isOpen: boolean;
@@ -153,18 +154,32 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
         {/* Modal Body */}
         <div className="py-4 space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
               <label className="text-xs font-bold text-slate-700">
                 Paste Weekly Plan (English, Arabic, or School Text):
               </label>
-              <button
-                type="button"
-                onClick={() => setPlanText(SAMPLE_WEEKLY_PLAN)}
-                className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-1"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                Fill Sample Grade 2 Plan
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onApplyPlan(INITIAL_CLASSWORK, INITIAL_HOMEWORK);
+                    onClose();
+                  }}
+                  className="text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+                  title="استعادة الويكلي بلان العربي الأصلي مع كافة لينكات اليوتيوب وتفاصيل الدروس"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>استعادة الويكلي بلان العربي باللينكات</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlanText(SAMPLE_WEEKLY_PLAN)}
+                  className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-1"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Fill Sample
+                </button>
+              </div>
             </div>
 
             <textarea

@@ -1,8 +1,22 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, PeriodSlot, SubjectName } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, PeriodSlot, SubjectName, MaterialItem } from '../types';
 import initialData from '../data/initialData.json';
 
 // DB row types matching Supabase schema
+export interface MaterialRow {
+  id: string;
+  file_name: string;
+  file_size: number;
+  file_data: string | null;
+  file_url: string | null;
+  block: number;
+  section: string;
+  class_id: string | null;
+  title: string | null;
+  category: string | null;
+  notes: string | null;
+  uploaded_at: string;
+}
 export interface ClassworkRow {
   id: string;
   class_id: string;
@@ -523,3 +537,94 @@ export async function supabaseSaveStudentProgress(
     return false;
   }
 }
+
+// ----------------------------------------------------------------------
+// Materials CRUD operations (Mobile ⇄ Laptop Real-time Sync)
+// ----------------------------------------------------------------------
+export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('materials')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.warn('Supabase fetch materials warning:', error.message);
+      return [];
+    }
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      fileName: row.file_name,
+      fileSize: row.file_size,
+      fileData: row.file_data || undefined,
+      fileUrl: row.file_url || undefined,
+      block: row.block,
+      section: row.section,
+      classId: row.class_id || undefined,
+      title: row.title || undefined,
+      category: row.category || undefined,
+      notes: row.notes || undefined,
+      uploadedAt: row.uploaded_at,
+    }));
+  } catch (e) {
+    console.error('Supabase fetch materials exception:', e);
+    return [];
+  }
+}
+
+export async function supabaseUpsertMaterial(item: MaterialItem): Promise<{ success: boolean; error?: any }> {
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase not configured' };
+  try {
+    const row = {
+      id: item.id,
+      file_name: item.fileName || 'document.pdf',
+      file_size: typeof item.fileSize === 'number' ? item.fileSize : parseInt(String(item.fileSize || 0), 10) || 0,
+      file_data: item.fileData || null,
+      file_url: item.fileUrl || null,
+      block: item.block || 1,
+      section: item.section || 'Main sheets',
+      class_id: item.classId || null,
+      title: item.title || null,
+      category: item.category || null,
+      notes: item.notes || null,
+      uploaded_at: item.uploadedAt || new Date().toISOString(),
+    };
+    const { error } = await supabase.from('materials').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.warn('Supabase upsert material error:', error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (e: any) {
+    console.error('Supabase upsert material exception:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+export async function supabaseDeleteMaterial(id: string): Promise<{ success: boolean; error?: any }> {
+  if (!isSupabaseConfigured) return { success: false, error: 'Supabase not configured' };
+  try {
+    const { error } = await supabase.from('materials').delete().eq('id', id);
+    if (error) {
+      console.warn('Supabase delete material error:', error);
+      return { success: false, error };
+    }
+    return { success: true };
+  } catch (e: any) {
+    console.error('Supabase delete material exception:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+export async function supabaseClearAllMaterials(): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    const { error } = await supabase.from('materials').delete().neq('id', '___dummy___');
+    return !error;
+  } catch (e) {
+    console.error('Supabase clear all materials exception:', e);
+    return false;
+  }
+}
+

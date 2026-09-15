@@ -13,6 +13,7 @@ import {
 import { ClassId, MaterialItem } from '../types';
 import {
   getAllMaterials,
+  syncMaterialsFromCloud,
   subscribeToMaterials,
   formatBytes,
   openPdfItem,
@@ -39,8 +40,11 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
 
-  // Load materials from storage
+  // Load materials from storage (with cloud sync)
   const loadMaterials = async () => {
+    try {
+      await syncMaterialsFromCloud();
+    } catch {}
     const all = await getAllMaterials();
     setMaterials(all);
   };

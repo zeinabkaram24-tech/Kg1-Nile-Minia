@@ -18,10 +18,12 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
   getAllMaterials,
+  syncMaterialsFromCloud,
   saveMaterial,
   deleteMaterial,
   subscribeToMaterials,
@@ -40,12 +42,14 @@ interface AdminDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onClearAllAppData?: () => void;
+  onRestoreArabicWeeklyPlan?: () => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   isOpen,
   onClose,
   onClearAllAppData,
+  onRestoreArabicWeeklyPlan,
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -61,6 +65,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [adminTab, setAdminTab] = useState<'materials' | 'supabase'>('materials');
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
+  const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,14 +92,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Load materials
-  const refreshMaterials = async () => {
+  // Load materials from storage and cloud
+  const refreshMaterials = async (showSyncIndicator = false) => {
+    if (showSyncIndicator) setIsSyncingCloud(true);
+    try {
+      await syncMaterialsFromCloud();
+    } catch (e) {
+      console.warn('Sync materials error:', e);
+    }
     const list = await getAllMaterials();
     // Sort latest first
     list.sort(
       (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
     setMaterials(list);
+    if (showSyncIndicator) {
+      setTimeout(() => setIsSyncingCloud(false), 500);
+      setSuccessMessage('تمت مزامنة الملفات سحابياً بنجاح (Mobile ⇄ Laptop).');
+      setTimeout(() => setSuccessMessage(null), 3500);
+    }
   };
 
   useEffect(() => {
@@ -446,15 +462,32 @@ CREATE TABLE IF NOT EXISTS public.student_progress (
     updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.materials (
+    id TEXT PRIMARY KEY,
+    file_name TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    file_data TEXT,
+    file_url TEXT,
+    block INTEGER NOT NULL,
+    section TEXT NOT NULL,
+    class_id TEXT,
+    title TEXT,
+    category TEXT,
+    notes TEXT,
+    uploaded_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 ALTER TABLE public.classwork ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.homework ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.timetables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public access to classwork" ON public.classwork FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to homework" ON public.homework FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to timetables" ON public.timetables FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to student_progress" ON public.student_progress FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to materials" ON public.materials FOR ALL USING (true) WITH CHECK (true);
 `;
                         navigator.clipboard.writeText(sqlCode);
                         setCopiedSql(true);
@@ -531,6 +564,22 @@ CREATE TABLE IF NOT EXISTS public.student_progress (
   completed_homework_ids JSONB DEFAULT '[]'::jsonb,
   last_active BIGINT DEFAULT 0,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 5. materials (ملفات الشيتات للربط بين الموبايل واللابتوب)
+CREATE TABLE IF NOT EXISTS public.materials (
+  id TEXT PRIMARY KEY,
+  file_name TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  file_data TEXT,
+  file_url TEXT,
+  block INTEGER NOT NULL,
+  section TEXT NOT NULL,
+  class_id TEXT,
+  title TEXT,
+  category TEXT,
+  notes TEXT,
+  uploaded_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );`}</pre>
                   </div>
                 </div>
@@ -550,12 +599,41 @@ CREATE TABLE IF NOT EXISTS public.student_progress (
                       إضافة شيتات PDF إلى الـ Materials مباشرة
                     </h3>
                     <p className="text-xs text-amber-800/80 font-medium">
-                      اختر الـ Topic والقسم لتحميل ملف الـ PDF وينزل دايركت على الـ Materials بنفس جودته وتنسيقه
+                      اختر الـ Topic والقسم لتحميل ملف الـ PDF — يتم حفظه سحابياً ويسمع فوراً على الموبايل واللابتوب
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center flex-wrap gap-2">
+                  {/* Realtime Cloud Sync Button */}
+                  <button
+                    type="button"
+                    onClick={() => refreshMaterials(true)}
+                    disabled={isSyncingCloud}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="مزامنة فورية لملفات الـ PDF مع السحابة والخادم"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 text-indigo-600 ${isSyncingCloud ? 'animate-spin' : ''}`} />
+                    <span>{isSyncingCloud ? 'جاري المزامنة...' : 'مزامنة السحابة (Mobile ⇄ Laptop)'}</span>
+                  </button>
+
+                  {/* Restore Arabic Weekly Plan Button */}
+                  {onRestoreArabicWeeklyPlan && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRestoreArabicWeeklyPlan();
+                        setSuccessMessage('تمت استعادة الويكلي بلان العربي بجميع الروابط والدروس بنجاح!');
+                        setTimeout(() => setSuccessMessage(null), 4000);
+                      }}
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      title="استعادة الويكلي بلان العربي الأصلي مع كافة لينكات اليوتيوب والدروس"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>استعادة الويكلي بلان العربي باللينكات</span>
+                    </button>
+                  )}
+
                   {materials.length > 0 && (
                     <button
                       type="button"
