@@ -51,26 +51,84 @@ function openDB(): Promise<IDBDatabase> {
 
 // Fallback in localStorage if IndexedDB has issues
 const FALLBACK_KEY = 'school_materials_fallback';
+const DELETED_IDS_KEY = 'school_materials_deleted_ids_v1';
+
+export function getLocalDeletedIds(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DELETED_IDS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function addLocalDeletedId(id: string) {
+  if (!id) return;
+  try {
+    const set = getLocalDeletedIds();
+    set.add(id);
+    localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(set)));
+  } catch (e) {
+    console.warn('Could not store deleted ID:', e);
+  }
+}
+
+export function removeLocalDeletedId(id: string) {
+  if (!id) return;
+  try {
+    const set = getLocalDeletedIds();
+    if (set.has(id)) {
+      set.delete(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(set)));
+    }
+  } catch (e) {
+    console.warn('Could not remove deleted ID:', e);
+  }
+}
+
+export function mergeDeletedIds(ids: string[]) {
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  try {
+    const set = getLocalDeletedIds();
+    let changed = false;
+    for (const id of ids) {
+      if (id && !set.has(id)) {
+        set.add(id);
+        changed = true;
+      }
+    }
+    if (changed) {
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(Array.from(set)));
+    }
+  } catch (e) {
+    console.warn('Could not merge deleted IDs:', e);
+  }
+}
 
 function getFallbackMaterials(): MaterialItem[] {
+  const deletedIds = getLocalDeletedIds();
   try {
     const raw = localStorage.getItem(FALLBACK_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed: MaterialItem[] = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((m) => m && m.id && !deletedIds.has(m.id)) : [];
   } catch {
     return [];
   }
 }
 
 function saveFallbackMaterials(items: MaterialItem[]) {
+  const deletedIds = getLocalDeletedIds();
+  const cleanItems = items.filter((m) => m && m.id && !deletedIds.has(m.id));
   try {
-    localStorage.setItem(FALLBACK_KEY, JSON.stringify(items));
+    localStorage.setItem(FALLBACK_KEY, JSON.stringify(cleanItems));
   } catch (e) {
     console.warn('LocalStorage quota might be exceeded for fallback:', e);
   }
 }
 
-// Retrieve all materials (merges local cache and triggers cloud sync)
+// Retrieve all materials (merges local cache and excludes any deleted tombstones)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
+  const deletedIds = getLocalDeletedIds();
   try {
     const db = await openDB();
     return new Promise((resolve) => {
@@ -79,7 +137,27 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
       const req = store.getAll();
 
       req.onsuccess = () => {
-        resolve(req.result || []);
+        const rawList: MaterialItem[] = req.result || [];
+        const activeList = rawList.filter((m) => m && m.id && !deletedIds.has(m.id));
+
+        // Asynchronously purge any zombie tombstoned items from IndexedDB
+        if (rawList.length !== activeList.length) {
+          setTimeout(async () => {
+            try {
+              const writeDb = await openDB();
+              const writeTx = writeDb.transaction(STORE_NAME, 'readwrite');
+              const writeStore = writeTx.objectStore(STORE_NAME);
+              for (const item of rawList) {
+                if (item && item.id && deletedIds.has(item.id)) {
+                  writeStore.delete(item.id);
+                  deleteMaterialBlob(item.id).catch(() => {});
+                }
+              }
+            } catch {}
+          }, 0);
+        }
+
+        resolve(activeList);
       };
 
       req.onerror = () => {
@@ -102,11 +180,14 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-// Seamless Cloud Sync (Mobile ⇄ Laptop Bidirectional Sync)
+// Seamless Cloud Sync (Mobile ⇄ Laptop Bidirectional Sync with Tombstone Protection)
 export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
   try {
-    // 1. Read local materials present on this specific device
-    const localMaterials = await getAllMaterials();
+    const deletedIds = getLocalDeletedIds();
+
+    // 1. Read local materials present on this specific device, excluding deleted items
+    const rawLocal = await getAllMaterials();
+    const localMaterials = rawLocal.filter((m) => m && m.id && !deletedIds.has(m.id));
 
     // 2. Prepare items to sync to server, attaching file data from local IndexedDB blobs if needed
     const payloadMaterials = await Promise.all(
@@ -126,31 +207,49 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
       })
     );
 
-    // 3. Bidirectional Sync with Express Server: Pushes device files up, pulls remote files down
+    // 3. Bidirectional Sync with Express Server: Pushes device files up & reports deletedIds, pulls remote clean list
     try {
       const res = await fetch('/api/materials/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ materials: payloadMaterials }),
+        body: JSON.stringify({
+          materials: payloadMaterials,
+          deletedIds: Array.from(deletedIds),
+        }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.materials)) {
-          const db = await openDB();
-          const tx = db.transaction(STORE_NAME, 'readwrite');
-          const store = tx.objectStore(STORE_NAME);
+        if (Array.isArray(data.deletedIds)) {
+          mergeDeletedIds(data.deletedIds);
+        }
 
-          for (const item of data.materials) {
-            store.put(item);
-            // Also sync to Supabase in background for global availability
+        const currentDeleted = getLocalDeletedIds();
+        const serverMaterials: MaterialItem[] = Array.isArray(data.materials)
+          ? data.materials.filter((m: any) => m && m.id && !currentDeleted.has(m.id))
+          : [];
+
+        const db = await openDB();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+
+        // Remove any newly tombstoned items from local storage
+        for (const delId of currentDeleted) {
+          store.delete(delId);
+          deleteMaterialBlob(delId).catch(() => {});
+        }
+
+        for (const item of serverMaterials) {
+          store.put(item);
+          // Only sync to Supabase if NOT deleted
+          if (!currentDeleted.has(item.id)) {
             supabaseUpsertMaterial(item).catch(() => {});
           }
-
-          saveFallbackMaterials(data.materials);
-          window.dispatchEvent(new CustomEvent(EVENT_NAME));
-          return data.materials;
         }
+
+        saveFallbackMaterials(serverMaterials);
+        window.dispatchEvent(new CustomEvent(EVENT_NAME));
+        return serverMaterials;
       }
     } catch (serverSyncErr) {
       console.warn('Express server sync error:', serverSyncErr);
@@ -159,11 +258,30 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
     // 4. Also check Supabase for any remote materials
     try {
       const remoteMaterials = await supabaseFetchMaterials();
+      const currentDeleted = getLocalDeletedIds();
       if (remoteMaterials && remoteMaterials.length > 0) {
+        const validRemote = remoteMaterials.filter((m) => m && m.id && !currentDeleted.has(m.id));
+
+        // If Supabase returned any items that were deleted on this device/server, delete them from Supabase immediately!
+        for (const item of remoteMaterials) {
+          if (item && item.id && currentDeleted.has(item.id)) {
+            supabaseDeleteMaterial(item.id).catch(() => {});
+            if (item.fileUrl) {
+              supabaseDeleteMaterialFile(item.fileUrl).catch(() => {});
+            }
+          }
+        }
+
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        for (const item of remoteMaterials) {
+
+        for (const delId of currentDeleted) {
+          store.delete(delId);
+          deleteMaterialBlob(delId).catch(() => {});
+        }
+
+        for (const item of validRemote) {
           store.put(item);
           if (item.fileData && item.fileData.startsWith('data:')) {
             try {
@@ -172,9 +290,10 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
             } catch {}
           }
         }
-        saveFallbackMaterials(remoteMaterials);
+
+        saveFallbackMaterials(validRemote);
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        return remoteMaterials;
+        return validRemote;
       }
     } catch (supErr) {
       console.warn('Supabase sync notice:', supErr);
@@ -182,11 +301,14 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
   } catch (err) {
     console.warn('Sync materials from cloud error:', err);
   }
-  return getAllMaterials();
+  return (await getAllMaterials()).filter((m) => m && m.id && !getLocalDeletedIds().has(m.id));
 }
 
 // Save or add a material (Uploads to Supabase Storage + Database + Server + Local IndexedDB)
 export async function saveMaterial(item: MaterialItem, originalFile?: File | Blob): Promise<void> {
+  // If item was previously deleted, remove from local tombstones on intentional upload
+  removeLocalDeletedId(item.id);
+
   // 1. Cache blob locally first for instant offline preview
   if (originalFile) {
     try {
@@ -267,8 +389,13 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material (Deletes from Storage Bucket + Database + Server + Local)
+// Delete a material (Permanent Deletion across Supabase Table, Bucket, Express Server, Local IndexedDB & Cache)
 export async function deleteMaterial(id: string): Promise<void> {
+  if (!id) return;
+
+  // 1. Immediately record in local tombstone registry so this device NEVER resurrects it
+  addLocalDeletedId(id);
+
   // Find item to check for fileUrl
   let targetItem: MaterialItem | undefined;
   try {
@@ -276,7 +403,7 @@ export async function deleteMaterial(id: string): Promise<void> {
     targetItem = all.find((m) => m.id === id);
   } catch {}
 
-  // 1. Delete from local IndexedDB
+  // 2. Delete from local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -291,24 +418,24 @@ export async function deleteMaterial(id: string): Promise<void> {
     console.warn('Failed to delete from IndexedDB:', e);
   }
 
-  // Always delete from fallback localStorage
+  // 3. Delete local blob
+  try {
+    await deleteMaterialBlob(id);
+  } catch {}
+
+  // 4. Clean fallback localStorage
   try {
     const existing = getFallbackMaterials().filter((m) => m.id !== id);
     saveFallbackMaterials(existing);
   } catch {}
 
-  // Always delete from secondary materials list
+  // 5. Clean secondary materials storage safely without triggering conflicting server save
   try {
     const current = getSavedMaterials().filter((m) => m.id !== id);
-    saveMaterials(current, true);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
   } catch {}
 
-  // 2. Delete local blob
-  try {
-    await deleteMaterialBlob(id);
-  } catch {}
-
-  // 3. Delete from Supabase Storage Bucket if URL exists
+  // 6. Delete from Supabase Storage Bucket if URL exists
   if (targetItem?.fileUrl) {
     try {
       await supabaseDeleteMaterialFile(targetItem.fileUrl);
@@ -317,21 +444,27 @@ export async function deleteMaterial(id: string): Promise<void> {
     }
   }
 
-  // 4. Delete from Supabase database table
+  // 7. Delete from Supabase database table
   try {
     await supabaseDeleteMaterial(id);
   } catch (e) {
     console.warn('Supabase delete material error:', e);
   }
 
-  // 5. Delete from Server disk & memory cache (and await it)
+  // 8. Delete from Express server (strictly awaited to ensure disk + memory cache + tombstones are committed)
   try {
-    await fetch(`/api/materials/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/materials/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.deletedIds)) {
+        mergeDeletedIds(data.deletedIds);
+      }
+    }
   } catch (err) {
     console.warn('Failed to delete material from express server:', err);
   }
 
-  // Notify components
+  // 9. Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
@@ -489,6 +622,7 @@ export async function downloadPdfItem(item: MaterialItem): Promise<void> {
 const STORAGE_KEY = 'g2b_school_materials_v7';
 
 export function getSavedMaterials(): MaterialItem[] {
+  const deletedIds = getLocalDeletedIds();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) {
@@ -497,7 +631,7 @@ export function getSavedMaterials(): MaterialItem[] {
     const parsed = JSON.parse(raw);
     const items: MaterialItem[] = Array.isArray(parsed) ? parsed : [];
     return items
-      .filter((m: MaterialItem) => m && m.subjectId !== 'religion')
+      .filter((m: MaterialItem) => m && m.id && !deletedIds.has(m.id) && m.subjectId !== 'religion')
       .map((m: MaterialItem) => {
         const updated = { ...m };
         if (m.category === 'main_sheets' || m.categoryLabel === 'الشيتات الرئيسية') {
@@ -518,13 +652,16 @@ export function getSavedMaterials(): MaterialItem[] {
 }
 
 export function saveMaterials(materials: MaterialItem[], asAdmin?: boolean): void {
-  const sanitized = materials.map((m) => {
-    if (m.fileData && m.fileData.length > 50000) {
-      const { fileData, ...rest } = m;
-      return rest;
-    }
-    return m;
-  });
+  const deletedIds = getLocalDeletedIds();
+  const sanitized = materials
+    .filter((m) => m && m.id && !deletedIds.has(m.id))
+    .map((m) => {
+      if (m.fileData && m.fileData.length > 50000) {
+        const { fileData, ...rest } = m;
+        return rest;
+      }
+      return m;
+    });
 
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
@@ -556,9 +693,14 @@ export async function syncMaterialsFromServer(): Promise<MaterialItem[]> {
     const res = await fetch('/api/materials');
     if (res.ok) {
       const data = await res.json();
+      if (Array.isArray(data.deletedIds)) {
+        mergeDeletedIds(data.deletedIds);
+      }
+      const deletedIds = getLocalDeletedIds();
       if (Array.isArray(data.materials)) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.materials));
-        return data.materials;
+        const clean = data.materials.filter((m: any) => m && m.id && !deletedIds.has(m.id));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+        return clean;
       }
     }
   } catch (err) {
@@ -574,12 +716,16 @@ export function addMaterialItem(item: Omit<MaterialItem, 'id' | 'createdAt'>): M
     id: `mat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     createdAt: Date.now(),
   };
+  removeLocalDeletedId(newItem.id);
   const updated = [newItem, ...current];
   saveMaterials(updated, true);
   return newItem;
 }
 
 export function deleteMaterialItem(id: string): boolean {
+  if (!id) return false;
+  addLocalDeletedId(id);
+  deleteMaterial(id).catch(() => {});
   const current = getSavedMaterials();
   const updated = current.filter((m) => m.id !== id);
   saveMaterials(updated, true);
@@ -605,6 +751,12 @@ export function updateMaterialItem(id: string, updates: Partial<MaterialItem>): 
 
 export function deleteMultipleMaterialItems(ids: string[]): boolean {
   if (!ids || ids.length === 0) return false;
+  for (const id of ids) {
+    if (id) {
+      addLocalDeletedId(id);
+      deleteMaterial(id).catch(() => {});
+    }
+  }
   const idSet = new Set(ids);
   const current = getSavedMaterials();
   const updated = current.filter((m) => !idSet.has(m.id));
@@ -620,9 +772,19 @@ export function resetToDefaultMaterials(): MaterialItem[] {
 
 export async function clearAllMaterialsStorage(): Promise<void> {
   try {
+    const all = await getAllMaterials();
+    for (const m of all) {
+      if (m && m.id) {
+        addLocalDeletedId(m.id);
+      }
+    }
+  } catch {}
+
+  try {
     localStorage.removeItem(FALLBACK_KEY);
     localStorage.removeItem('school_materials_fallback');
     localStorage.removeItem('school_materials_data');
+    localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
     console.error('Failed to clear localStorage materials:', e);
   }
@@ -649,7 +811,13 @@ export async function clearAllMaterialsStorage(): Promise<void> {
   }
 
   try {
-    fetch('/api/materials/clear', { method: 'POST' }).catch(() => {});
+    const res = await fetch('/api/materials/clear', { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.deletedIds)) {
+        mergeDeletedIds(data.deletedIds);
+      }
+    }
   } catch {}
 
   window.dispatchEvent(new CustomEvent(EVENT_NAME));

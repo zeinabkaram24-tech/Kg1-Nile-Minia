@@ -13,8 +13,9 @@ const PORT = 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Materials Persistent Storage (File + Memory cache + Disk PDF uploads)
+// Materials Persistent Storage (File + Memory cache + Disk PDF uploads + Deletion Tombstones)
 const MATERIALS_FILE = path.join(process.cwd(), 'data', 'materials_store.json');
+const MATERIALS_DELETED_FILE = path.join(process.cwd(), 'data', 'materials_deleted.json');
 const UPLOADS_DIR = path.join(process.cwd(), 'data', 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -22,15 +23,44 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 }
 
 let inMemoryMaterials: any[] = [];
+let deletedMaterialIds: Set<string> = new Set();
+
+try {
+  if (fs.existsSync(MATERIALS_DELETED_FILE)) {
+    const rawDel = fs.readFileSync(MATERIALS_DELETED_FILE, 'utf-8');
+    const parsedDel = JSON.parse(rawDel);
+    if (Array.isArray(parsedDel)) {
+      deletedMaterialIds = new Set(parsedDel);
+    }
+  }
+} catch (e) {
+  console.warn('Could not load deleted materials log:', e);
+}
 
 try {
   if (fs.existsSync(MATERIALS_FILE)) {
     const raw = fs.readFileSync(MATERIALS_FILE, 'utf-8');
-    inMemoryMaterials = JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      // Filter out any tombstoned items
+      inMemoryMaterials = parsed.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+    }
     console.log(`Loaded ${inMemoryMaterials.length} materials from disk cache.`);
   }
 } catch (e) {
   console.warn('Could not load materials from disk:', e);
+}
+
+function persistDeletedIdsToDisk() {
+  try {
+    const dir = path.dirname(MATERIALS_DELETED_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(MATERIALS_DELETED_FILE, JSON.stringify(Array.from(deletedMaterialIds)), 'utf-8');
+  } catch (e) {
+    console.error('Failed to write deleted materials to disk:', e);
+  }
 }
 
 // Helper to save binary PDF to disk from Base64 Data URL and return public endpoint URL
@@ -64,13 +94,15 @@ function persistMaterialsToDisk() {
       fs.mkdirSync(dir, { recursive: true });
     }
     // Sanitize in-memory items so materials_store.json does not carry huge base64 strings
-    const sanitized = inMemoryMaterials.map((m) => {
-      const copy = { ...m };
-      if (copy.fileData && copy.fileUrl) {
-        delete copy.fileData;
-      }
-      return copy;
-    });
+    const sanitized = inMemoryMaterials
+      .filter((m) => m && m.id && !deletedMaterialIds.has(m.id))
+      .map((m) => {
+        const copy = { ...m };
+        if (copy.fileData && copy.fileUrl) {
+          delete copy.fileData;
+        }
+        return copy;
+      });
     fs.writeFileSync(MATERIALS_FILE, JSON.stringify(sanitized, null, 2), 'utf-8');
   } catch (e) {
     console.error('Failed to write materials to disk:', e);
@@ -81,12 +113,21 @@ function persistMaterialsToDisk() {
 
 // 1. Get All Materials
 app.get('/api/materials', (req, res) => {
-  res.json({ success: true, materials: inMemoryMaterials });
+  const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+  res.json({
+    success: true,
+    materials: activeMaterials,
+    deletedIds: Array.from(deletedMaterialIds),
+  });
 });
 
 // 2. Serve PDF file binary directly with correct headers and cache
 app.get('/api/materials/pdf/:id', (req, res) => {
   const { id } = req.params;
+  if (deletedMaterialIds.has(id)) {
+    return res.status(404).json({ success: false, error: 'File has been deleted' });
+  }
+
   const filePath = path.join(UPLOADS_DIR, `${id}.pdf`);
   if (fs.existsSync(filePath)) {
     res.setHeader('Content-Type', 'application/pdf');
@@ -114,17 +155,44 @@ app.get('/api/materials/pdf/:id', (req, res) => {
   res.status(404).json({ success: false, error: 'PDF file not found' });
 });
 
-// 3. Bidirectional Sync: Accepts client's local materials, merges them, saves any PDFs, and returns complete list
+// 3. Bidirectional Sync: Accepts client's local materials & deletedIds, merges them, and returns complete clean list
 app.post('/api/materials/sync', (req, res) => {
   try {
-    const { materials } = req.body;
+    const { materials, deletedIds: clientDeletedIds } = req.body;
     let changed = false;
 
+    // A. Merge client deleted IDs (tombstones)
+    if (Array.isArray(clientDeletedIds) && clientDeletedIds.length > 0) {
+      for (const delId of clientDeletedIds) {
+        if (typeof delId === 'string' && delId && !deletedMaterialIds.has(delId)) {
+          deletedMaterialIds.add(delId);
+          changed = true;
+          // Delete file from disk if present
+          const filePath = path.join(UPLOADS_DIR, `${delId}.pdf`);
+          if (fs.existsSync(filePath)) {
+            try { fs.unlinkSync(filePath); } catch {}
+          }
+        }
+      }
+    }
+
+    // Always remove tombstoned items from in-memory list
+    const beforeCount = inMemoryMaterials.length;
+    inMemoryMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+    if (inMemoryMaterials.length !== beforeCount) {
+      changed = true;
+    }
+
+    // B. Merge incoming materials (STRICTLY IGNORING any deleted IDs)
     if (Array.isArray(materials) && materials.length > 0) {
       for (const clientItem of materials) {
         if (!clientItem || !clientItem.id) continue;
-        const existingIdx = inMemoryMaterials.findIndex((m) => m.id === clientItem.id);
+        // Never allow a deleted item to resurrect
+        if (deletedMaterialIds.has(clientItem.id)) {
+          continue;
+        }
 
+        const existingIdx = inMemoryMaterials.findIndex((m) => m.id === clientItem.id);
         const pdfUrl = savePdfFromItem(clientItem);
         const cleanItem = { ...clientItem };
         if (pdfUrl) {
@@ -144,24 +212,36 @@ app.post('/api/materials/sync', (req, res) => {
           changed = true;
         }
       }
-
-      if (changed) {
-        persistMaterialsToDisk();
-      }
     }
 
-    res.json({ success: true, materials: inMemoryMaterials });
+    if (changed) {
+      persistMaterialsToDisk();
+      persistDeletedIdsToDisk();
+    }
+
+    const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+    res.json({
+      success: true,
+      materials: activeMaterials,
+      deletedIds: Array.from(deletedMaterialIds),
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 4. Save/Update Single Material
+// 4. Save/Update Single Material (Un-tombstone if re-uploaded intentionally)
 app.post('/api/materials/single', (req, res) => {
   try {
     const item = req.body;
     if (!item || !item.id) {
       return res.status(400).json({ success: false, error: 'Valid material item with id is required' });
+    }
+
+    // If item was previously marked as deleted, remove from tombstone on explicit new upload
+    if (deletedMaterialIds.has(item.id)) {
+      deletedMaterialIds.delete(item.id);
+      persistDeletedIdsToDisk();
     }
 
     const pdfUrl = savePdfFromItem(item);
@@ -190,11 +270,15 @@ app.post('/api/materials/save', (req, res) => {
     const { materials } = req.body;
     if (Array.isArray(materials)) {
       for (const m of materials) {
-        const pdfUrl = savePdfFromItem(m);
-        if (pdfUrl) m.fileUrl = pdfUrl;
+        if (m && m.id) {
+          deletedMaterialIds.delete(m.id);
+          const pdfUrl = savePdfFromItem(m);
+          if (pdfUrl) m.fileUrl = pdfUrl;
+        }
       }
-      inMemoryMaterials = materials;
+      inMemoryMaterials = materials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
       persistMaterialsToDisk();
+      persistDeletedIdsToDisk();
       return res.json({ success: true, count: inMemoryMaterials.length });
     }
     res.status(400).json({ success: false, error: 'materials array is required' });
@@ -203,22 +287,26 @@ app.post('/api/materials/save', (req, res) => {
   }
 });
 
-// 6. Delete Material
+// 6. Delete Material (Permanent Deletion across all devices)
 app.delete('/api/materials/:id', (req, res) => {
   try {
     const { id } = req.params;
-    inMemoryMaterials = inMemoryMaterials.filter((m) => m.id !== id);
-    persistMaterialsToDisk();
+    if (id) {
+      deletedMaterialIds.add(id);
+      inMemoryMaterials = inMemoryMaterials.filter((m) => m.id !== id);
+      persistMaterialsToDisk();
+      persistDeletedIdsToDisk();
 
-    // Remove PDF file from disk
-    const filePath = path.join(UPLOADS_DIR, `${id}.pdf`);
-    if (fs.existsSync(filePath)) {
-      try {
-        fs.unlinkSync(filePath);
-      } catch {}
+      // Remove PDF file from disk
+      const filePath = path.join(UPLOADS_DIR, `${id}.pdf`);
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch {}
+      }
     }
 
-    res.json({ success: true, deletedId: id });
+    res.json({ success: true, deletedId: id, deletedIds: Array.from(deletedMaterialIds) });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -226,8 +314,20 @@ app.delete('/api/materials/:id', (req, res) => {
 
 // 7. Clear All Materials
 app.post('/api/materials/clear', (req, res) => {
+  for (const m of inMemoryMaterials) {
+    if (m && m.id) {
+      deletedMaterialIds.add(m.id);
+      const filePath = path.join(UPLOADS_DIR, `${m.id}.pdf`);
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch {}
+      }
+    }
+  }
   inMemoryMaterials = [];
   persistMaterialsToDisk();
+  persistDeletedIdsToDisk();
 
   // Clean uploads directory
   try {
