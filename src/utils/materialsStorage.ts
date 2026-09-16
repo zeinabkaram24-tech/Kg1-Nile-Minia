@@ -13,6 +13,8 @@ import {
   supabaseUpsertMaterial,
   supabaseDeleteMaterial,
   supabaseClearAllMaterials,
+  supabaseUploadMaterialFile,
+  supabaseDeleteMaterialFile,
 } from '../services/supabaseService';
 
 const DB_NAME = 'SchoolMaterialsDB';
@@ -139,9 +141,30 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
   return getAllMaterials();
 }
 
-// Save or add a material (Uploads to Supabase + Server + Local IndexedDB)
-export async function saveMaterial(item: MaterialItem): Promise<void> {
-  // 1. Save to local IndexedDB
+// Save or add a material (Uploads to Supabase Storage + Database + Server + Local IndexedDB)
+export async function saveMaterial(item: MaterialItem, originalFile?: File | Blob): Promise<void> {
+  // 1. Upload to Supabase Storage Bucket ('materials') for permanent direct cloud URL (Mobile ⇄ Laptop)
+  let uploadedUrl: string | undefined = item.fileUrl;
+  try {
+    if (originalFile) {
+      const uploadRes = await supabaseUploadMaterialFile(originalFile, item.fileName || 'document.pdf');
+      if (uploadRes.success && uploadRes.publicUrl) {
+        uploadedUrl = uploadRes.publicUrl;
+        item.fileUrl = uploadRes.publicUrl;
+      }
+    } else if (!uploadedUrl && item.fileData && item.fileData.startsWith('data:')) {
+      const blob = dataUrlToBlob(item.fileData);
+      const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf');
+      if (uploadRes.success && uploadRes.publicUrl) {
+        uploadedUrl = uploadRes.publicUrl;
+        item.fileUrl = uploadRes.publicUrl;
+      }
+    }
+  } catch (storageErr) {
+    console.warn('Supabase storage upload error, continuing with database sync:', storageErr);
+  }
+
+  // 2. Save to local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -159,22 +182,26 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
-  // 2. Cache blob locally if fileData is present
+  // 3. Cache blob locally if fileData is present
   if (item.fileData && item.fileData.startsWith('data:')) {
     try {
       const blob = dataUrlToBlob(item.fileData);
       saveMaterialBlob(item.id, blob).catch(() => {});
     } catch {}
+  } else if (originalFile) {
+    try {
+      saveMaterialBlob(item.id, originalFile).catch(() => {});
+    } catch {}
   }
 
-  // 3. Upload to Supabase for instant cross-device sync (Mobile ⇄ Laptop)
+  // 4. Upload to Supabase database table with direct public URL for instant cross-device sync
   try {
     await supabaseUpsertMaterial(item);
   } catch (e) {
     console.warn('Supabase upsert material error:', e);
   }
 
-  // 4. Send to Express server endpoint
+  // 5. Send to Express server endpoint
   try {
     fetch('/api/materials/single', {
       method: 'POST',
@@ -187,8 +214,16 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
 }
 
-// Delete a material (Deletes from Local + Supabase + Server)
+// Delete a material (Deletes from Storage Bucket + Database + Server + Local)
 export async function deleteMaterial(id: string): Promise<void> {
+  // Find item to check for fileUrl
+  let targetItem: MaterialItem | undefined;
+  try {
+    const all = await getAllMaterials();
+    targetItem = all.find((m) => m.id === id);
+  } catch {}
+
+  // 1. Delete from local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -205,17 +240,26 @@ export async function deleteMaterial(id: string): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
-  // Delete local blob
+  // 2. Delete local blob
   deleteMaterialBlob(id).catch(() => {});
 
-  // Delete from Supabase
+  // 3. Delete from Supabase Storage Bucket if URL exists
+  if (targetItem?.fileUrl) {
+    try {
+      await supabaseDeleteMaterialFile(targetItem.fileUrl);
+    } catch (e) {
+      console.warn('Could not delete file from Supabase storage:', e);
+    }
+  }
+
+  // 4. Delete from Supabase database table
   try {
     await supabaseDeleteMaterial(id);
   } catch (e) {
     console.warn('Supabase delete material error:', e);
   }
 
-  // Delete from Server
+  // 5. Delete from Server
   try {
     fetch(`/api/materials/${id}`, { method: 'DELETE' }).catch(() => {});
   } catch {}

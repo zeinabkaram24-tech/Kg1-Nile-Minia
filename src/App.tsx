@@ -44,6 +44,10 @@ import {
   supabaseClearAllTimetables,
   supabaseFetchStudentProgress,
   supabaseSaveStudentProgress,
+  supabaseFetchPlannerSettings,
+  supabaseSavePlannerSettings,
+  supabaseFetchTomorrowNotes,
+  supabaseSaveTomorrowNotes,
 } from './services/supabaseService';
 
 const STORAGE_KEYS = {
@@ -252,6 +256,20 @@ export default function App() {
           saveAllStoredTimetables(remoteTt);
         }
 
+        // 5. Fetch planner settings (Active Block & Week)
+        const remoteSettings = await supabaseFetchPlannerSettings();
+        if (isMounted && remoteSettings) {
+          if (remoteSettings.currentBlock) setCurrentBlock(remoteSettings.currentBlock);
+          if (remoteSettings.currentWeek) setCurrentWeek(remoteSettings.currentWeek);
+        }
+
+        // 6. Fetch tomorrow special notes
+        const remoteTomorrow = await supabaseFetchTomorrowNotes();
+        if (isMounted && remoteTomorrow.length > 0) {
+          setCustomTomorrowNotes(remoteTomorrow);
+          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
+        }
+
         if (isMounted) {
           setSupabaseStatus('connected');
         }
@@ -291,6 +309,20 @@ export default function App() {
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, async () => {
           await syncMaterialsFromCloud();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_settings' }, async () => {
+          const freshSettings = await supabaseFetchPlannerSettings();
+          if (isMounted && freshSettings) {
+            if (freshSettings.currentBlock) setCurrentBlock(freshSettings.currentBlock);
+            if (freshSettings.currentWeek) setCurrentWeek(freshSettings.currentWeek);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tomorrow_notes' }, async () => {
+          const freshNotes = await supabaseFetchTomorrowNotes();
+          if (isMounted && freshNotes.length > 0) {
+            setCustomTomorrowNotes(freshNotes);
+            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(freshNotes));
+          }
         })
         .subscribe();
 
@@ -525,13 +557,14 @@ export default function App() {
         localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
         return next;
       });
+      supabaseSaveTomorrowNotes(newTomorrowNotes).catch(console.warn);
     }
 
     // Batch insert to Supabase
     await supabaseBatchInsertClasswork(newClasswork);
     await supabaseBatchInsertHomework(newHomework);
 
-    showToast('تم استيراد وحفظ الخطة الأسبوعية في Supabase بنجاح!');
+    showToast('تم استيراد وحفظ الخطة الأسبوعية وملاحظات الغد في Supabase بنجاح!');
   };
 
   const handleUpdateTimetable = async (updated: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>) => {
@@ -601,6 +634,18 @@ export default function App() {
     window.print();
   };
 
+  const handleSelectBlock = (block: number) => {
+    setCurrentBlock(block);
+    localStorage.setItem('nile_planner_current_block_v3', String(block));
+    supabaseSavePlannerSettings({ currentBlock: block, currentWeek }).catch(console.warn);
+  };
+
+  const handleSelectWeek = (week: number) => {
+    setCurrentWeek(week);
+    localStorage.setItem(STORAGE_KEYS.WEEK, String(week));
+    supabaseSavePlannerSettings({ currentBlock, currentWeek: week }).catch(console.warn);
+  };
+
   // Calculate pending homework count for current class
   const pendingHomeworkCount = homeworkList.filter(
     (h) => h.classId === currentClass && !h.completed
@@ -620,8 +665,8 @@ export default function App() {
         onSelectClass={setCurrentClass}
         onSelectDay={setSelectedDay}
         onSelectTab={setActiveTab}
-        onSelectBlock={setCurrentBlock}
-        onSelectWeek={setCurrentWeek}
+        onSelectBlock={handleSelectBlock}
+        onSelectWeek={handleSelectWeek}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}

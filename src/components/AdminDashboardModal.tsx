@@ -188,7 +188,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             uploadedAt: new Date().toISOString(),
           };
 
-          await saveMaterial(newItem);
+          await saveMaterial(newItem, selectedFile);
           try {
             await saveMaterialBlob(newItem.id, selectedFile);
           } catch (blobSaveErr) {
@@ -197,7 +197,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           await refreshMaterials();
 
           setSuccessMessage(
-            `تم رفع الملف "${selectedFile.name}" بنجاح في Topic ${targetBlock} — ${targetSection}!`
+            `تم رفع الملف "${selectedFile.name}" بنجاح في Topic ${targetBlock} (${targetSection}) وحفظه في سحابة Supabase ومزامنته!`
           );
           setSelectedFile(null);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -506,29 +506,79 @@ CREATE TABLE IF NOT EXISTS public.student_progress (
 CREATE TABLE IF NOT EXISTS public.materials (
     id TEXT PRIMARY KEY,
     file_name TEXT NOT NULL,
-    file_size INTEGER NOT NULL,
+    file_size BIGINT NOT NULL,
     file_data TEXT,
     file_url TEXT,
-    block INTEGER NOT NULL,
-    section TEXT NOT NULL,
-    class_id TEXT,
+    block INTEGER NOT NULL DEFAULT 1,
+    section TEXT NOT NULL DEFAULT 'Main sheet',
+    class_id TEXT DEFAULT 'ALL',
     title TEXT,
     category TEXT,
     notes TEXT,
     uploaded_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.planner_settings (
+    id TEXT PRIMARY KEY DEFAULT 'global',
+    current_block INTEGER DEFAULT 1,
+    current_week INTEGER DEFAULT 1,
+    active_term TEXT DEFAULT 'Term 2',
+    settings JSONB DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.tomorrow_notes (
+    id TEXT PRIMARY KEY,
+    class_id TEXT DEFAULT 'ALL',
+    target_day TEXT NOT NULL,
+    subject TEXT,
+    note TEXT NOT NULL,
+    arabic_note TEXT,
+    bag_item TEXT,
+    block INTEGER DEFAULT 1,
+    week INTEGER DEFAULT 1,
+    created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Enable RLS
 ALTER TABLE public.classwork ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.homework ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.timetables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.student_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.materials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.planner_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tomorrow_notes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public access to classwork" ON public.classwork FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to homework" ON public.homework FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to timetables" ON public.timetables FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to student_progress" ON public.student_progress FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to materials" ON public.materials FOR ALL USING (true) WITH CHECK (true);
+-- Grant Full Access Policies
+CREATE POLICY "Public full access to classwork" ON public.classwork FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to homework" ON public.homework FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to timetables" ON public.timetables FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to student_progress" ON public.student_progress FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to materials" ON public.materials FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to planner_settings" ON public.planner_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access to tomorrow_notes" ON public.tomorrow_notes FOR ALL USING (true) WITH CHECK (true);
+
+-- Storage Bucket Setup for 'materials'
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES ('materials', 'materials', true, 52428800, ARRAY['application/pdf', 'image/png', 'image/jpeg', 'image/webp'])
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+CREATE POLICY "Materials Bucket Public Read" ON storage.objects FOR SELECT USING (bucket_id = 'materials');
+CREATE POLICY "Materials Bucket Public Insert" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'materials');
+CREATE POLICY "Materials Bucket Public Update" ON storage.objects FOR UPDATE USING (bucket_id = 'materials') WITH CHECK (bucket_id = 'materials');
+CREATE POLICY "Materials Bucket Public Delete" ON storage.objects FOR DELETE USING (bucket_id = 'materials');
+
+-- Enable Realtime
+DO $$
+BEGIN
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.classwork; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.homework; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.timetables; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.student_progress; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.materials; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.planner_settings; EXCEPTION WHEN duplicate_object THEN NULL; END;
+  BEGIN ALTER PUBLICATION supabase_realtime ADD TABLE public.tomorrow_notes; EXCEPTION WHEN duplicate_object THEN NULL; END;
+END $$;
 `;
                         navigator.clipboard.writeText(sqlCode);
                         setCopiedSql(true);

@@ -628,3 +628,206 @@ export async function supabaseClearAllMaterials(): Promise<boolean> {
   }
 }
 
+// ----------------------------------------------------------------------
+// Supabase Storage Bucket File Upload & Management ('materials' Bucket)
+// ----------------------------------------------------------------------
+export async function supabaseUploadMaterialFile(
+  file: File | Blob,
+  originalFileName: string
+): Promise<{ success: boolean; publicUrl?: string; filePath?: string; error?: any }> {
+  if (!isSupabaseConfigured) {
+    return { success: false, error: 'Supabase is not configured' };
+  }
+
+  try {
+    // Generate clean unique file path in materials bucket
+    const cleanName = originalFileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `uploads/${Date.now()}_${cleanName}`;
+    const contentType = (file as File).type || 'application/pdf';
+
+    const { data, error } = await supabase.storage.from('materials').upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType,
+    });
+
+    if (error) {
+      console.warn('Supabase storage upload error:', error);
+      return { success: false, error: error.message || error };
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage.from('materials').getPublicUrl(filePath);
+    return {
+      success: true,
+      publicUrl: urlData.publicUrl,
+      filePath,
+    };
+  } catch (err: any) {
+    console.error('Supabase upload exception:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function supabaseDeleteMaterialFile(filePathOrUrl: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !filePathOrUrl) return false;
+  try {
+    // Extract file path from URL if a full URL was passed
+    let filePath = filePathOrUrl;
+    if (filePathOrUrl.includes('/storage/v1/object/public/materials/')) {
+      filePath = filePathOrUrl.split('/storage/v1/object/public/materials/')[1];
+    }
+
+    const { error } = await supabase.storage.from('materials').remove([filePath]);
+    if (error) {
+      console.warn('Supabase storage file removal error:', error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('Supabase storage delete file exception:', e);
+    return false;
+  }
+}
+
+// ----------------------------------------------------------------------
+// Planner Settings CRUD operations (Topic, Week, Term Sync)
+// ----------------------------------------------------------------------
+export interface PlannerSettingsRow {
+  id: string;
+  current_block: number;
+  current_week: number;
+  active_term?: string;
+  settings?: any;
+  updated_at?: string;
+}
+
+export async function supabaseFetchPlannerSettings(): Promise<{
+  currentBlock: number;
+  currentWeek: number;
+  activeTerm?: string;
+} | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('planner_settings')
+      .select('*')
+      .eq('id', 'global')
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return {
+      currentBlock: data.current_block || 1,
+      currentWeek: data.current_week || 1,
+      activeTerm: data.active_term || 'Term 2',
+    };
+  } catch (e) {
+    console.error('Supabase fetch planner settings exception:', e);
+    return null;
+  }
+}
+
+export async function supabaseSavePlannerSettings(settings: {
+  currentBlock: number;
+  currentWeek: number;
+  activeTerm?: string;
+}): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    const { error } = await supabase.from('planner_settings').upsert(
+      {
+        id: 'global',
+        current_block: settings.currentBlock,
+        current_week: settings.currentWeek,
+        active_term: settings.activeTerm || 'Term 2',
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    );
+    return !error;
+  } catch (e) {
+    console.error('Supabase save planner settings exception:', e);
+    return false;
+  }
+}
+
+// ----------------------------------------------------------------------
+// Tomorrow Notes CRUD operations (Bag Items & Teacher Notices)
+// ----------------------------------------------------------------------
+export interface TomorrowNoteRow {
+  id: string;
+  class_id: string;
+  target_day: string;
+  subject: string | null;
+  note: string;
+  arabic_note: string | null;
+  bag_item: string | null;
+  block: number | null;
+  week: number | null;
+  created_at?: string;
+}
+
+export async function supabaseFetchTomorrowNotes(): Promise<any[]> {
+  if (!isSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('tomorrow_notes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Supabase fetch tomorrow notes error:', error.message);
+      return [];
+    }
+
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      classId: row.class_id,
+      targetDay: row.target_day,
+      subject: row.subject || '',
+      note: row.note,
+      arabicNote: row.arabic_note || row.note,
+      bagItem: row.bag_item || undefined,
+      block: row.block || 1,
+      week: row.week || 1,
+    }));
+  } catch (e) {
+    console.error('Supabase fetch tomorrow notes exception:', e);
+    return [];
+  }
+}
+
+export async function supabaseSaveTomorrowNotes(notes: any[]): Promise<boolean> {
+  if (!isSupabaseConfigured || notes.length === 0) return false;
+  try {
+    const rows = notes.map((n) => ({
+      id: n.id || `tn_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      class_id: n.classId || 'ALL',
+      target_day: n.targetDay,
+      subject: n.subject || null,
+      note: n.note,
+      arabic_note: n.arabicNote || n.note,
+      bag_item: n.bagItem || null,
+      block: n.block || 1,
+      week: n.week || 1,
+    }));
+
+    const { error } = await supabase.from('tomorrow_notes').upsert(rows, { onConflict: 'id' });
+    return !error;
+  } catch (e) {
+    console.error('Supabase save tomorrow notes exception:', e);
+    return false;
+  }
+}
+
+export async function supabaseDeleteTomorrowNote(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    const { error } = await supabase.from('tomorrow_notes').delete().eq('id', id);
+    return !error;
+  } catch (e) {
+    console.error('Supabase delete tomorrow note exception:', e);
+    return false;
+  }
+}
+
