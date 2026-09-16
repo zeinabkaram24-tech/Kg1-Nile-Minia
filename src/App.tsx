@@ -785,22 +785,10 @@ export default function App() {
             )}
           </div>
 
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsPlanModalOpen(true)}
-              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Smart Plan Classifier
-            </button>
-            <button
-              onClick={handleClearAllData}
-              className="text-rose-600 hover:text-rose-800 font-semibold inline-flex items-center gap-1 transition-colors cursor-pointer"
-              title="تفريغ كافة البيانات والملفات للبدء من الصفر"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              تفريغ كافة البيانات (Clean Slate)
-            </button>
+          <div className="flex items-center gap-3">
+            <span className="text-slate-400 font-normal">
+              لوحة التحكم والإدارة مخصصة لإدارة المدرسة عبر زر الأدمن
+            </span>
           </div>
         </div>
       </footer>

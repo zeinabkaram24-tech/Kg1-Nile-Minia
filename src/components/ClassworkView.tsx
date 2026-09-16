@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   CheckCircle2,
   Circle,
-  Plus,
-  Edit2,
-  Trash2,
   User,
   BookOpen,
   ExternalLink,
@@ -27,8 +24,6 @@ interface ClassworkViewProps {
   currentWeek?: number;
   timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
   onToggleClasswork: (id: string) => void;
-  onSaveClasswork: (entry: ClassworkEntry) => void;
-  onDeleteClasswork?: (id: string) => void;
 }
 
 const ARABIC_DAYS: Record<SchoolDay, string> = {
@@ -39,20 +34,6 @@ const ARABIC_DAYS: Record<SchoolDay, string> = {
   Wednesday: 'الأربعاء',
   Thursday: 'الخميس',
 };
-
-const ALL_SUBJECTS: SubjectName[] = [
-  'Arabic',
-  'English',
-  'Mathematics',
-  'Science',
-  'Social Studies',
-  'French',
-  'Religion',
-  'ICT',
-  'Arts',
-  'Music',
-  'PE',
-];
 
 const PERIOD_TIMES: Record<number, string> = {
   1: '7:45 - 8:35',
@@ -80,8 +61,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentWeek = 1,
   timetables,
   onToggleClasswork,
-  onSaveClasswork,
-  onDeleteClasswork,
 }) => {
   // Check if current class has ANY weekly plan entered for this Block and Week
   const hasPlanForWeek = classworkList.some(
@@ -200,86 +179,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   const totalCount = activeDisplayItems.length;
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Add / Edit Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [formSubject, setFormSubject] = useState<SubjectName>('English');
-  const [formPeriod, setFormPeriod] = useState<number>(1);
-  const [formTitle, setFormTitle] = useState('');
-  const [formPages, setFormPages] = useState('');
-  const [formDetails, setFormDetails] = useState('');
-  const [formLink, setFormLink] = useState('');
-
-  const openAddModal = () => {
-    setModalMode('add');
-    setEditingEntryId(null);
-    setFormSubject('Arabic');
-    setFormPeriod(1);
-    setFormTitle('');
-    setFormPages('');
-    setFormDetails('');
-    setFormLink('');
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (item: { slot: GroupedPeriodSlot; cwEntry: ClassworkEntry }) => {
-    setModalMode('edit');
-    setEditingEntryId(item.cwEntry.id);
-    setFormSubject(item.cwEntry.subject);
-    setFormPeriod(item.slot.periods[0] || 1);
-    setFormTitle(item.cwEntry.title);
-    setFormPages(item.cwEntry.pages || '');
-    setFormDetails(item.cwEntry.details || '');
-    const firstLink = item.cwEntry.links?.[0]?.url || item.cwEntry.linkUrl || '';
-    setFormLink(firstLink);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveModal = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formTitle.trim()) return;
-
-    const linksArray = formLink.trim()
-      ? [
-          {
-            url: formLink.trim(),
-            title: formLink.trim(),
-            type: formLink.includes('youtu') ? ('video' as const) : ('general' as const),
-          },
-        ]
-      : undefined;
-
-    const entryToSave: ClassworkEntry = {
-      id:
-        editingEntryId ||
-        `cw-${currentClass}-${selectedDay}-${formPeriod}-${Date.now()}`,
-      classId: currentClass,
-      day: selectedDay,
-      period: formPeriod,
-      subject: formSubject,
-      title: formTitle.trim(),
-      pages: formPages.trim() || undefined,
-      details: formDetails.trim() || undefined,
-      links: linksArray,
-      linkUrl: formLink.trim() || undefined,
-      completed: false,
-      block: currentBlock,
-      week: currentWeek,
-    };
-
-    onSaveClasswork(entryToSave);
-    setIsModalOpen(false);
-  };
-
-  const handleDeleteEntry = (id: string, subjectTitle: string) => {
-    if (window.confirm(`هل أنت متأكد من حذف درس (${subjectTitle}) من الخطة الأسبوعية؟`)) {
-      if (onDeleteClasswork) {
-        onDeleteClasswork(id);
-      }
-    }
-  };
-
   // If entire week has no plan entered at all
   if (!hasPlanForWeek) {
     return (
@@ -291,17 +190,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
           لا توجد خطة أسبوعية مسجلة لهذا الأسبوع
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek}) فارغ حالياً. يمكنكِ إضافة درس جديد الآن أو استيراد الخطة عبر الزر العلوي.
+          الأسبوع المحدد (Topic {currentBlock} - Week {currentWeek}) فارغ حالياً. ستظهر الدروس المقررة هنا فور إضافتها واعتمادها من الإدارة المدرسية.
         </p>
-        <div className="pt-2">
-          <button
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ إضافة أول مادة / درس للخطة</span>
-          </button>
-        </div>
       </div>
     );
   }
@@ -351,17 +241,8 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               لا توجد مواد مسجلة في الخطة الأسبوعية ليوم {ARABIC_DAYS[selectedDay]}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-              المواد تظهر في الكلاس وورك فقط عند توفر الخطة الأسبوعية الخاصة بها، حتى لو كانت مسجلة في الجدول المدرسي.
+              المواد تظهر في الكلاس وورك فقط عند توفر الخطة الأسبوعية المعتمدة من إدارة المدرسة.
             </p>
-          </div>
-          <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={openAddModal}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ إضافة مادة / درس للخطة الآن</span>
-            </button>
           </div>
         </div>
       ) : (
@@ -390,15 +271,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   </div>
                 </div>
               )}
-
-              <button
-                onClick={openAddModal}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-colors"
-                title="إضافة مادة أخرى للخطة"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>إضافة مادة</span>
-              </button>
             </div>
           </div>
 
@@ -537,7 +409,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Actions (Check completion & Edit & Delete) */}
+                    {/* Actions (Check completion) */}
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
                       <button
                         onClick={handleToggleLesson}
@@ -559,160 +431,11 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                           </>
                         )}
                       </button>
-
-                      <button
-                        onClick={() => openEditModal({ slot, cwEntry })}
-                        className="p-2 text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
-                        title="تعديل محتوى الدرس"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-
-                      {onDeleteClasswork && (
-                        <button
-                          onClick={() => handleDeleteEntry(cwEntry.id, cwEntry.title)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
-                          title="حذف الدرس من الخطة"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
               );
             })}
-          </div>
-        </div>
-      )}
-
-      {/* Add / Edit Classwork Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
-            <h3 className="text-lg font-black text-slate-900 mb-1">
-              {modalMode === 'add' ? 'إضافة مادة / درس للخطة الأسبوعية' : 'تعديل درس في الخطة'}
-            </h3>
-            <p className="text-xs text-slate-500 mb-5">
-              يوم {ARABIC_DAYS[selectedDay]} • {currentClass} • Topic {currentBlock} - Week {currentWeek}
-            </p>
-
-            <form onSubmit={handleSaveModal} className="space-y-4">
-              {/* Subject Selector */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">المادة</label>
-                <select
-                  value={formSubject}
-                  onChange={(e) => setFormSubject(e.target.value as SubjectName)}
-                  className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-semibold bg-white"
-                >
-                  {ALL_SUBJECTS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Period Selector (1 to 6) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">رقم الحصة (1 - 6)</label>
-                <div className="grid grid-cols-6 gap-1.5">
-                  {[1, 2, 3, 4, 5, 6].map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setFormPeriod(p)}
-                      className={`py-2 text-xs font-black rounded-xl border transition-all ${
-                        formPeriod === p
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
-                      }`}
-                    >
-                      P{p}
-                    </button>
-                  ))}
-                </div>
-                <div className="text-[11px] text-slate-400 mt-1 font-sans">
-                  التوقيت: {PERIOD_TIMES[formPeriod] || ''}
-                </div>
-              </div>
-
-              {/* Lesson Title */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  عنوان الدرس / المحتوى الدراسي <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="مثال: استقبال الأطفال والعودة إلى المدرسة"
-                  className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Pages */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  أرقام الصفحات / كتاب المادة (اختياري)
-                </label>
-                <input
-                  type="text"
-                  value={formPages}
-                  onChange={(e) => setFormPages(e.target.value)}
-                  placeholder="مثال: حل ورق العمل ص 3 \ 4 \ 5"
-                  className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Details */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  ملاحظات أو تفاصيل إضافية (اختياري)
-                </label>
-                <textarea
-                  rows={2}
-                  value={formDetails}
-                  onChange={(e) => setFormDetails(e.target.value)}
-                  placeholder="أي تعليمات خاصة بالدرس..."
-                  className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Video Link */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  رابط فيديو أو نشاط تعليمي (YouTube URL)
-                </label>
-                <input
-                  type="url"
-                  value={formLink}
-                  onChange={(e) => setFormLink(e.target.value)}
-                  placeholder="https://youtu.be/..."
-                  className="w-full text-sm px-3 py-2 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-                  dir="ltr"
-                />
-              </div>
-
-              {/* Form buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 rounded-xl"
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors"
-                >
-                  {modalMode === 'add' ? 'إضافة إلى الخطة' : 'حفظ التعديلات'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

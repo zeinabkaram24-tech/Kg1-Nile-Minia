@@ -15,6 +15,7 @@ interface TaskCardProps {
   onSavePersonalNote?: (taskId: string, note: string) => void;
   compact?: boolean;
   isVisitor?: boolean;
+  isAdmin?: boolean;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -26,6 +27,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onSavePersonalNote,
   compact = false,
   isVisitor = false,
+  isAdmin = false,
 }) => {
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(task.personalNotes || '');
@@ -226,48 +228,51 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
       {/* Action Controls & Done in English */}
       <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-        {!isVisitor && (
-          <div className="flex items-center gap-1">
-            {!task.personalNotes && (
+        <div className="flex items-center gap-1">
+          {!task.personalNotes && (
+            <button
+              type="button"
+              id={`note-task-${task.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingNote(true);
+              }}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+              title="إضافة ملاحظة شخصية (في جهازي فقط)"
+            >
+              <StickyNote className="w-4 h-4" />
+            </button>
+          )}
+
+          {isAdmin && (
+            <>
               <button
                 type="button"
-                id={`note-task-${task.id}`}
+                id={`edit-task-${task.id}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsEditingNote(true);
+                  onEdit(task);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                title="إضافة ملاحظة شخصية (في جهازي فقط)"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                title="تعديل المهمة"
               >
-                <StickyNote className="w-4 h-4" />
+                <Edit3 className="w-4 h-4" />
               </button>
-            )}
-            <button
-              type="button"
-              id={`edit-task-${task.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(task);
-              }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-              title="تعديل المهمة"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              id={`delete-task-${task.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(task.id);
-              }}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-              title="حذف المهمة"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+              <button
+                type="button"
+                id={`delete-task-${task.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(task.id);
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="حذف المهمة"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
+          )}
+        </div>
 
         {/* English "Done" button per user requirement */}
         <button

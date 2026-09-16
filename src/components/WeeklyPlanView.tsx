@@ -107,21 +107,10 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
               </span>
             </div>
 
-            {/* Week Title (Editable by Admin only) */}
-            {isAdmin ? (
-              <input
-                type="text"
-                value={weekTitle}
-                onChange={(e) => onChangeWeekTitle(e.target.value)}
-                className="text-2xl sm:text-3xl font-black text-slate-900 border-b-2 border-indigo-200 hover:border-indigo-400 focus:border-indigo-600 focus:outline-hidden px-1 py-1 rounded transition-all w-full max-w-xl"
-                placeholder="عنوان الخطة الأسبوعية..."
-                title="تعديل عنوان الخطة الأسبوعية (صلاحية الأدمن)"
-              />
-            ) : (
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 py-1">
-                {weekTitle}
-              </h2>
-            )}
+            {/* Week Title - view only on public view */}
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 py-1">
+              {weekTitle}
+            </h2>
             <p className="text-slate-500 text-xs sm:text-sm mt-1">
               متابعة جميع المواد (Maths, Science, Français, English, Arabic, etc.)
             </p>
@@ -274,17 +263,6 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
                     {doneDayTasks}/{totalDayTasks} Done
                   </span>
 
-                  {!isVisitor && (
-                    <button
-                      type="button"
-                      onClick={() => onAddTaskForDay(day.key)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors flex items-center gap-1.5 shadow-2xs font-sans"
-                      title={`إضافة مهمة ليوم ${day.nameAr}`}
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Task</span>
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -294,15 +272,6 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
                   {dayTasks.length === 0 ? (
                     <div className="text-center py-6 text-slate-400 text-sm flex flex-col items-center justify-center gap-1.5">
                       <span>لا توجد مهام مسجلة ليوم {day.nameAr}.</span>
-                      {!isVisitor && (
-                        <button
-                          type="button"
-                          onClick={() => onAddTaskForDay(day.key)}
-                          className="text-xs text-indigo-600 hover:underline font-bold mt-1"
-                        >
-                          + إضافة خطة مادة أو واجب
-                        </button>
-                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -319,6 +288,7 @@ export const WeeklyPlanView: React.FC<WeeklyPlanViewProps> = ({
                             onSavePersonalNote={onSavePersonalNote}
                             compact
                             isVisitor={isVisitor}
+                            isAdmin={false}
                           />
                         );
                       })}
