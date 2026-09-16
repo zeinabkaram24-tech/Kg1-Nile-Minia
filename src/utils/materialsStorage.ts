@@ -235,13 +235,25 @@ export async function deleteMaterial(id: string): Promise<void> {
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
-    console.warn('Failed to delete from IndexedDB, deleting from fallback', e);
-    const existing = getFallbackMaterials().filter((m) => m.id !== id);
-    saveFallbackMaterials(existing);
+    console.warn('Failed to delete from IndexedDB:', e);
   }
 
+  // Always delete from fallback localStorage
+  try {
+    const existing = getFallbackMaterials().filter((m) => m.id !== id);
+    saveFallbackMaterials(existing);
+  } catch {}
+
+  // Always delete from secondary materials list
+  try {
+    const current = getSavedMaterials().filter((m) => m.id !== id);
+    saveMaterials(current, true);
+  } catch {}
+
   // 2. Delete local blob
-  deleteMaterialBlob(id).catch(() => {});
+  try {
+    await deleteMaterialBlob(id);
+  } catch {}
 
   // 3. Delete from Supabase Storage Bucket if URL exists
   if (targetItem?.fileUrl) {
@@ -259,10 +271,12 @@ export async function deleteMaterial(id: string): Promise<void> {
     console.warn('Supabase delete material error:', e);
   }
 
-  // 5. Delete from Server
+  // 5. Delete from Server disk & memory cache (and await it)
   try {
-    fetch(`/api/materials/${id}`, { method: 'DELETE' }).catch(() => {});
-  } catch {}
+    await fetch(`/api/materials/${id}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn('Failed to delete material from express server:', err);
+  }
 
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));

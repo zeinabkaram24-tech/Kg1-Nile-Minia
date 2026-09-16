@@ -347,6 +347,37 @@ ${planText}
   }
 });
 
+// PDF Worker static endpoints for reliable client-side rendering
+app.get('/pdf.worker.min.mjs', (req, res) => {
+  res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const workerFile = path.join(process.cwd(), 'node_modules', 'pdfjs-dist', 'build', 'pdf.worker.min.mjs');
+  if (fs.existsSync(workerFile)) {
+    return res.sendFile(workerFile);
+  }
+  const publicWorker = path.join(process.cwd(), 'public', 'pdf.worker.min.mjs');
+  if (fs.existsSync(publicWorker)) {
+    return res.sendFile(publicWorker);
+  }
+  res.status(404).send('pdf.worker.min.mjs not found');
+});
+
+app.get('/pdf.worker.legacy.min.mjs', (req, res) => {
+  res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const workerFile = path.join(process.cwd(), 'node_modules', 'pdfjs-dist', 'legacy', 'build', 'pdf.worker.min.mjs');
+  if (fs.existsSync(workerFile)) {
+    return res.sendFile(workerFile);
+  }
+  res.status(404).send('pdf.worker.legacy.min.mjs not found');
+});
+
+// Serve public directory
+const publicDir = path.join(process.cwd(), 'public');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+}
+
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {

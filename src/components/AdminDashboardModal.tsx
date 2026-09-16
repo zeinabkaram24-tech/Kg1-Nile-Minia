@@ -82,6 +82,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
   const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState<MaterialItem | null>(null);
+  const [isConfirmClearAllOpen, setIsConfirmClearAllOpen] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -227,21 +230,32 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Handle Delete with Confirmation
-  const handleDelete = async (item: MaterialItem) => {
-    const confirmed = window.confirm(
-      `هل أنت متأكد من مسح ملف "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
-    );
-    if (!confirmed) return;
+  // Trigger Delete Confirmation Modal
+  const handleDelete = (item: MaterialItem) => {
+    setConfirmDeleteItem(item);
+  };
+
+  // Execute single file deletion across all stores
+  const handleExecuteDelete = async () => {
+    if (!confirmDeleteItem) return;
+    const item = confirmDeleteItem;
+    setDeletingId(item.id);
+    setConfirmDeleteItem(null);
+
+    // Optimistic local state update so it disappears immediately
+    setMaterials((prev) => prev.filter((m) => m.id !== item.id));
 
     try {
       await deleteMaterial(item.id);
       await refreshMaterials();
-      setSuccessMessage(`تم مسح الملف "${item.fileName}" بنجاح.`);
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setSuccessMessage(`تم مسح ملف "${item.fileName}" نهائياً من كافة قواعد البيانات.`);
+      setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
       console.error(err);
-      setErrorMessage('فشل مسح الملف.');
+      setErrorMessage('حدث خطأ أثناء مسح الملف.');
+      await refreshMaterials();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -250,21 +264,25 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     setPreviewItem(item);
   };
 
-  // Handle Clear All Materials
-  const handleClearAllMaterials = async () => {
-    const confirmed = window.confirm(
-      'هل أنت متأكد من حذف جميع ملفات الماتيريال المرفوعة نهائياً؟'
-    );
-    if (!confirmed) return;
+  // Trigger Clear All Materials Confirmation Modal
+  const handleClearAllMaterials = () => {
+    setIsConfirmClearAllOpen(true);
+  };
+
+  // Execute clearing all materials across all stores
+  const handleExecuteClearAll = async () => {
+    setIsConfirmClearAllOpen(false);
+    setMaterials([]);
 
     try {
       await clearAllMaterialsStorage();
       await refreshMaterials();
-      setSuccessMessage('تم حذف كافة ملفات الماتيريال بنجاح.');
+      setSuccessMessage('تم تفريغ وحذف كافة ملفات الماتيريال بنجاح.');
       setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err) {
       console.error(err);
       setErrorMessage('فشل حذف كافة الملفات.');
+      await refreshMaterials();
     }
   };
 
@@ -1061,6 +1079,76 @@ CREATE TABLE IF NOT EXISTS public.materials (
         onClose={() => setPreviewItem(null)}
         item={previewItem}
       />
+
+      {/* In-App Confirmation Modal for Single File Deletion */}
+      {confirmDeleteItem && (
+        <div className="fixed inset-0 z-70 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-right animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+              تأكيد مسح الملف نهائياً
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed text-center mb-5">
+              هل أنت متأكد من مسح ملف <span className="font-bold text-slate-900 font-mono">"{confirmDeleteItem.fileName}"</span> من Topic {confirmDeleteItem.block} ({confirmDeleteItem.section})؟
+              <br />
+              <span className="text-rose-600 font-semibold text-[11px]">سيتم حذفه بالكامل من قاعدة البيانات السحابية والتخزين المحلي.</span>
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteItem(null)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteDelete}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>نعم، امسح الملف الآن</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Confirmation Modal for Clear All Materials */}
+      {isConfirmClearAllOpen && (
+        <div className="fixed inset-0 z-70 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 text-right animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-300 text-rose-700 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-black text-slate-900 text-center mb-2">
+              حذف كافة ملفات الماتيريال
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed text-center mb-5">
+              هل أنت متأكد من رغبتك في حذف جميع ملفات الـ PDF والماتيريال المرفوعة ({materials.length} ملف) نهائياً من كافة السحابات والتخزين؟
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsConfirmClearAllOpen(false)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                تراجع
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteClearAll}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>نعم، احذف جميع الملفات</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
