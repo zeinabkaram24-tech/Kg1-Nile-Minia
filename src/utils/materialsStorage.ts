@@ -92,37 +92,78 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
   }
 }
 
-// Seamless Cloud Sync (Mobile ⇄ Laptop)
+// Helper to convert Blob to Data URL
+export function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Seamless Cloud Sync (Mobile ⇄ Laptop Bidirectional Sync)
 export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
   try {
-    // 1. Try Supabase first
-    const remoteMaterials = await supabaseFetchMaterials();
-    if (remoteMaterials && remoteMaterials.length > 0) {
-      const db = await openDB();
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      for (const item of remoteMaterials) {
-        store.put(item);
-        if (item.fileData && item.fileData.startsWith('data:')) {
+    // 1. Read local materials present on this specific device
+    const localMaterials = await getAllMaterials();
+
+    // 2. Prepare items to sync to server, attaching file data from local IndexedDB blobs if needed
+    const payloadMaterials = await Promise.all(
+      localMaterials.map(async (m) => {
+        const itemCopy = { ...m };
+        if (!itemCopy.fileUrl && !itemCopy.fileData) {
           try {
-            const blob = dataUrlToBlob(item.fileData);
-            saveMaterialBlob(item.id, blob).catch(() => {});
-          } catch {}
+            const blob = await getMaterialBlob(itemCopy.id);
+            if (blob) {
+              itemCopy.fileData = await blobToDataUrl(blob);
+            }
+          } catch (e) {
+            console.warn(`Could not read blob for ${itemCopy.id}:`, e);
+          }
+        }
+        return itemCopy;
+      })
+    );
+
+    // 3. Bidirectional Sync with Express Server: Pushes device files up, pulls remote files down
+    try {
+      const res = await fetch('/api/materials/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ materials: payloadMaterials }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.materials)) {
+          const db = await openDB();
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+
+          for (const item of data.materials) {
+            store.put(item);
+            // Also sync to Supabase in background for global availability
+            supabaseUpsertMaterial(item).catch(() => {});
+          }
+
+          saveFallbackMaterials(data.materials);
+          window.dispatchEvent(new CustomEvent(EVENT_NAME));
+          return data.materials;
         }
       }
-      window.dispatchEvent(new CustomEvent(EVENT_NAME));
-      return remoteMaterials;
+    } catch (serverSyncErr) {
+      console.warn('Express server sync error:', serverSyncErr);
     }
 
-    // 2. Fallback to Express Server API (/api/materials)
-    const res = await fetch('/api/materials');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.materials) && data.materials.length > 0) {
+    // 4. Also check Supabase for any remote materials
+    try {
+      const remoteMaterials = await supabaseFetchMaterials();
+      if (remoteMaterials && remoteMaterials.length > 0) {
         const db = await openDB();
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        for (const item of data.materials) {
+        for (const item of remoteMaterials) {
           store.put(item);
           if (item.fileData && item.fileData.startsWith('data:')) {
             try {
@@ -131,9 +172,12 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
             } catch {}
           }
         }
+        saveFallbackMaterials(remoteMaterials);
         window.dispatchEvent(new CustomEvent(EVENT_NAME));
-        return data.materials;
+        return remoteMaterials;
       }
+    } catch (supErr) {
+      console.warn('Supabase sync notice:', supErr);
     }
   } catch (err) {
     console.warn('Sync materials from cloud error:', err);
@@ -143,28 +187,58 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
 
 // Save or add a material (Uploads to Supabase Storage + Database + Server + Local IndexedDB)
 export async function saveMaterial(item: MaterialItem, originalFile?: File | Blob): Promise<void> {
-  // 1. Upload to Supabase Storage Bucket ('materials') for permanent direct cloud URL (Mobile ⇄ Laptop)
-  let uploadedUrl: string | undefined = item.fileUrl;
+  // 1. Cache blob locally first for instant offline preview
+  if (originalFile) {
+    try {
+      await saveMaterialBlob(item.id, originalFile);
+    } catch (blobErr) {
+      console.warn('Could not cache blob:', blobErr);
+    }
+  } else if (item.fileData && item.fileData.startsWith('data:')) {
+    try {
+      const blob = dataUrlToBlob(item.fileData);
+      await saveMaterialBlob(item.id, blob);
+    } catch (blobErr) {
+      console.warn('Could not cache blob from dataUrl:', blobErr);
+    }
+  }
+
+  // 2. Upload to Supabase Storage Bucket if bucket exists
   try {
     if (originalFile) {
       const uploadRes = await supabaseUploadMaterialFile(originalFile, item.fileName || 'document.pdf');
       if (uploadRes.success && uploadRes.publicUrl) {
-        uploadedUrl = uploadRes.publicUrl;
         item.fileUrl = uploadRes.publicUrl;
       }
-    } else if (!uploadedUrl && item.fileData && item.fileData.startsWith('data:')) {
+    } else if (!item.fileUrl && item.fileData && item.fileData.startsWith('data:')) {
       const blob = dataUrlToBlob(item.fileData);
       const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf');
       if (uploadRes.success && uploadRes.publicUrl) {
-        uploadedUrl = uploadRes.publicUrl;
         item.fileUrl = uploadRes.publicUrl;
       }
     }
   } catch (storageErr) {
-    console.warn('Supabase storage upload error, continuing with database sync:', storageErr);
+    console.warn('Supabase storage upload error, continuing with server sync:', storageErr);
   }
 
-  // 2. Save to local IndexedDB
+  // 3. Send to Express server endpoint (STRICTLY AWAITED for guaranteed cross-device persistence)
+  try {
+    const res = await fetch('/api/materials/single', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.material && data.material.fileUrl) {
+        item.fileUrl = data.material.fileUrl;
+      }
+    }
+  } catch (serverErr) {
+    console.warn('Server single upload notice:', serverErr);
+  }
+
+  // 4. Save to local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -182,33 +256,12 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
     saveFallbackMaterials(existing);
   }
 
-  // 3. Cache blob locally if fileData is present
-  if (item.fileData && item.fileData.startsWith('data:')) {
-    try {
-      const blob = dataUrlToBlob(item.fileData);
-      saveMaterialBlob(item.id, blob).catch(() => {});
-    } catch {}
-  } else if (originalFile) {
-    try {
-      saveMaterialBlob(item.id, originalFile).catch(() => {});
-    } catch {}
-  }
-
-  // 4. Upload to Supabase database table with direct public URL for instant cross-device sync
+  // 5. Upload to Supabase database table for cross-device sync
   try {
     await supabaseUpsertMaterial(item);
   } catch (e) {
     console.warn('Supabase upsert material error:', e);
   }
-
-  // 5. Send to Express server endpoint
-  try {
-    fetch('/api/materials/single', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
-    }).catch(() => {});
-  } catch {}
 
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));

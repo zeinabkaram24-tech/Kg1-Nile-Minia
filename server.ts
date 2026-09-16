@@ -13,8 +13,14 @@ const PORT = 3000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Materials Persistent Storage (File + Memory cache)
+// Materials Persistent Storage (File + Memory cache + Disk PDF uploads)
 const MATERIALS_FILE = path.join(process.cwd(), 'data', 'materials_store.json');
+const UPLOADS_DIR = path.join(process.cwd(), 'data', 'uploads');
+
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
 let inMemoryMaterials: any[] = [];
 
 try {
@@ -27,27 +33,166 @@ try {
   console.warn('Could not load materials from disk:', e);
 }
 
+// Helper to save binary PDF to disk from Base64 Data URL and return public endpoint URL
+function savePdfFromItem(item: any): string | null {
+  try {
+    if (!item || !item.id) return null;
+    const filePath = path.join(UPLOADS_DIR, `${item.id}.pdf`);
+
+    // 1. If base64 fileData is provided, write to disk
+    if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
+      const b64 = item.fileData.split(',')[1];
+      const buf = Buffer.from(b64, 'base64');
+      fs.writeFileSync(filePath, buf);
+      return `/api/materials/pdf/${item.id}`;
+    }
+
+    // 2. If file already exists on disk
+    if (fs.existsSync(filePath)) {
+      return `/api/materials/pdf/${item.id}`;
+    }
+  } catch (err) {
+    console.warn(`Error saving PDF for item ${item?.id}:`, err);
+  }
+  return null;
+}
+
 function persistMaterialsToDisk() {
   try {
     const dir = path.dirname(MATERIALS_FILE);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(inMemoryMaterials), 'utf-8');
+    // Sanitize in-memory items so materials_store.json does not carry huge base64 strings
+    const sanitized = inMemoryMaterials.map((m) => {
+      const copy = { ...m };
+      if (copy.fileData && copy.fileUrl) {
+        delete copy.fileData;
+      }
+      return copy;
+    });
+    fs.writeFileSync(MATERIALS_FILE, JSON.stringify(sanitized, null, 2), 'utf-8');
   } catch (e) {
     console.error('Failed to write materials to disk:', e);
   }
 }
 
 // Materials API Endpoints (Sync Mobile ⇄ Laptop)
+
+// 1. Get All Materials
 app.get('/api/materials', (req, res) => {
   res.json({ success: true, materials: inMemoryMaterials });
 });
 
+// 2. Serve PDF file binary directly with correct headers and cache
+app.get('/api/materials/pdf/:id', (req, res) => {
+  const { id } = req.params;
+  const filePath = path.join(UPLOADS_DIR, `${id}.pdf`);
+  if (fs.existsSync(filePath)) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.sendFile(filePath);
+  }
+
+  // Fallback: check in-memory if item has fileData
+  const found = inMemoryMaterials.find((m) => m.id === id);
+  if (found && found.fileData && typeof found.fileData === 'string' && found.fileData.includes(',')) {
+    try {
+      const b64 = found.fileData.split(',')[1];
+      const buf = Buffer.from(b64, 'base64');
+      fs.writeFileSync(filePath, buf);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.send(buf);
+    } catch (e) {
+      console.warn('Fallback stream error:', e);
+    }
+  }
+
+  res.status(404).json({ success: false, error: 'PDF file not found' });
+});
+
+// 3. Bidirectional Sync: Accepts client's local materials, merges them, saves any PDFs, and returns complete list
+app.post('/api/materials/sync', (req, res) => {
+  try {
+    const { materials } = req.body;
+    let changed = false;
+
+    if (Array.isArray(materials) && materials.length > 0) {
+      for (const clientItem of materials) {
+        if (!clientItem || !clientItem.id) continue;
+        const existingIdx = inMemoryMaterials.findIndex((m) => m.id === clientItem.id);
+
+        const pdfUrl = savePdfFromItem(clientItem);
+        const cleanItem = { ...clientItem };
+        if (pdfUrl) {
+          cleanItem.fileUrl = pdfUrl;
+        }
+
+        if (existingIdx >= 0) {
+          // Merge metadata
+          inMemoryMaterials[existingIdx] = {
+            ...inMemoryMaterials[existingIdx],
+            ...cleanItem,
+            fileUrl: cleanItem.fileUrl || inMemoryMaterials[existingIdx].fileUrl,
+          };
+          changed = true;
+        } else {
+          inMemoryMaterials.unshift(cleanItem);
+          changed = true;
+        }
+      }
+
+      if (changed) {
+        persistMaterialsToDisk();
+      }
+    }
+
+    res.json({ success: true, materials: inMemoryMaterials });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Save/Update Single Material
+app.post('/api/materials/single', (req, res) => {
+  try {
+    const item = req.body;
+    if (!item || !item.id) {
+      return res.status(400).json({ success: false, error: 'Valid material item with id is required' });
+    }
+
+    const pdfUrl = savePdfFromItem(item);
+    const cleanItem = { ...item };
+    if (pdfUrl) {
+      cleanItem.fileUrl = pdfUrl;
+    }
+
+    const idx = inMemoryMaterials.findIndex((m) => m.id === item.id);
+    if (idx >= 0) {
+      inMemoryMaterials[idx] = cleanItem;
+    } else {
+      inMemoryMaterials.unshift(cleanItem);
+    }
+
+    persistMaterialsToDisk();
+    res.json({ success: true, material: cleanItem });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. Bulk Save
 app.post('/api/materials/save', (req, res) => {
   try {
     const { materials } = req.body;
     if (Array.isArray(materials)) {
+      for (const m of materials) {
+        const pdfUrl = savePdfFromItem(m);
+        if (pdfUrl) m.fileUrl = pdfUrl;
+      }
       inMemoryMaterials = materials;
       persistMaterialsToDisk();
       return res.json({ success: true, count: inMemoryMaterials.length });
@@ -58,39 +203,44 @@ app.post('/api/materials/save', (req, res) => {
   }
 });
 
-app.post('/api/materials/single', (req, res) => {
-  try {
-    const item = req.body;
-    if (!item || !item.id) {
-      return res.status(400).json({ success: false, error: 'Valid material item with id is required' });
-    }
-    const idx = inMemoryMaterials.findIndex((m) => m.id === item.id);
-    if (idx >= 0) {
-      inMemoryMaterials[idx] = item;
-    } else {
-      inMemoryMaterials.unshift(item);
-    }
-    persistMaterialsToDisk();
-    res.json({ success: true, material: item });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
+// 6. Delete Material
 app.delete('/api/materials/:id', (req, res) => {
   try {
     const { id } = req.params;
     inMemoryMaterials = inMemoryMaterials.filter((m) => m.id !== id);
     persistMaterialsToDisk();
+
+    // Remove PDF file from disk
+    const filePath = path.join(UPLOADS_DIR, `${id}.pdf`);
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch {}
+    }
+
     res.json({ success: true, deletedId: id });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// 7. Clear All Materials
 app.post('/api/materials/clear', (req, res) => {
   inMemoryMaterials = [];
   persistMaterialsToDisk();
+
+  // Clean uploads directory
+  try {
+    if (fs.existsSync(UPLOADS_DIR)) {
+      const files = fs.readdirSync(UPLOADS_DIR);
+      for (const file of files) {
+        fs.unlinkSync(path.join(UPLOADS_DIR, file));
+      }
+    }
+  } catch (e) {
+    console.warn('Error clearing uploads dir:', e);
+  }
+
   res.json({ success: true, message: 'All materials cleared from server' });
 });
 

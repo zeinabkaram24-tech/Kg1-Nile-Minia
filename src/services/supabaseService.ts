@@ -576,14 +576,20 @@ export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
 export async function supabaseUpsertMaterial(item: MaterialItem): Promise<{ success: boolean; error?: any }> {
   if (!isSupabaseConfigured) return { success: false, error: 'Supabase not configured' };
   try {
+    // Only store inline file_data in Supabase row if it is small (< 300KB) to prevent 413 Payload Too Large
+    const safeFileData =
+      item.fileData && typeof item.fileData === 'string' && item.fileData.length < 300000
+        ? item.fileData
+        : null;
+
     const row = {
       id: item.id,
       file_name: item.fileName || 'document.pdf',
       file_size: typeof item.fileSize === 'number' ? item.fileSize : parseInt(String(item.fileSize || 0), 10) || 0,
-      file_data: item.fileData || null,
-      file_url: item.fileUrl || null,
+      file_data: safeFileData,
+      file_url: item.fileUrl || (item.id ? `/api/materials/pdf/${item.id}` : null),
       block: item.block || 1,
-      section: item.section || 'Main sheets',
+      section: item.section || 'Main sheet',
       class_id: item.classId || null,
       title: item.title || null,
       category: item.category || null,

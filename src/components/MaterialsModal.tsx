@@ -9,6 +9,7 @@ import {
   Eye,
   Printer,
   Download,
+  RefreshCw,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
@@ -39,14 +40,37 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  // Load materials from storage (with cloud sync)
+  // Normalize section strings (handles 'Main sheet' vs 'Main sheets' and casing)
+  const normalizeSection = (sec?: string | null) => {
+    if (!sec) return '';
+    const s = sec.trim().toLowerCase();
+    if (s === 'main sheet' || s === 'main sheets') return 'main sheet';
+    return s;
+  };
+
+  // Load materials from storage (with immediate local render + cloud sync)
   const loadMaterials = async () => {
+    // 1. Immediate local load
+    const local = await getAllMaterials();
+    setMaterials(local);
+
+    // 2. Background sync with cloud/server
+    setIsSyncing(true);
     try {
-      await syncMaterialsFromCloud();
-    } catch {}
-    const all = await getAllMaterials();
-    setMaterials(all);
+      const synced = await syncMaterialsFromCloud();
+      if (Array.isArray(synced) && synced.length > 0) {
+        setMaterials(synced);
+      } else {
+        const refreshed = await getAllMaterials();
+        setMaterials(refreshed);
+      }
+    } catch (e) {
+      console.warn('Sync materials notice:', e);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -57,7 +81,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
   useEffect(() => {
     const unsub = subscribeToMaterials(() => {
-      loadMaterials();
+      getAllMaterials().then(setMaterials);
     });
     return () => unsub();
   }, []);
@@ -89,13 +113,32 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const blocks = [1, 2, 3, 4];
   const weeks = [1, 2, 3, 4];
 
-  // Filter items for current selection
-  const currentSectionMaterials = materials.filter(
-    (item) =>
-      item.block === selectedBlock &&
-      item.section === selectedSection &&
-      (!item.classId || item.classId === 'ALL' || item.classId === currentClass)
-  );
+  // Filter items for current selection (handles string/number blocks & section normalization)
+  const currentSectionMaterials = materials.filter((item) => {
+    const blockMatch = Number(item.block) === Number(selectedBlock);
+    const secMatch = normalizeSection(item.section) === normalizeSection(selectedSection);
+    const classMatch = !item.classId || item.classId === 'ALL' || item.classId === currentClass;
+    return blockMatch && secMatch && classMatch;
+  });
+
+  // Count files per topic
+  const getTopicFileCount = (blockNum: number) => {
+    return materials.filter((m) => {
+      const blockMatch = Number(m.block) === Number(blockNum);
+      const classMatch = !m.classId || m.classId === 'ALL' || m.classId === currentClass;
+      return blockMatch && classMatch;
+    }).length;
+  };
+
+  // Count files per section in selected topic
+  const getSectionFileCount = (secName: string) => {
+    return materials.filter((m) => {
+      const blockMatch = Number(m.block) === Number(selectedBlock);
+      const secMatch = normalizeSection(m.section) === normalizeSection(secName);
+      const classMatch = !m.classId || m.classId === 'ALL' || m.classId === currentClass;
+      return blockMatch && secMatch && classMatch;
+    }).length;
+  };
 
   return (
     <>
@@ -143,14 +186,32 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                 </h3>
               </div>
             </div>
-            <button
-              id="close-materials-btn"
-              onClick={handleClose}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
-              title="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                id="materials-sync-btn"
+                onClick={loadMaterials}
+                disabled={isSyncing}
+                title="مزامنة سحابية وتحديث الملفات بين الموبايل واللاب توب"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  isSyncing
+                    ? 'bg-amber-100 text-amber-900 border-amber-300'
+                    : 'bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-800 border-slate-200'
+                }`}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-amber-600 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isSyncing ? 'جاري المزامنة...' : 'مزامنة سحابية'}</span>
+              </button>
+
+              <button
+                id="close-materials-btn"
+                onClick={handleClose}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Modal Body */}
@@ -177,9 +238,16 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                           {b}
                         </div>
                         <div>
-                          <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
-                            Topic {b}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
+                              Topic {b}
+                            </h4>
+                            {getTopicFileCount(b) > 0 && (
+                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                {getTopicFileCount(b)} ملف
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[11px] font-semibold text-slate-400">
                             Main sheet & Weeks
                           </span>
@@ -223,9 +291,16 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-black text-indigo-950">
-                          Main sheet
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-black text-indigo-950">
+                            Main sheet
+                          </h4>
+                          {getSectionFileCount('Main sheet') > 0 && (
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              {getSectionFileCount('Main sheet')} ملف
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[11px] font-bold text-indigo-700">
                           Topic {selectedBlock} Overview & Schedule
                         </span>
@@ -236,29 +311,39 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
                   {/* Weeks Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {weeks.map((w) => (
-                      <button
-                        key={w}
-                        id={`select-week-${w}-btn`}
-                        onClick={() => setSelectedSection(`Week ${w}`)}
-                        className="p-3.5 rounded-2xl border border-slate-200 hover:border-amber-400 bg-white hover:bg-amber-50/40 text-left transition-all flex items-center justify-between group cursor-pointer shadow-2xs"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 font-black text-xs flex items-center justify-center border border-amber-200 group-hover:scale-105 transition-transform">
-                            <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                    {weeks.map((w) => {
+                      const count = getSectionFileCount(`Week ${w}`);
+                      return (
+                        <button
+                          key={w}
+                          id={`select-week-${w}-btn`}
+                          onClick={() => setSelectedSection(`Week ${w}`)}
+                          className="p-3.5 rounded-2xl border border-slate-200 hover:border-amber-400 bg-white hover:bg-amber-50/40 text-left transition-all flex items-center justify-between group cursor-pointer shadow-2xs"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 font-black text-xs flex items-center justify-center border border-amber-200 group-hover:scale-105 transition-transform">
+                              <Calendar className="w-3.5 h-3.5 text-amber-700" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
+                                  Week {w}
+                                </h4>
+                                {count > 0 && (
+                                  <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    {count}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] font-semibold text-slate-400">
+                                Materials & Worksheets
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
-                              Week {w}
-                            </h4>
-                            <span className="text-[10px] font-semibold text-slate-400">
-                              Materials & Worksheets
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
-                      </button>
-                    ))}
+                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -363,11 +448,16 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-800">
-                        Block {selectedBlock} • {selectedSection}
+                        Topic {selectedBlock} • {selectedSection}
                       </h4>
                       <p className="text-xs text-slate-500 font-semibold mt-1" dir="rtl">
                         لا يوجد ملف PDF مضاف في هذا القسم حتى الآن. يمكن للآدمن رفع الملف عبر لوحة الأدمن (Admin Panel).
                       </p>
+                      {materials.length > 0 && (
+                        <div className="mt-2.5 text-[11px] font-bold text-amber-900 bg-amber-50/90 rounded-xl p-2.5 border border-amber-200" dir="rtl">
+                          ملاحظة: توجد ملفات متوفرة في أقسام أخرى ({materials.length} ملف متزامن). يمكنك النقر على زر "Back to Topics" بالأعلى لاختيار الـ Topic الخاص بملفك.
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
