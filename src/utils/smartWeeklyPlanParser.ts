@@ -758,3 +758,60 @@ export function cleanAndValidatePlanResult(
 
   return { classwork, homework, tomorrowNotes };
 }
+
+/**
+ * Swaps classwork and homework in the parsed plan response while preserving
+ * all analyzed fields, links, pages, details, and tomorrowNotes.
+ */
+export function swapParsedClassworkAndHomework(plan: ParsedWeeklyPlanResponse): ParsedWeeklyPlanResponse {
+  if (!plan) {
+    return { classwork: [], homework: [], tomorrowNotes: [] };
+  }
+
+  // 1. Items that were extracted as Homework become Classwork
+  const swappedClasswork: Omit<ClassworkEntry, 'id'>[] = (plan.homework || []).map((hw, idx) => {
+    return {
+      classId: hw.classId,
+      day: (hw.assignedDay || 'Sunday') as SchoolDay,
+      period: (hw as any).period || (idx % 6) + 1,
+      subject: hw.subject || 'Arabic',
+      title: hw.task || 'بدون عنوان',
+      pages: hw.pages,
+      details: hw.details,
+      completed: hw.completed ?? false,
+      block: hw.block,
+      week: hw.week,
+      linkUrl: hw.linkUrl,
+      linkTitle: hw.linkTitle,
+      links: hw.links,
+    };
+  });
+
+  // 2. Items that were extracted as Classwork become Homework
+  const swappedHomework: Omit<HomeworkEntry, 'id'>[] = (plan.classwork || []).map((cw) => {
+    const assignedDay = (cw.day || 'Sunday') as SchoolDay;
+    const isNoHw = /^لا\s*يوجد/i.test(cw.title || '');
+    return {
+      classId: cw.classId,
+      assignedDay,
+      dueDay: NEXT_DAY_MAP[assignedDay] || 'Monday',
+      subject: cw.subject || 'Arabic',
+      task: cw.title || 'واجب مدرسي',
+      pages: cw.pages,
+      details: cw.details,
+      completed: isNoHw ? true : (cw.completed ?? false),
+      priority: (cw as any).priority || (/urgent|هام|اختبار|quiz|ضروري/i.test(cw.title || '') ? 'urgent' : 'normal'),
+      block: cw.block,
+      week: cw.week,
+      linkUrl: cw.linkUrl,
+      linkTitle: cw.linkTitle,
+      links: cw.links,
+    };
+  });
+
+  return {
+    classwork: swappedClasswork,
+    homework: swappedHomework,
+    tomorrowNotes: plan.tomorrowNotes || [],
+  };
+}
