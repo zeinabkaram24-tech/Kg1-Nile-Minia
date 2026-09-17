@@ -48,6 +48,9 @@ import {
   supabaseSavePlannerSettings,
   supabaseFetchTomorrowNotes,
   supabaseSaveTomorrowNotes,
+  supabaseDeleteClassworkForScope,
+  supabaseDeleteHomeworkForScope,
+  supabaseDeleteTomorrowNotesForScope,
 } from './services/supabaseService';
 
 const STORAGE_KEYS = {
@@ -190,6 +193,7 @@ export default function App() {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+  const [adminDashboardInitialTab, setAdminDashboardInitialTab] = useState<'materials' | 'weekly_plan' | 'supabase'>('materials');
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
   const [isSupabaseSyncing, setIsSupabaseSyncing] = useState<boolean>(false);
   const [supabaseStatus, setSupabaseStatus] = useState<'connected' | 'offline' | 'checking'>(
@@ -538,33 +542,120 @@ export default function App() {
     newClasswork: ClassworkEntry[],
     newHomework: HomeworkEntry[],
     newTomorrowNotes?: TomorrowSpecialNote[],
-    replaceExisting: boolean = false
+    replaceExisting: boolean = false,
+    options?: {
+      targetBlock?: number;
+      targetWeek?: number;
+      targetClasses?: ClassId[];
+      subjectFilter?: string;
+      saveMode?: 'replace_week' | 'replace_subject' | 'replace_all' | 'append';
+    }
   ) => {
+    const targetBlock = options?.targetBlock ?? (newClasswork[0]?.block || 1);
+    const targetWeek = options?.targetWeek ?? (newClasswork[0]?.week || 1);
+    const targetClasses: ClassId[] =
+      options?.targetClasses && options.targetClasses.length > 0
+        ? options.targetClasses
+        : Array.from(new Set([...newClasswork.map((c) => c.classId), ...newHomework.map((h) => h.classId)]));
+    const subjectFilter =
+      options?.subjectFilter && options.subjectFilter !== 'ALL' ? options.subjectFilter : undefined;
+    const mode = options?.saveMode || (replaceExisting ? 'replace_week' : 'append');
+
+    // Scoped filtering logic for local state
+    const filterOutItems = <T extends { block?: number; week?: number; classId: ClassId; subject?: string }>(
+      list: T[]
+    ): T[] => {
+      if (mode === 'append') return list;
+      if (mode === 'replace_all') return [];
+      return list.filter((item) => {
+        const itemBlock = item.block || 1;
+        const itemWeek = item.week || 1;
+        const isSameScope =
+          itemBlock === targetBlock &&
+          itemWeek === targetWeek &&
+          (targetClasses.length === 0 || targetClasses.includes(item.classId));
+
+        if (!isSameScope) return true; // keep items of other weeks/blocks/classes
+
+        if (mode === 'replace_subject' && subjectFilter) {
+          // only remove items of this specific subject
+          const itemSubject = (item.subject || '').toLowerCase();
+          return itemSubject !== subjectFilter.toLowerCase();
+        }
+
+        // replace_week removes all items for that week
+        return false;
+      });
+    };
+
     setClassworkList((prev) => {
-      const next = replaceExisting ? newClasswork : [...newClasswork, ...prev];
+      const filtered = filterOutItems(prev);
+      const next = [...newClasswork, ...filtered];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
       return next;
     });
+
     setHomeworkList((prev) => {
-      const next = replaceExisting ? newHomework : [...newHomework, ...prev];
+      const filtered = filterOutItems(prev);
+      const next = [...newHomework, ...filtered];
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       return next;
     });
 
     if (newTomorrowNotes && newTomorrowNotes.length > 0) {
       setCustomTomorrowNotes((prev) => {
-        const next = replaceExisting ? newTomorrowNotes : [...newTomorrowNotes, ...prev];
+        const filtered =
+          mode === 'append'
+            ? prev
+            : prev.filter((n) => {
+                const nBlock = n.block || 1;
+                const nWeek = n.week || 1;
+                const isSame =
+                  nBlock === targetBlock &&
+                  nWeek === targetWeek &&
+                  (targetClasses.includes(n.classId as ClassId) || n.classId === 'ALL');
+                if (!isSame) return true;
+                if (mode === 'replace_subject' && subjectFilter) {
+                  return (n.subject || '').toLowerCase() !== subjectFilter.toLowerCase();
+                }
+                return false;
+              });
+        const next = [...newTomorrowNotes, ...filtered];
         localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
         return next;
       });
-      supabaseSaveTomorrowNotes(newTomorrowNotes).catch(console.warn);
     }
 
-    // Batch insert to Supabase
-    await supabaseBatchInsertClasswork(newClasswork);
-    await supabaseBatchInsertHomework(newHomework);
+    // Supabase scoped cleanup & insert
+    if (mode === 'replace_week' || mode === 'replace_subject') {
+      await Promise.all([
+        supabaseDeleteClassworkForScope(
+          targetClasses,
+          targetBlock,
+          targetWeek,
+          mode === 'replace_subject' ? subjectFilter : undefined
+        ),
+        supabaseDeleteHomeworkForScope(
+          targetClasses,
+          targetBlock,
+          targetWeek,
+          mode === 'replace_subject' ? subjectFilter : undefined
+        ),
+        supabaseDeleteTomorrowNotesForScope(
+          targetClasses,
+          targetBlock,
+          targetWeek,
+          mode === 'replace_subject' ? subjectFilter : undefined
+        ),
+      ]).catch(console.warn);
+    }
 
-    showToast('تم استيراد وحفظ الخطة الأسبوعية وملاحظات الغد في Supabase بنجاح!');
+    // Batch insert new items to Supabase
+    if (newClasswork.length > 0) await supabaseBatchInsertClasswork(newClasswork);
+    if (newHomework.length > 0) await supabaseBatchInsertHomework(newHomework);
+    if (newTomorrowNotes && newTomorrowNotes.length > 0) await supabaseSaveTomorrowNotes(newTomorrowNotes);
+
+    showToast(`تم تنزيل وحفظ الخطة بنجاح في Topic ${targetBlock} - Week ${targetWeek}!`);
   };
 
   const handleUpdateTimetable = async (updated: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>) => {
@@ -668,7 +759,24 @@ export default function App() {
         onSelectBlock={handleSelectBlock}
         onSelectWeek={handleSelectWeek}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
-        onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
+        onOpenAdminAuth={() => {
+          setAdminDashboardInitialTab('materials');
+          const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
+          if (isAuthed) {
+            setIsAdminDashboardOpen(true);
+          } else {
+            setIsAdminAuthOpen(true);
+          }
+        }}
+        onOpenWeeklyPlan={() => {
+          setAdminDashboardInitialTab('weekly_plan');
+          const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
+          if (isAuthed) {
+            setIsAdminDashboardOpen(true);
+          } else {
+            setIsAdminAuthOpen(true);
+          }
+        }}
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}
         onPrint={handlePrint}
       />
@@ -830,6 +938,7 @@ export default function App() {
         currentClass={currentClass}
         currentBlock={currentBlock}
         currentWeek={currentWeek}
+        initialTab={adminDashboardInitialTab}
       />
 
       {/* School Materials Modal */}

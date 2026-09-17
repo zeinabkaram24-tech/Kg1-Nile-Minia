@@ -49,11 +49,19 @@ interface AdminDashboardModalProps {
     classwork: ClassworkEntry[],
     homework: HomeworkEntry[],
     tomorrowNotes?: TomorrowSpecialNote[],
-    replaceExisting?: boolean
+    replaceExisting?: boolean,
+    options?: {
+      targetBlock?: number;
+      targetWeek?: number;
+      targetClasses?: ClassId[];
+      subjectFilter?: string;
+      saveMode?: 'replace_week' | 'replace_subject' | 'replace_all' | 'append';
+    }
   ) => Promise<void> | void;
   currentClass?: ClassId;
   currentBlock?: number;
   currentWeek?: number;
+  initialTab?: 'materials' | 'weekly_plan' | 'supabase';
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -65,6 +73,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   currentClass = 'KG1A',
   currentBlock = 1,
   currentWeek = 1,
+  initialTab = 'materials',
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -78,7 +87,13 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [adminTab, setAdminTab] = useState<'materials' | 'weekly_plan' | 'supabase'>('materials');
+  const [adminTab, setAdminTab] = useState<'materials' | 'weekly_plan' | 'supabase'>(initialTab || 'materials');
+
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setAdminTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
   const [isSeeding, setIsSeeding] = useState<boolean>(false);
   const [isSyncingCloud, setIsSyncingCloud] = useState<boolean>(false);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
@@ -397,9 +412,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 currentClass={currentClass}
                 currentBlock={currentBlock}
                 currentWeek={currentWeek}
-                onApplyPlan={async (cw, hw, notes, replace) => {
+                onApplyPlan={async (cw, hw, notes, replace, options) => {
                   if (onApplyWeeklyPlan) {
-                    await onApplyWeeklyPlan(cw, hw, notes, replace);
+                    await onApplyWeeklyPlan(cw, hw, notes, replace, options);
                   }
                   setSuccessMessage('تم حفظ الخطة الأسبوعية ومزامنتها بنجاح!');
                   setTimeout(() => setSuccessMessage(null), 4000);

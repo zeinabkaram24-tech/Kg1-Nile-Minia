@@ -204,6 +204,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
               hw.task.includes('اختبار') ||
               hw.task.includes('كويز') ||
               hw.task.includes('امتحان');
+            const isNoHomework = /^لا\s*يوجد/i.test(hw.task) || hw.task === '-' || hw.task === 'لا يوجد واجب اليوم';
 
             return (
               <div
@@ -258,31 +259,50 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     </div>
 
                     {/* Task Description */}
-                    {hw.task.startsWith('http') ? (
+                    {isNoHomework ? (
                       <div className="pt-1">
-                        <a
-                          href={hw.task}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full bg-red-600 hover:bg-red-700 text-white shadow-red-700/20"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-                          <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{hw.task}</span>
-                        </a>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                          <span>🎉 لا يوجد واجب اليوم (استقبال وتهيئة أو راحة)</span>
+                        </span>
+                      </div>
+                    ) : hw.task.startsWith('http') ? (
+                      <div className="pt-1 space-y-1.5">
+                        <span className="text-[11px] font-extrabold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 shrink-0">
+                          🏠 فيديو الواجب المنزلي:
+                        </span>
+                        <div>
+                          <a
+                            href={hw.task}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full bg-red-600 hover:bg-red-700 text-white shadow-red-700/20"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                            <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{hw.task}</span>
+                          </a>
+                        </div>
                       </div>
                     ) : (
-                      <p
-                        className={`text-sm font-black leading-snug pt-0.5 ${
-                          hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
-                        }`}
-                      >
-                        {hw.task}
-                      </p>
+                      <div className="pt-0.5 space-y-1">
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-extrabold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 shrink-0">
+                            الواجب المنزلي:
+                          </span>
+                          <p
+                            className={`text-sm font-black leading-snug ${
+                              hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
+                            }`}
+                          >
+                            {hw.task}
+                          </p>
+                        </div>
+                      </div>
                     )}
 
                     {/* Links if available (and not already shown as task) */}
                     {(() => {
-                      if (hw.task.startsWith('http')) return null;
+                      if (hw.task.startsWith('http') || isNoHomework) return null;
                       const hwLinks: { url: string; title: string; type?: string }[] = [];
                       if (hw.links && hw.links.length > 0) {
                         hwLinks.push(...hw.links);
@@ -297,30 +317,35 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       if (hwLinks.length === 0) return null;
 
                       return (
-                        <div className="pt-1.5 flex flex-wrap gap-2">
-                          {hwLinks.map((lItem, lIdx) => {
-                            const isVid = lItem.type === 'video' || lItem.url.includes('youtu');
-                            return (
-                              <a
-                                key={lIdx}
-                                href={lItem.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
-                                  isVid
-                                    ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
-                                }`}
-                              >
-                                {isVid ? (
-                                  <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-                                ) : (
-                                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                                )}
-                                <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{lItem.url}</span>
-                              </a>
-                            );
-                          })}
+                        <div className="mt-2 pt-1.5 border-t border-slate-200/50 space-y-1">
+                          <span className="text-[11px] font-extrabold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 shrink-0">
+                            🏠 مصادر الواجب المنزلي:
+                          </span>
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {hwLinks.map((lItem, lIdx) => {
+                              const isVid = lItem.type === 'video' || lItem.url.includes('youtu');
+                              return (
+                                <a
+                                  key={lIdx}
+                                  href={lItem.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
+                                    isVid
+                                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
+                                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
+                                  }`}
+                                >
+                                  {isVid ? (
+                                    <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                                  ) : (
+                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                  )}
+                                  <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">{lItem.title || lItem.url}</span>
+                                </a>
+                              );
+                            })}
+                          </div>
                         </div>
                       );
                     })()}

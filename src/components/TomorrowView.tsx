@@ -43,34 +43,62 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   const schedule = timetables ? timetables[currentClass] : CLASS_TIMETABLES[currentClass];
   const targetPeriods: PeriodSlot[] = (schedule && schedule[tomorrowDay]) || [];
 
-  // Notes from weekly plan for tomorrow (only teacher instructions / tools / bag items, strictly excluding homework)
-  const isHomeworkNote = (noteText: string, arabicText?: string) => {
-    const lower = (noteText + ' ' + (arabicText || '')).toLowerCase();
-    return lower.includes('واجب') || lower.includes('homework') || lower.includes('devoir');
-  };
-
-  const matchingCustomNotes = customTomorrowNotes.filter(
-    (n) => (n.classId === currentClass || (n.classId as string) === 'ALL') && n.targetDay === tomorrowDay
+  // Filter custom notes for current class and block/week
+  const allMatchingCustomNotes = customTomorrowNotes.filter(
+    (n) =>
+      (n.classId === currentClass || (n.classId as string) === 'ALL') &&
+      (n.block !== undefined ? n.block === currentBlock : true) &&
+      (n.week !== undefined ? n.week === currentWeek : true)
   );
 
-  const rawTomorrowNotes =
-    matchingCustomNotes.length > 0
-      ? matchingCustomNotes
+  // Notes for tomorrow (target day)
+  const tomorrowNotes = allMatchingCustomNotes.filter(
+    (n) => n.targetDay === tomorrowDay || (n.day === tomorrowDay && !n.targetDay)
+  );
+
+  // Fallback to default notes if no custom notes for tomorrow exist
+  const fallbackTomorrowNotes =
+    tomorrowNotes.length > 0
+      ? tomorrowNotes
       : currentBlock === 1 && currentWeek === 2
       ? WEEK2_SPECIAL_NOTES.filter(
-          (n) => n.classId === currentClass && n.targetDay === tomorrowDay
+          (n) => (n.classId === currentClass || (n.classId as string) === 'ALL') && n.targetDay === tomorrowDay
         )
       : currentBlock === 1 && currentWeek === 1
       ? SPECIAL_TEACHER_NOTES.filter(
           (n) =>
-            n.classId === currentClass &&
+            (n.classId === currentClass || (n.classId as string) === 'ALL') &&
             n.targetDay === tomorrowDay &&
             (n.week === 1 || !n.week)
         )
       : [];
 
-  const tomorrowNotes = rawTomorrowNotes.filter(
-    (n) => !isHomeworkNote(n.note, n.arabicNote)
+  // Notes for the active selected day (if different from tomorrow)
+  const selectedDayNotes = allMatchingCustomNotes.filter(
+    (n) =>
+      (n.targetDay === selectedDay || (n.day === selectedDay && !n.targetDay)) &&
+      selectedDay !== tomorrowDay
+  );
+
+  // General notes from the plan (applicable to all days or whole week)
+  const generalWeeklyNotes = allMatchingCustomNotes.filter(
+    (n) =>
+      n.targetDay === 'ALL' ||
+      !n.targetDay ||
+      !['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'].includes(
+        n.targetDay as string
+      )
+  );
+
+  // Other notes in the plan for other days
+  const otherDaysNotes = allMatchingCustomNotes.filter(
+    (n) =>
+      n.targetDay !== tomorrowDay &&
+      n.day !== tomorrowDay &&
+      n.targetDay !== selectedDay &&
+      n.day !== selectedDay &&
+      n.targetDay !== 'ALL' &&
+      n.targetDay !== undefined
   );
 
   return (
@@ -114,44 +142,102 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
         )}
       </div>
 
-      {/* Block for Notes Underneath (ملاحظات العربي، ريمارك الفرنش، نوتس باقي المواد) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
-        <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm pb-1 border-b border-slate-100">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>الملاحظات ليوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
+      {/* Block for Notes Underneath (ملاحظات المعلمين والخطة الأسبوعية) */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-4">
+        {/* 1. Tomorrow's Notes */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
+              <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>ملاحظات ليوم الغد — {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})</span>
+            </div>
+            {fallbackTomorrowNotes.length > 0 && (
+              <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                {fallbackTomorrowNotes.length} ملاحظة
+              </span>
+            )}
+          </div>
+
+          {fallbackTomorrowNotes.length === 0 ? (
+            <div className="py-3 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center">
+              <p className="text-xs text-slate-400 font-semibold">
+                لا توجد ملاحظات خاصة مسجلة ليوم {ARABIC_DAY_NAMES[tomorrowDay]}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {fallbackTomorrowNotes.map((note, idx) => (
+                <div
+                  key={idx}
+                  className="bg-amber-50/60 rounded-xl border border-amber-200/80 p-3 shadow-2xs space-y-1.5 text-xs"
+                >
+                  <div className="flex items-start gap-2 text-slate-900">
+                    <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[11px] shrink-0">
+                      ملاحظات • {note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject || 'العربي'}
+                    </span>
+                    <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
+                  </div>
+                  {note.bagItem && (
+                    <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">
+                      الأدوات المطلوبة: {note.bagItem}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {tomorrowNotes.length === 0 ? (
-          <div className="py-4 px-3 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center">
-            <p className="text-xs text-slate-400 font-semibold">
-              لا توجد ملاحظات خاصة مسجلة ليوم {ARABIC_DAY_NAMES[tomorrowDay]} في الخطة الأسبوعية
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {tomorrowNotes.map((note, idx) => (
-              <div
-                key={idx}
-                className="bg-amber-50/50 rounded-xl border border-amber-200/80 p-3 shadow-2xs space-y-1.5 text-xs"
-              >
-                <div className="flex items-start gap-2 text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-black text-[11px] shrink-0">
-                    {note.subject === 'French'
-                      ? 'Remarque'
-                      : note.subject === 'Arabic'
-                      ? 'ملاحظات'
-                      : 'الملاحظات'}{' '}
-                    • {note.subject === 'Social Studies' ? 'الدراسات الاجتماعية' : note.subject}
-                  </span>
-                  <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
-                </div>
-                {note.bagItem && (
-                  <div className="text-[11px] text-amber-950 font-semibold bg-white px-2.5 py-1 rounded-lg border border-amber-200/90 inline-block">
-                    الأدوات المطلوبة: {note.bagItem}
+        {/* 2. General Weekly Plan Notes (ملاحظات عامة للخطة الأسبوعية) */}
+        {generalWeeklyNotes.length > 0 && (
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-black text-slate-800">
+              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span>ملاحظات عامة للخطة الأسبوعية:</span>
+            </div>
+            <div className="space-y-2">
+              {generalWeeklyNotes.map((note, idx) => (
+                <div
+                  key={idx}
+                  className="bg-indigo-50/50 rounded-xl border border-indigo-200/80 p-3 shadow-2xs space-y-1 text-xs"
+                >
+                  <div className="flex items-start gap-2 text-slate-900">
+                    <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-900 font-black text-[11px] shrink-0">
+                      ملاحظة عامة
+                    </span>
+                    <span className="font-bold leading-relaxed">{note.arabicNote || note.note}</span>
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Notes for other days of the week (if present in the plan) */}
+        {(selectedDayNotes.length > 0 || otherDaysNotes.length > 0) && (
+          <div className="pt-2 border-t border-slate-100 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-black text-slate-800">
+              <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+              <span>ملاحظات مسجلة لأيام أخرى في الخطة:</span>
+            </div>
+            <div className="space-y-2">
+              {[...selectedDayNotes, ...otherDaysNotes].map((note, idx) => {
+                const noteDay = (note.targetDay || note.day || 'Sunday') as SchoolDay;
+                return (
+                  <div
+                    key={idx}
+                    className="bg-slate-50 rounded-xl border border-slate-200 p-2.5 shadow-2xs space-y-1 text-xs"
+                  >
+                    <div className="flex items-start gap-2 text-slate-900">
+                      <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-800 font-bold text-[11px] shrink-0">
+                        يوم {ARABIC_DAY_NAMES[noteDay] || noteDay} • {note.subject || 'الخطة'}
+                      </span>
+                      <span className="font-semibold leading-relaxed">{note.arabicNote || note.note}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

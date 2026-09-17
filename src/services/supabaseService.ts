@@ -397,6 +397,84 @@ export async function supabaseBatchInsertHomework(entries: HomeworkEntry[]): Pro
   }
 }
 
+export async function supabaseDeleteClassworkForScope(
+  classIds: string[],
+  block: number,
+  week: number,
+  subject?: string
+): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    let query = supabase
+      .from('classwork')
+      .delete()
+      .in('class_id', classIds)
+      .eq('block', block)
+      .eq('week', week);
+    if (subject && subject !== 'ALL') {
+      query = query.ilike('subject', subject);
+    }
+    const { error } = await query;
+    if (error) console.warn('Delete classwork for scope error:', error);
+    return !error;
+  } catch (e) {
+    console.error('Delete classwork for scope exception:', e);
+    return false;
+  }
+}
+
+export async function supabaseDeleteHomeworkForScope(
+  classIds: string[],
+  block: number,
+  week: number,
+  subject?: string
+): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    let query = supabase
+      .from('homework')
+      .delete()
+      .in('class_id', classIds)
+      .eq('block', block)
+      .eq('week', week);
+    if (subject && subject !== 'ALL') {
+      query = query.ilike('subject', subject);
+    }
+    const { error } = await query;
+    if (error) console.warn('Delete homework for scope error:', error);
+    return !error;
+  } catch (e) {
+    console.error('Delete homework for scope exception:', e);
+    return false;
+  }
+}
+
+export async function supabaseDeleteTomorrowNotesForScope(
+  classIds: string[],
+  block: number,
+  week: number,
+  subject?: string
+): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
+  try {
+    let query = supabase
+      .from('tomorrow_notes')
+      .delete()
+      .in('class_id', [...classIds, 'ALL'])
+      .eq('block', block)
+      .eq('week', week);
+    if (subject && subject !== 'ALL') {
+      query = query.ilike('subject', subject);
+    }
+    const { error } = await query;
+    if (error) console.warn('Delete tomorrow notes for scope error:', error);
+    return !error;
+  } catch (e) {
+    console.error('Delete tomorrow notes for scope exception:', e);
+    return false;
+  }
+}
+
 export async function supabaseClearAllHomework(): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   try {

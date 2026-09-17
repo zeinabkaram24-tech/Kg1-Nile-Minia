@@ -1,11 +1,42 @@
 [
   {
-    "id": "test_1",
-    "fileName": "test.pdf",
-    "fileSize": 100,
+    "id": "mat_1789557659924_bjwq4",
+    "fileName": "Arabic-KG1-Topic1-All-Sheet1 - Main.pdf",
+    "fileSize": 3371115,
+    "fileUrl": "/api/materials/pdf/mat_1789557659924_bjwq4",
     "block": 1,
     "section": "Main sheet",
     "classId": "ALL",
-    "uploadedAt": "2026-09-16T00:00:00+00:00"
+    "uploadedAt": "2026-09-16T11:20:59.925+00:00"
+  },
+  {
+    "id": "mat_1789557479244_wnmbr",
+    "fileName": "Arabic-KG1-Topic1-All-Sheet2 - Main.pdf",
+    "fileSize": 3332684,
+    "fileUrl": "https://elcczvazlgxbgnioxfaf.supabase.co/storage/v1/object/public/materials/uploads/1789557479251_Arabic-KG1-Topic1-All-Sheet2_-_Main.pdf",
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "uploadedAt": "2026-09-16T11:17:59.244+00:00"
+  },
+  {
+    "id": "mat_1789557371167_rfqgr",
+    "fileName": "English-KG1-Topic1-All-U1-Sheet1 - Main.pdf",
+    "fileSize": 2228542,
+    "fileUrl": "https://elcczvazlgxbgnioxfaf.supabase.co/storage/v1/object/public/materials/uploads/1789557371169_English-KG1-Topic1-All-U1-Sheet1_-_Main.pdf",
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "uploadedAt": "2026-09-16T11:16:11.167+00:00"
+  },
+  {
+    "id": "mat_1789557348549_smq11",
+    "fileName": "English-KG1-Topic1-All-U1-Sheet2 - Main.pdf",
+    "fileSize": 2000118,
+    "fileUrl": "https://elcczvazlgxbgnioxfaf.supabase.co/storage/v1/object/public/materials/uploads/1789557348571_English-KG1-Topic1-All-U1-Sheet2_-_Main.pdf",
+    "block": 1,
+    "section": "Main sheet",
+    "classId": "ALL",
+    "uploadedAt": "2026-09-16T11:15:48.55+00:00"
   }
 ]

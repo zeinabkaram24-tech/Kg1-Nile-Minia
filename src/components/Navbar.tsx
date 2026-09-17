@@ -11,6 +11,7 @@ import {
   Shield,
   GraduationCap,
   FolderOpen,
+  FileText,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, TOPIC_WEEK_DATES, ALL_CLASSES } from '../data/timetables';
@@ -32,6 +33,7 @@ interface NavbarProps {
   onOpenProfileModal?: () => void;
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
+  onOpenWeeklyPlan?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -50,6 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenAdminAuth,
   onOpenMaterials,
+  onOpenWeeklyPlan,
 }) => {
   const tabs = [
     {
@@ -228,6 +231,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <FolderOpen className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <span>Materials</span>
+            </button>
+
+            {/* Weekly Plan (PDF) Button */}
+            <button
+              id="weekly-plan-btn"
+              type="button"
+              onClick={onOpenWeeklyPlan || onOpenAdminAuth}
+              className="inline-flex items-center gap-1 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200 text-indigo-950 font-black text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="تحليل وتنزيل Weekly Plan PDF للأسبوع المحدد"
+            >
+              <FileText className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span>Weekly Plan (PDF)</span>
             </button>
           </div>
         </div>

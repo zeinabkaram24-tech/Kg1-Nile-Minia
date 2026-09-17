@@ -91,6 +91,7 @@ export interface ParsedWeeklyPlanResponse {
   homework: Omit<HomeworkEntry, 'id'>[];
   tomorrowNotes?: {
     day: SchoolDay;
+    targetDay?: SchoolDay;
     subject?: string;
     note: string;
     arabicNote?: string;

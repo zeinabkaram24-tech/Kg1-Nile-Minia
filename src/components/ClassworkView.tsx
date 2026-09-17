@@ -352,58 +352,77 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                   >
                     <div className="flex-1 min-w-0">
                       <div>
+                        {/* 1. Lesson Title (اسم الدرس) */}
                         <div className="flex items-start justify-between gap-2">
-                          <h4
-                            className={`text-sm font-black ${
-                              cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-950'
-                            }`}
-                          >
-                            {cwEntry.title}
-                          </h4>
-                          {cwEntry.pages && (
-                            <span
-                              className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap shrink-0 ${
-                                cwEntry.completed
-                                  ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
-                                  : theme.cwPageBadge
+                          <div className="flex items-baseline gap-1.5 flex-wrap flex-1 min-w-0">
+                            <span className="text-[11px] font-extrabold text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded-md border border-indigo-200 shrink-0">
+                              الدرس:
+                            </span>
+                            <h4
+                              className={`text-sm sm:text-base font-black ${
+                                cwEntry.completed ? 'text-slate-500 line-through' : 'text-slate-950'
                               }`}
                             >
-                              📖 {cwEntry.pages}
-                            </span>
-                          )}
+                              {cwEntry.title}
+                            </h4>
+                          </div>
                         </div>
-                        {cwEntry.details && (
-                          <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
-                            {cwEntry.details}
-                          </p>
-                        )}
-                        {lessonLinks.length > 0 && (
-                          <div className="pt-2 flex flex-wrap gap-2">
-                            {lessonLinks.map((linkItem, lIdx) => {
-                              const isVideo = linkItem.type === 'video' || linkItem.url.includes('youtu');
-                              return (
-                                <a
-                                  key={lIdx}
-                                  href={linkItem.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
-                                    isVideo
-                                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
-                                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
+
+                        {/* 2. Classroom Learning Resources (مصادر التعلم - العمل بالصف) */}
+                        {(cwEntry.pages || cwEntry.details || lessonLinks.length > 0) && (
+                          <div className="mt-2.5 pt-2 border-t border-slate-200/60 space-y-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                                مصدر الصف:
+                              </span>
+                              {cwEntry.pages && (
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[11px] font-bold border whitespace-nowrap shrink-0 ${
+                                    cwEntry.completed
+                                      ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                                      : theme.cwPageBadge
                                   }`}
                                 >
-                                  {isVideo ? (
-                                    <Play className="w-3.5 h-3.5 fill-current shrink-0" />
-                                  ) : (
-                                    <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                                  )}
-                                  <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">
-                                    {linkItem.url}
-                                  </span>
-                                </a>
-                              );
-                            })}
+                                  📖 {cwEntry.pages}
+                                </span>
+                              )}
+                            </div>
+
+                            {cwEntry.details && (
+                              <p className="text-xs font-semibold text-slate-700 leading-relaxed pr-1">
+                                {cwEntry.details}
+                              </p>
+                            )}
+
+                            {lessonLinks.length > 0 && (
+                              <div className="pt-1 flex flex-wrap gap-2">
+                                {lessonLinks.map((linkItem, lIdx) => {
+                                  const isVideo = linkItem.type === 'video' || linkItem.url.includes('youtu');
+                                  return (
+                                    <a
+                                      key={lIdx}
+                                      href={linkItem.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-all shadow-xs hover:scale-102 active:scale-98 max-w-full ${
+                                        isVideo
+                                          ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-700/20'
+                                          : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-700/20'
+                                      }`}
+                                    >
+                                      {isVideo ? (
+                                        <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+                                      ) : (
+                                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                                      )}
+                                      <span dir="ltr" className="truncate max-w-[280px] sm:max-w-md">
+                                        {linkItem.title || linkItem.url}
+                                      </span>
+                                    </a>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

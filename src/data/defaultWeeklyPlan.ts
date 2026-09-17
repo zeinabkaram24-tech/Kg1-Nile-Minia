@@ -21,6 +21,15 @@ const KG1_CLASSES: ClassId[] = ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'];
 export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((cls) => [
   {
     classId: cls,
+    targetDay: 'Sunday',
+    subject: 'Arabic',
+    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
+    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
+    block: 1,
+    week: 1,
+  },
+  {
+    classId: cls,
     targetDay: 'Monday',
     subject: 'Arabic',
     note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
@@ -59,10 +68,23 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap(
 
 /**
  * Weekly Plan Classwork
- * Topic: ما أروعني | Week 1: 14/9/2026 - 17/9/2026
+ * Topic: ما أروعني | Week 1: 13/9/2026 - 17/9/2026
  * Strictly matching the Arabic Weekly Plan document with zero additions.
  */
 export const INITIAL_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
+  // Sunday (الأحد 13/9/2026)
+  {
+    id: `cw-${cls.toLowerCase()}-sun-ar`,
+    classId: cls,
+    day: 'Sunday',
+    period: 1,
+    subject: 'Arabic',
+    title: 'استقبال الأطفال والتعرف على حجرة الدراسة والمدرسة',
+    completed: false,
+    block: 1,
+    week: 1,
+  },
+
   // Monday (الإثنين 14/9/2026)
   {
     id: `cw-${cls.toLowerCase()}-mon-ar`,
@@ -157,6 +179,34 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => 
  * Only the YouTube links without page numbers or extra text.
  */
 export const INITIAL_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
+  // Sunday Homework (الأحد 13/9)
+  {
+    id: `hw-${cls.toLowerCase()}-sun-ar`,
+    classId: cls,
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Arabic',
+    task: 'لا يوجد واجب اليوم (استقبال وتهيئة)',
+    completed: true,
+    priority: 'normal',
+    block: 1,
+    week: 1,
+  },
+
+  // Monday Homework (الإثنين 14/9)
+  {
+    id: `hw-${cls.toLowerCase()}-mon-ar`,
+    classId: cls,
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'Arabic',
+    task: 'لا يوجد واجب اليوم (استقبال وتهيئة)',
+    completed: true,
+    priority: 'normal',
+    block: 1,
+    week: 1,
+  },
+
   // Tuesday Homework (واجب يوم الثلاثاء 15/9)
   {
     id: `hw-${cls.toLowerCase()}-tue-ar`,

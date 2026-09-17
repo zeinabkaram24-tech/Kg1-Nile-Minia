@@ -363,237 +363,154 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Heuristic fallback parser if no API key is provided or if network fails
-function heuristicParser(planText: string, classId: string) {
-  const lines = planText.split('\n').map((l) => l.trim()).filter(Boolean);
-  const subjects = [
-    'Mathematics',
-    'English',
-    'Arabic',
-    'Science',
-    'Social Studies',
-    'French',
-    'Religion',
-    'ICT',
-    'Arts',
-    'Music',
-    'PE',
-  ];
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+import { smartParseWeeklyPlan, cleanAndValidatePlanResult } from './src/utils/smartWeeklyPlanParser';
 
-  const classwork: any[] = [];
-  const homework: any[] = [];
-  const tomorrowNotes: any[] = [];
-
-  let currentDay = 'Sunday';
-  let currentSubject = 'English';
-
-  const URL_REGEX = /(https?:\/\/[^\s<>"'()]+|www\.[^\s<>"'()]+)/gi;
-
-  for (const line of lines) {
-    // Check if line indicates a day
-    for (const d of days) {
-      if (new RegExp(`^#*\\s*${d}`, 'i').test(line) || new RegExp(`\\b${d}\\b`, 'i').test(line)) {
-        currentDay = d;
-        break;
-      }
-    }
-
-    // Check Arabic days
-    if (/الأحد/i.test(line)) currentDay = 'Sunday';
-    else if (/الاثنين|الإثنين/i.test(line)) currentDay = 'Monday';
-    else if (/الثلاثاء/i.test(line)) currentDay = 'Tuesday';
-    else if (/الأربعاء|الاربعاء/i.test(line)) currentDay = 'Wednesday';
-    else if (/الخميس/i.test(line)) currentDay = 'Thursday';
-
-    // Check subject
-    for (const s of subjects) {
-      if (new RegExp(`\\b${s}\\b`, 'i').test(line)) {
-        currentSubject = s;
-        break;
-      }
-    }
-    if (/عربي|لغة عربية/i.test(line)) currentSubject = 'Arabic';
-    else if (/ماث|حساب|رياضيات|math/i.test(line)) currentSubject = 'Mathematics';
-    else if (/انجليزي|انجلش|english/i.test(line)) currentSubject = 'English';
-    else if (/علوم|ساينس|science/i.test(line)) currentSubject = 'Science';
-    else if (/دراسات|social/i.test(line)) currentSubject = 'Social Studies';
-    else if (/فرنساوي|فرنسي|french/i.test(line)) currentSubject = 'French';
-    else if (/دين|تربية دينية|religion/i.test(line)) currentSubject = 'Religion';
-    else if (/حاسب|تكنولوجيا|ict/i.test(line)) currentSubject = 'ICT';
-    else if (/رسم|فنية|art/i.test(line)) currentSubject = 'Arts';
-    else if (/موسيقى|music/i.test(line)) currentSubject = 'Music';
-    else if (/ألعاب|رياضية|pe/i.test(line)) currentSubject = 'PE';
-
-    // Extract links in the line
-    const rawUrls = line.match(URL_REGEX) || [];
-    const links = rawUrls.map((u) => {
-      const cleanUrl = u.startsWith('www.') ? `https://${u}` : u;
-      const isVideo = /youtube|youtu\.be|vimeo|mp4/i.test(cleanUrl);
-      return {
-        url: cleanUrl,
-        title: isVideo ? 'فيديو الشرح / التدريب' : 'رابط الدرس والمصدر',
-        type: isVideo ? 'video' : 'sheet',
-      };
-    });
-    const linkUrl = links.length > 0 ? links[0].url : undefined;
-
-    // Identify Notes / Tomorrow indicators (Arabic & English)
-    const isNote = /^(notes?|ملاحظات|ملاحظة|تنبيه|remarque|bring|please\s+bring|إحضار|برجاء|ضرورة)[:\-–\s]*/i.test(line) ||
-                   /\b(notes?|ملاحظات|ملاحظة|تنبيه|remarque)\b/i.test(line);
-
-    // Identify Homework indicators
-    const isHw = /hw|homework|واجب|h\.w/i.test(line);
-    // Identify Classwork indicators
-    const isCw = /cw|classwork|صف|حصة|درس|c\.w/i.test(line);
-
-    const cleanText = line
-      .replace(/^(hw|cw|h\.w|c\.w|homework|classwork|واجب|حصة|notes?|ملاحظات|ملاحظة|تنبيه|remarque)[:\-–\s]*/i, '')
-      .trim();
-
-    if (isNote) {
-      tomorrowNotes.push({
-        day: currentDay,
-        subject: currentSubject,
-        note: cleanText || line,
-        arabicNote: cleanText || line,
-        bagItem: /bring|إحضار|أدوات|كشكول|كتاب|ألوان|sketch/i.test(line) ? cleanText : undefined,
-      });
-    } else if (isHw) {
-      const nextDayMap: Record<string, string> = {
-        Sunday: 'Monday',
-        Monday: 'Tuesday',
-        Tuesday: 'Wednesday',
-        Wednesday: 'Thursday',
-        Thursday: 'Sunday',
-      };
-      homework.push({
-        classId: classId || 'KG1A',
-        assignedDay: currentDay,
-        dueDay: nextDayMap[currentDay] || 'Monday',
-        subject: currentSubject,
-        task: cleanText || line,
-        completed: false,
-        priority: /urgent|هام|ضروري|quiz|امتحان/i.test(line) ? 'urgent' : 'normal',
-        linkUrl,
-        links: links.length > 0 ? links : undefined,
-      });
-    } else if (isCw || cleanText.length > 5) {
-      classwork.push({
-        classId: classId || 'KG1A',
-        day: currentDay,
-        period: (classwork.length % 6) + 1,
-        subject: currentSubject,
-        title: cleanText || line,
-        completed: false,
-        linkUrl,
-        links: links.length > 0 ? links : undefined,
-      });
-    }
-  }
-
-  return { classwork, homework, tomorrowNotes };
-}
-
-// API endpoint to parse Weekly Plan using Gemini or fallback
+// API endpoint to parse Weekly Plan using Gemini or smart deterministic fallback
 app.post('/api/parse-weekly-plan', async (req, res) => {
   try {
-    const { planText, classId } = req.body;
+    const { planText, classId, subjectHint } = req.body;
     if (!planText || typeof planText !== 'string') {
       return res.status(400).json({ error: 'planText is required' });
     }
 
     const ai = getGenAI();
     if (!ai) {
-      console.log('No GEMINI_API_KEY set, using smart heuristic parser.');
-      const parsed = heuristicParser(planText, classId);
+      console.log('No GEMINI_API_KEY set, using smart deterministic parser.');
+      const parsed = smartParseWeeklyPlan(planText, classId, subjectHint);
       return res.json(parsed);
     }
 
+    const subjectContext = subjectHint && subjectHint !== 'ALL'
+      ? `IMPORTANT: The weekly plan is primarily for the subject "${subjectHint}". Unless a row/item explicitly specifies another subject, set "subject" to "${subjectHint}".`
+      : '';
+
     const prompt = `
-You are an expert school coordinator assistant for Nile Egyptian International School, KG 1 (${classId || 'KG1A'}).
-The user provided their weekly plan text (which can be in English, Arabic, or mixed).
-Your job is to categorize and extract:
+You are an expert school curriculum table parser for Nile Egyptian International School, KG 1 (${classId || 'KG1A'}).
+The user provided a weekly plan table (typically in Arabic).
+${subjectContext}
 
-CRITICAL RULES & LOGIC:
-1. "classwork": Array of lessons/activities studied in class for that day and period.
-   Each classwork item must have:
-   - "classId": "${classId || 'KG1A'}"
-   - "day": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "period": Number (1 to 6)
-   - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "title": Clean descriptive title of the lesson/topic
-   - "details": Optional details
-   - "pages": Optional page numbers (e.g. "Student Book p. 24-26")
-   - "completed": false
-   - "linkUrl": Optional first detected URL in the item
-   - "links": Optional array of objects { url: string, title: string, type: 'video' | 'sheet' | 'link' }
+CRITICAL USER MANDATES FOR EXTRACTING COLUMNS:
+1. الكلاس وورك (classwork):
+   - اقرأ العمود بتاع "الدرس" (أو "اسم الدرس") مع عمود "مصدر الصف" (أو "مصادر التعلم" / "مصادر الصف")، واكتبهما في الكلاس وورك (classwork).
+   - "title": اسم الدرس فقط من عمود الدرس (e.g. "التعرف على الروتين اليومي وأنواع الخطوط").
+   - "pages": أرقام الصفحات وأوراق العمل من عمود مصدر الصف (e.g. "كتاب التلميذ ص 3", "حل ورقة عمل 4 و 5").
+   - "details": أي تفاصيل إضافية من عمود مصدر الصف.
+   - "links": روابط فيديوهات الشرح الموجهة للصف من عمود مصدر الصف.
+   - لا تضع أبداً محتوى مصدر الصف في الهوم وورك، بل يكتب في الكلاس وورك.
 
-2. "homework": Array of homework tasks assigned.
-   Each homework item must have:
-   - "classId": "${classId || 'KG1A'}"
-   - "assignedDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"
-   - "dueDay": One of "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" (usually next school day)
-   - "subject": One of "Mathematics", "English", "Arabic", "Science", "Social Studies", "French", "Religion", "ICT", "Arts", "Music", "PE"
-   - "task": The homework description
-   - "pages": Page reference if any
-   - "completed": false
-   - "priority": "normal" or "urgent" (urgent if quiz, exam, dictation, or project)
-   - "linkUrl": Optional first detected URL in the task
-   - "links": Optional array of objects { url: string, title: string, type: 'video' | 'sheet' | 'link' }
+2. الهوم وورك (homework):
+   - اقرأ العمود بتاع "الواجب المنزلي" (أو الواجب) وضعه في الهوم وورك (homework).
+   - "task": نص الواجب المنزلي من عمود الواجب فقط.
+   - إذا كان مكتوباً "لا يوجد واجب" أو "-" أو فارغاً، ضع task: "لا يوجد واجب اليوم" و completed: true.
+   - "links": أي روابط واجبات منزلية أو فيديوهات تدريب منزلي.
 
-3. "tomorrowNotes": ALL teacher instructions, parent notes, and remarks in Arabic or English:
-   - Convert ANY notes column, "Notes:", "ملاحظات:", "تنبيه:", "Remarque:", or "Please bring..." into "tomorrowNotes" items!
-   - "day": School day the note belongs to or applies for
-   - "subject": The related subject (e.g. "Arabic", "English", "French", "General")
-   - "note": Clear text of the instruction/note
-   - "arabicNote": Arabic phrasing of the note
-   - "bagItem": Optional supplies/bag item to pack (e.g. "كشكول رسم وألوان", "100 chart")
+3. التومورو (tomorrowNotes):
+   - لو لقيت أي حاجة تخص كلمة "ملاحظات" أو "ملاحظة" (سواء في عمود "ملاحظات" في الجدول، أو أي سطر يحتوي على كلمة ملاحظات أو ملاحظة في أي مكان في النص)، ضعها فوراً وبشكل كامل في التومورو (tomorrowNotes).
+   - "note": نص الملاحظة كاملاً.
+   - "arabicNote": نص الملاحظة بالعربي.
+   - "targetDay": اليوم التابع للملاحظة في الجدول.
 
-4. CRITICAL PHONICS & LETTER ORTHOGRAPHY RULE:
-   - In English phonics and letter lessons, ensure the letter "P" / "p" (sound /p/, heavy P with circle on top) is strictly preserved and never confused with "B" / "b".
-   - In Nile Egyptian School KG 1, students learn letter "P" / "p" (البي التقيلة p). Always spell it correctly as Letter P / p.
-
-5. LINKS & URLS PRESERVATION:
-   - Any URLs (such as YouTube videos, Google Drive sheets, audio links) must be extracted and preserved with their exact URLs in both classwork and homework.
-
-Return ONLY valid JSON matching this structure without Markdown fences or commentary:
+Return ONLY valid JSON matching this schema:
 {
-  "classwork": [...],
-  "homework": [...],
-  "tomorrowNotes": [...]
+  "classwork": [
+    {
+      "classId": "${classId || 'KG1A'}",
+      "day": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "Clean lesson title (اسم الدرس من عمود الدرس)",
+      "pages": "Worksheet or book pages from عمود مصدر الصف",
+      "details": "Optional extra resource details from عمود مصدر الصف",
+      "completed": false,
+      "linkUrl": "Optional first URL",
+      "links": [{ "url": "https://...", "title": "فيديو الشرح", "type": "video" }]
+    }
+  ],
+  "homework": [
+    {
+      "classId": "${classId || 'KG1A'}",
+      "assignedDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
+      "dueDay": "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Sunday",
+      "subject": "Arabic",
+      "task": "Clean homework task (من عمود الواجب المنزلي)",
+      "pages": "Optional page numbers",
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "Optional first URL",
+      "links": [{ "url": "https://...", "title": "رابط الواجب", "type": "video" }]
+    }
+  ],
+  "tomorrowNotes": [
+    {
+      "classId": "${classId || 'KG1A'}",
+      "targetDay": "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday",
+      "subject": "Arabic",
+      "note": "أي نص يخص كلمة ملاحظات يوضع هنا في التومورو",
+      "arabicNote": "نص الملاحظة بالعربي",
+      "bagItem": "Optional item to pack"
+    }
+  ]
 }
 
-User's Weekly Plan Text:
+Weekly Plan Input Text:
 ${planText}
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const textOutput = response.text || '';
+    let textOutput = '';
     try {
-      const parsed = JSON.parse(textOutput);
-      return res.json({
-        classwork: parsed.classwork || [],
-        homework: parsed.homework || [],
-        tomorrowNotes: parsed.tomorrowNotes || [],
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+        },
       });
-    } catch (parseErr) {
-      console.warn('Gemini JSON parse failed, falling back to heuristic:', parseErr);
-      const fallback = heuristicParser(planText, classId);
-      return res.json(fallback);
+      textOutput = response.text || '';
+    } catch (aiErr: any) {
+      console.warn('Gemini generateContent with gemini-3.8-flash error, trying fallback:', aiErr?.message || aiErr);
+      try {
+        const fallbackResp = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
+        textOutput = fallbackResp.text || '';
+      } catch (fallbackErr) {
+        console.warn('Gemini generateContent fallback error, attempting deterministic parser:', fallbackErr);
+      }
     }
+
+    if (textOutput) {
+      try {
+        const parsed = JSON.parse(textOutput);
+        const cleaned = cleanAndValidatePlanResult(
+          {
+            classwork: parsed.classwork || [],
+            homework: parsed.homework || [],
+            tomorrowNotes: parsed.tomorrowNotes || [],
+          },
+          classId || 'KG1A',
+          subjectHint || 'Arabic'
+        );
+        if (cleaned.classwork.length > 0 || cleaned.homework.length > 0) {
+          return res.json(cleaned);
+        }
+      } catch (parseErr) {
+        console.warn('Failed to parse Gemini output as JSON:', parseErr);
+      }
+    }
+
+    // Fallback to smart deterministic parser
+    const fallback = smartParseWeeklyPlan(planText, classId || 'KG1A', subjectHint || 'Arabic');
+    const cleanedFallback = cleanAndValidatePlanResult(fallback, classId || 'KG1A', subjectHint || 'Arabic');
+    return res.json(cleanedFallback);
   } catch (error: any) {
     console.error('Error in /api/parse-weekly-plan:', error);
-    // Fall back gracefully instead of crashing
-    const fallback = heuristicParser(req.body?.planText || '', req.body?.classId || 'KG1A');
-    return res.json(fallback);
+    const fallback = smartParseWeeklyPlan(req.body?.planText || '', req.body?.classId || 'KG1A', req.body?.subjectHint || 'Arabic');
+    const cleanedFallback = cleanAndValidatePlanResult(fallback, req.body?.classId || 'KG1A', req.body?.subjectHint || 'Arabic');
+    return res.json(cleanedFallback);
   }
 });
 
