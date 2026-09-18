@@ -883,19 +883,6 @@ export default function App() {
         onSelectBlock={handleSelectBlock}
         onSelectWeek={handleSelectWeek}
         isAdmin={isAdmin}
-        isAdminLiveEdit={isAdminLiveEdit}
-        onToggleAdminLiveEdit={() => {
-          setIsAdminLiveEdit((prev) => {
-            const next = !prev;
-            localStorage.setItem('nile_admin_live_edit', String(next));
-            if (next) {
-              showToast('تم تفعيل وضع التعديل المباشر ✏️ يمكنك الآن تعديل وحذف وإضافة أي درس أو واجب أو ملاحظة مباشرة');
-            } else {
-              showToast('تم إيقاف وضع التعديل المباشر.');
-            }
-            return next;
-          });
-        }}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => {
           setAdminDashboardInitialTab('materials');
