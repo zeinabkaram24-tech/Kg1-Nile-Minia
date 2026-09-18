@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, PeriodSlot } from './types';
-import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, TomorrowSpecialNote } from './data/defaultWeeklyPlan';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES, TomorrowSpecialNote } from './data/defaultWeeklyPlan';
+import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from './data/week2Plan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
 import {
   getStoredTimetables,
@@ -67,15 +68,20 @@ function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[]
     if (raw) {
       const list: ClassworkEntry[] = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0 && list.some((c) => c.classId === 'KG1A')) {
+        const hasWeek2 = list.some((c) => (c.week || 1) === 2);
+        const fullList = hasWeek2 ? list : [...list, ...WEEK2_CLASSWORK];
+        if (!hasWeek2 && WEEK2_CLASSWORK.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullList));
+        }
         if (profile?.mode === 'student' && profile.studentName) {
           const progress = getStudentProgress(profile.studentName);
           const set = new Set(progress.completedClassworkIds);
-          return list.map((c) => ({
+          return fullList.map((c) => ({
             ...c,
             completed: set.has(c.id),
           }));
         }
-        return list.map((c) => ({ ...c, completed: false }));
+        return fullList.map((c) => ({ ...c, completed: false }));
       }
     }
   } catch (e) {
@@ -90,15 +96,20 @@ function getStoredCustomHomework(profile: UserProfile | null): HomeworkEntry[] {
     if (raw) {
       const list: HomeworkEntry[] = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0 && list.some((h) => h.classId === 'KG1A')) {
+        const hasWeek2 = list.some((h) => (h.week || 1) === 2);
+        const fullList = hasWeek2 ? list : [...list, ...ALL_LINK_AND_WEEK2_HOMEWORK];
+        if (!hasWeek2 && ALL_LINK_AND_WEEK2_HOMEWORK.length > 0) {
+          localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullList));
+        }
         if (profile?.mode === 'student' && profile.studentName) {
           const progress = getStudentProgress(profile.studentName);
           const set = new Set(progress.completedHomeworkIds);
-          return list.map((h) => ({
+          return fullList.map((h) => ({
             ...h,
             completed: set.has(h.id),
           }));
         }
-        return list.map((h) => ({ ...h, completed: false }));
+        return fullList.map((h) => ({ ...h, completed: false }));
       }
     }
   } catch (e) {
@@ -183,9 +194,19 @@ export default function App() {
   const [customTomorrowNotes, setCustomTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
     try {
       const saved = localStorage.getItem('nile_custom_tomorrow_notes');
-      return saved ? JSON.parse(saved) : [];
+      const list = saved ? JSON.parse(saved) : [];
+      if (Array.isArray(list) && list.length > 0) {
+        const hasWeek2 = list.some((n: any) => n.week === 2);
+        if (!hasWeek2 && WEEK2_SPECIAL_NOTES.length > 0) {
+          const merged = [...list, ...WEEK2_SPECIAL_NOTES];
+          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(merged));
+          return merged;
+        }
+        return list;
+      }
+      return [...SPECIAL_TEACHER_NOTES, ...WEEK2_SPECIAL_NOTES];
     } catch {
-      return [];
+      return [...SPECIAL_TEACHER_NOTES, ...WEEK2_SPECIAL_NOTES];
     }
   });
 

@@ -1,16 +1,7 @@
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry } from '../types';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 
-export interface TomorrowSpecialNote {
-  classId: ClassId;
-  targetDay: SchoolDay; // The day being prepared for
-  subject: string;
-  note: string;
-  arabicNote: string;
-  bagItem?: string;
-  icon?: string;
-  block?: number;
-  week?: number;
-}
+export type { TomorrowSpecialNote };
+export type { TomorrowSpecialNote as SpecialTeacherNote };
 
 /**
  * Parent Notice exactly from the Arabic Weekly Plan:
@@ -71,7 +62,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap(
  * Topic: ما أروعني | Week 1: 13/9/2026 - 17/9/2026
  * Strictly matching the Arabic Weekly Plan document with zero additions.
  */
-export const INITIAL_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
+export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
   // Sunday (الأحد 13/9/2026)
   {
     id: `cw-${cls.toLowerCase()}-sun-ar`,
@@ -178,7 +169,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => 
  * Strictly from the "الواجب المنزلي" column of the Arabic Weekly Plan.
  * Only the YouTube links without page numbers or extra text.
  */
-export const INITIAL_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
+export const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
   // Sunday Homework (الأحد 13/9)
   {
     id: `hw-${cls.toLowerCase()}-sun-ar`,
@@ -277,5 +268,8 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
   },
 ]);
 
-export const WEEK1_CLASSWORK: ClassworkEntry[] = INITIAL_CLASSWORK;
-export const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = INITIAL_HOMEWORK;
+import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK } from './week2Plan';
+
+export const INITIAL_CLASSWORK: ClassworkEntry[] = [...WEEK1_CLASSWORK, ...WEEK2_CLASSWORK];
+export const INITIAL_HOMEWORK: HomeworkEntry[] = [...WEEK1_BASE_HOMEWORK, ...ALL_LINK_AND_WEEK2_HOMEWORK];
+

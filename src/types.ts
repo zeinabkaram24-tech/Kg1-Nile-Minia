@@ -86,6 +86,19 @@ export interface TomorrowItem {
   specialNote?: string;
 }
 
+export interface TomorrowSpecialNote {
+  classId: ClassId;
+  targetDay: SchoolDay; // The day being prepared for
+  subject: string;
+  note: string;
+  arabicNote: string;
+  bagItem?: string;
+  icon?: string;
+  block?: number;
+  week?: number;
+  day?: SchoolDay;
+}
+
 export interface ParsedWeeklyPlanResponse {
   classwork: Omit<ClassworkEntry, 'id'>[];
   homework: Omit<HomeworkEntry, 'id'>[];
