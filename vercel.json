@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build",
+  "buildCommand": "npm run build:client",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
