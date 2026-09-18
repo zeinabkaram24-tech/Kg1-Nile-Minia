@@ -268,8 +268,9 @@ export default function App() {
         // 2. Fetch classwork
         const remoteCw = await supabaseFetchClasswork();
         if (isMounted) {
-          const hasWeek2Arabic = remoteCw.some((c) => (c.week || 1) === 2 && c.subject === 'Arabic');
-          if (remoteCw.length > 0 && hasWeek2Arabic) {
+          const week2Count = remoteCw.filter((c) => (c.week || 1) === 2).length;
+          // If we have at least 5 classwork items for Week 2, use remote. Else, auto-merge defaults.
+          if (remoteCw.length > 0 && week2Count >= 5) {
             setClassworkList(remoteCw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
           } else {
@@ -287,8 +288,9 @@ export default function App() {
         // 3. Fetch homework
         const remoteHw = await supabaseFetchHomework();
         if (isMounted) {
-          const hasWeek2Arabic = remoteHw.some((h) => (h.week || 1) === 2 && h.subject === 'Arabic');
-          if (remoteHw.length > 0 && hasWeek2Arabic) {
+          const week2Count = remoteHw.filter((h) => (h.week || 1) === 2).length;
+          // If we have at least 5 homework items for Week 2, use remote. Else, auto-merge defaults.
+          if (remoteHw.length > 0 && week2Count >= 5) {
             setHomeworkList(remoteHw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
           } else {
@@ -340,8 +342,9 @@ export default function App() {
         // 6. Fetch tomorrow special notes
         const remoteTomorrow = await supabaseFetchTomorrowNotes();
         if (isMounted) {
-          const hasWeek2Arabic = remoteTomorrow.some((n) => n.week === 2 && n.subject === 'Arabic');
-          if (remoteTomorrow.length > 0 && hasWeek2Arabic) {
+          const week2Count = remoteTomorrow.filter((n) => n.week === 2).length;
+          // If we have at least 2 tomorrow notes for Week 2, use remote. Else, auto-merge defaults.
+          if (remoteTomorrow.length > 0 && week2Count >= 2) {
             setCustomTomorrowNotes(remoteTomorrow);
             localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
           } else {
@@ -815,24 +818,31 @@ export default function App() {
     showToast('تم تفريغ كافة البيانات والملفات بنجاح! الأبليكيشن جاهز لبياناتك الجديدة بالكامل.');
   };
 
-  // Restore original Arabic weekly plan with YouTube links & lessons
+  // Restore original Arabic & English weekly plans (Week 1 & Week 2) with YouTube links & lessons
   const handleRestoreArabicWeeklyPlan = async () => {
-    setClassworkList(INITIAL_CLASSWORK);
-    setHomeworkList(INITIAL_HOMEWORK);
-    setCustomTomorrowNotes([]);
-    localStorage.removeItem('nile_custom_tomorrow_notes');
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(INITIAL_CLASSWORK));
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(INITIAL_HOMEWORK));
+    const fullCw = [...INITIAL_CLASSWORK.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
+    const fullHw = [...INITIAL_HOMEWORK.filter((h) => (h.week || 1) !== 2), ...ALL_LINK_AND_WEEK2_HOMEWORK];
+    const fullTomorrow = WEEK2_SPECIAL_NOTES;
+
+    setClassworkList(fullCw);
+    setHomeworkList(fullHw);
+    setCustomTomorrowNotes(fullTomorrow);
+
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullHw));
+    localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullTomorrow));
 
     if (isSupabaseConfigured) {
       try {
-        await supabaseBatchInsertClasswork(INITIAL_CLASSWORK);
-        await supabaseBatchInsertHomework(INITIAL_HOMEWORK);
+        await supabaseBatchInsertClasswork(fullCw);
+        await supabaseBatchInsertHomework(fullHw);
+        await supabaseSaveTomorrowNotes(fullTomorrow);
+        await supabaseSavePlannerSettings({ currentBlock: 1, currentWeek: 2 });
       } catch (e) {
         console.warn('Failed to push restored weekly plan to Supabase:', e);
       }
     }
-    showToast('تمت استعادة الويكلي بلان العربي بجميع الروابط والدروس بنجاح!');
+    showToast('تمت استعادة خطة الأسبوع الأول والثاني كاملة بالعربي والإنجليزي بنجاح!');
   };
 
   const handlePrint = () => {
