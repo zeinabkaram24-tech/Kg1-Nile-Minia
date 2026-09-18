@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { smartParseWeeklyPlan, cleanAndValidatePlanResult } from './src/utils/smartWeeklyPlanParser';
+import dbRouter from './server_db';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(dbRouter);
 
 // Materials Persistent Storage (File + Memory cache + Disk PDF uploads + Deletion Tombstones)
 const MATERIALS_FILE = path.join(process.cwd(), 'data', 'materials_store.json');

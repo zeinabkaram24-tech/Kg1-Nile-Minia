@@ -1,37 +1,19 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const rawUrl = import.meta.env.VITE_SUPABASE_URL || '';
-export const supabaseUrl = rawUrl.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-export const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+// The server handles credentials safely. The frontend always routes to the Express DB API.
+export const isSupabaseConfigured = true;
 
 export const MATERIALS_BUCKET = 'materials';
 
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl &&
-  supabaseAnonKey &&
-  supabaseUrl.trim() !== '' &&
-  supabaseAnonKey.trim() !== '' &&
-  !supabaseUrl.includes('placeholder') &&
-  (supabaseUrl.startsWith('http://') || supabaseUrl.startsWith('https://'))
+export const supabase: SupabaseClient = createClient(
+  'https://dummy-project.supabase.co',
+  'dummy-anon-key-prevent-crash',
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  }
 );
-
-// Graceful client creation that prevents unhandled exceptions if env variables are empty
-export const supabase: SupabaseClient = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    })
-  : createClient(
-      'https://dummy-project.supabase.co',
-      'dummy-anon-key-prevent-crash',
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-        },
-      }
-    );
 
 export default supabase;
