@@ -836,16 +836,38 @@ export async function supabaseSavePlannerSettings(settings: {
 }): Promise<boolean> {
   if (!isSupabaseConfigured) return false;
   try {
-    const { error } = await supabase.from('planner_settings').upsert(
-      {
-        id: 'global',
-        current_block: settings.currentBlock,
-        current_week: settings.currentWeek,
-        active_term: settings.activeTerm || 'Term 2',
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'id' }
-    );
+    const payload: any = {
+      id: 'global',
+      current_block: settings.currentBlock,
+      current_week: settings.currentWeek,
+      active_term: settings.activeTerm || 'Term 2',
+      updated_at: new Date().toISOString(),
+    };
+
+    let { error } = await supabase.from('planner_settings').upsert(payload, { onConflict: 'id' });
+
+    // Loop up to 4 times to dynamically parse and strip missing columns from the payload
+    let attempts = 0;
+    while (
+      error &&
+      error.message &&
+      error.message.includes('column') &&
+      error.message.includes('planner_settings') &&
+      attempts < 4
+    ) {
+      attempts++;
+      const match = error.message.match(/Could not find the '([^']+)' column/);
+      if (match && match[1]) {
+        const missingCol = match[1];
+        console.warn(`Column '${missingCol}' missing in planner_settings, stripping and retrying...`);
+        delete payload[missingCol];
+        const retry = await supabase.from('planner_settings').upsert(payload, { onConflict: 'id' });
+        error = retry.error;
+      } else {
+        break;
+      }
+    }
+
     if (error) {
       logSupabaseError('Supabase save planner settings error', error);
       return false;

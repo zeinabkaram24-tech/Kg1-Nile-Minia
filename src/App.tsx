@@ -148,10 +148,10 @@ export default function App() {
     return saved ? Number(saved) : 1;
   });
 
-  // Current Week (1, 2, 3, 4) - Starts Week 1
+  // Current Week (1, 2, 3, 4) - Starts Week 2
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 1;
+    return saved ? Number(saved) : 2;
   });
 
   // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
@@ -273,11 +273,14 @@ export default function App() {
             setClassworkList(remoteCw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
           } else {
-            const cleanCw = remoteCw.filter((c) => (c.week || 1) !== 2);
+            const baseCw = remoteCw.length > 0 ? remoteCw : INITIAL_CLASSWORK;
+            const cleanCw = baseCw.filter((c) => (c.week || 1) !== 2);
             const fullCw = [...cleanCw, ...WEEK2_CLASSWORK];
             setClassworkList(fullCw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
-            supabaseBatchInsertClasswork(fullCw).catch(console.warn);
+            if (isSupabaseConfigured) {
+              supabaseBatchInsertClasswork(fullCw).catch(console.warn);
+            }
           }
         }
 
@@ -289,11 +292,14 @@ export default function App() {
             setHomeworkList(remoteHw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
           } else {
-            const cleanHw = remoteHw.filter((h) => (h.week || 1) !== 2);
+            const baseHw = remoteHw.length > 0 ? remoteHw : INITIAL_HOMEWORK;
+            const cleanHw = baseHw.filter((h) => (h.week || 1) !== 2);
             const fullHw = [...cleanHw, ...ALL_LINK_AND_WEEK2_HOMEWORK];
             setHomeworkList(fullHw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullHw));
-            supabaseBatchInsertHomework(fullHw).catch(console.warn);
+            if (isSupabaseConfigured) {
+              supabaseBatchInsertHomework(fullHw).catch(console.warn);
+            }
           }
         }
 
@@ -306,9 +312,29 @@ export default function App() {
 
         // 5. Fetch planner settings (Active Block & Week)
         const remoteSettings = await supabaseFetchPlannerSettings();
-        if (isMounted && remoteSettings) {
-          if (remoteSettings.currentBlock) setCurrentBlock(remoteSettings.currentBlock);
-          if (remoteSettings.currentWeek) setCurrentWeek(remoteSettings.currentWeek);
+        if (isMounted) {
+          if (remoteSettings) {
+            if (remoteSettings.currentBlock) setCurrentBlock(remoteSettings.currentBlock);
+            if (remoteSettings.currentWeek) {
+              const savedWeek = localStorage.getItem(STORAGE_KEYS.WEEK);
+              if (savedWeek) {
+                setCurrentWeek(Number(savedWeek));
+              } else {
+                // If database setting is 1 (old week), automatically upgrade it to Week 2 globally
+                const finalWeek = remoteSettings.currentWeek === 1 ? 2 : remoteSettings.currentWeek;
+                setCurrentWeek(finalWeek);
+                if (remoteSettings.currentWeek === 1 && isSupabaseConfigured) {
+                  supabaseSavePlannerSettings({
+                    currentBlock: remoteSettings.currentBlock || 1,
+                    currentWeek: 2,
+                  }).catch(console.warn);
+                }
+              }
+            }
+          } else if (isSupabaseConfigured) {
+            // Seed defaults of week 2 if missing entirely
+            supabaseSavePlannerSettings({ currentBlock: 1, currentWeek: 2 }).catch(console.warn);
+          }
         }
 
         // 6. Fetch tomorrow special notes
@@ -319,11 +345,14 @@ export default function App() {
             setCustomTomorrowNotes(remoteTomorrow);
             localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
           } else {
-            const cleanTomorrow = remoteTomorrow.filter((n) => n.week !== 2);
+            const baseTomorrow = remoteTomorrow.length > 0 ? remoteTomorrow : WEEK2_SPECIAL_NOTES;
+            const cleanTomorrow = baseTomorrow.filter((n) => n.week !== 2);
             const fullTomorrow = [...cleanTomorrow, ...WEEK2_SPECIAL_NOTES];
             setCustomTomorrowNotes(fullTomorrow);
             localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullTomorrow));
-            supabaseSaveTomorrowNotes(fullTomorrow).catch(console.warn);
+            if (isSupabaseConfigured) {
+              supabaseSaveTomorrowNotes(fullTomorrow).catch(console.warn);
+            }
           }
         }
 
