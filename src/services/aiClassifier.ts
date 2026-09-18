@@ -2,7 +2,6 @@ import { ClassId, ParsedWeeklyPlanResponse } from '../types';
 import {
   smartParseWeeklyPlan,
   cleanAndValidatePlanResult,
-  swapParsedClassworkAndHomework,
 } from '../utils/smartWeeklyPlanParser';
 
 export async function parseWeeklyPlanWithAI(
@@ -36,15 +35,13 @@ export async function parseWeeklyPlanWithAI(
 
     // If server returned zero or empty, fall back to smart local parser
     if (validated.classwork.length === 0 && validated.homework.length === 0) {
-      const fallback = smartParseWeeklyPlan(planText, classId, subjectHint);
-      return swapParsedClassworkAndHomework(fallback);
+      return smartParseWeeklyPlan(planText, classId, subjectHint);
     }
 
-    return swapParsedClassworkAndHomework(validated);
+    return validated;
   } catch (err) {
     console.warn('Network call failed, using smart client parser fallback:', err);
-    const fallback = smartParseWeeklyPlan(planText, classId, subjectHint);
-    return swapParsedClassworkAndHomework(fallback);
+    return smartParseWeeklyPlan(planText, classId, subjectHint);
   }
 }
 

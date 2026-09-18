@@ -431,22 +431,23 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             )}
 
             {/* Live Edit Mode Banner Card */}
-            <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 border border-indigo-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Pencil className="w-4 h-4" />
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-indigo-500/10 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none"></div>
+              <div className="flex items-start gap-3.5 relative z-10">
+                <div className="w-11 h-11 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-xs">
+                  <Pencil className="w-5 h-5 font-black" />
                 </div>
                 <div>
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
-                    <span>وضع التعديل المباشر في التطبيق (Direct Live Edit)</span>
+                  <h4 className="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>وضع التعديل المباشر (Direct Live Edit) ✏️</span>
                     {isAdminLiveEdit && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
-                        مفعل حالياً
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 animate-pulse">
+                        مفعل ونشط حالياً
                       </span>
                     )}
                   </h4>
-                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
-                    تعديل وحذف وإضافة الدروس والواجبات والملاحظات مباشرة من كروت الصفحة بنقرة زر واحدة.
+                  <p className="text-xs text-slate-700 font-extrabold mt-1.5 leading-relaxed">
+                    يقوم بفتح الموقع فوراً لكِ كواجهة المستخدم العادية تماماً، ولكن بجانب كل درس أو واجب أو ملاحظة أيقونات مباشرة لإجراء التعديل ✏️، الحذف 🗑️، أو الإضافة ➕ بكل سهولة وبدون تعقيد!
                   </p>
                 </div>
               </div>
@@ -456,14 +457,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                   if (onToggleAdminLiveEdit) onToggleAdminLiveEdit();
                   onClose();
                 }}
-                className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 shadow-xs active:scale-95 ${
+                className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shrink-0 shadow-md active:scale-95 border relative z-10 ${
                   isAdminLiveEdit
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-500 shadow-rose-600/15'
+                    : 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-400 shadow-amber-500/20'
                 }`}
               >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>{isAdminLiveEdit ? 'إيقاف التعديل المباشر' : 'تفعيل والتعديل في الصفحة الآن ✏️'}</span>
+                <Pencil className="w-4 h-4" />
+                <span>{isAdminLiveEdit ? 'إيقاف وضع التعديل المباشر' : 'تفعيل التعديل المباشر على الموقع الآن 🪄'}</span>
               </button>
             </div>
 

@@ -93,7 +93,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       c.day === selectedDay &&
       (c.block || 1) === currentBlock &&
       (c.week || 1) === currentWeek &&
-      Boolean(c.title && c.title.trim())
+      Boolean(c.title && c.title.trim()) &&
+      !/^لا\s*يوجد/i.test(c.title || '') &&
+      c.title !== '-' &&
+      !c.title.includes('لا يوجد واجب')
   );
 
   // Group planned entries by subject so we NEVER repeat the box/task for the same subject!

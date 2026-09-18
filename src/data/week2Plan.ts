@@ -5,9 +5,10 @@ const KG1_CLASSES: ClassId[] = ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'];
 
 /**
  * Tomorrow Notes for Week 2 (Topic 1: Marvelous me | 20/9/2026 - 24/9/2026)
- * English - Mrs. Naglaa El kady
+ * English - Mrs. Naglaa El kady & Arabic - أماني سعد كامل
  */
 export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((cls) => [
+  // Sunday 20/9/2026
   {
     classId: cls,
     targetDay: 'Sunday',
@@ -20,6 +21,18 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((c
   },
   {
     classId: cls,
+    targetDay: 'Sunday',
+    subject: 'Arabic',
+    note: 'التعرف على أنواع الخطوط وحل أوراق العمل ص 8\\9',
+    arabicNote: 'نشاط التعرف على أنواع الخطوط وحل أوراق العمل ص 8 و 9',
+    bagItem: 'كشكول وأوراق عمل اللغة العربية',
+    block: 1,
+    week: 2,
+  },
+
+  // Monday 21/9/2026
+  {
+    classId: cls,
     targetDay: 'Monday',
     subject: 'English',
     note: 'Carpet time: Paint a face activity & Introduce number 2',
@@ -28,6 +41,18 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((c
     block: 1,
     week: 2,
   },
+  {
+    classId: cls,
+    targetDay: 'Monday',
+    subject: 'Arabic',
+    note: 'التعرف على أجزاء الجسم وحل أوراق العمل',
+    arabicNote: 'نشاط التعرف على أجزاء الجسم وحل أوراق العمل ص 4',
+    bagItem: 'كشكول وأوراق عمل اللغة العربية',
+    block: 1,
+    week: 2,
+  },
+
+  // Tuesday 22/9/2026
   {
     classId: cls,
     targetDay: 'Tuesday',
@@ -40,6 +65,18 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((c
   },
   {
     classId: cls,
+    targetDay: 'Tuesday',
+    subject: 'Arabic',
+    note: 'التعرف على أجزاء الوجه وحل أوراق العمل',
+    arabicNote: 'نشاط التعرف على أجزاء الوجه وحل أوراق العمل ص 5',
+    bagItem: 'كشكول وأوراق عمل اللغة العربية',
+    block: 1,
+    week: 2,
+  },
+
+  // Wednesday 23/9/2026
+  {
+    classId: cls,
     targetDay: 'Wednesday',
     subject: 'English',
     note: 'Daily visual timetable, Red colour & Circle, Tallest/shortest teddy sheet',
@@ -50,6 +87,18 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((c
   },
   {
     classId: cls,
+    targetDay: 'Wednesday',
+    subject: 'Arabic',
+    note: 'التعرف على حاسة السمع والحواس الخمسة',
+    arabicNote: 'نشاط الحواس الخمسة وحاسة السمع وحل ورقة العمل ص 10',
+    bagItem: 'كشكول وأوراق عمل اللغة العربية',
+    block: 1,
+    week: 2,
+  },
+
+  // Thursday 24/9/2026
+  {
+    classId: cls,
     targetDay: 'Thursday',
     subject: 'English',
     note: 'Counting games & matching children names to photographs',
@@ -58,12 +107,22 @@ export const WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((c
     block: 1,
     week: 2,
   },
+  {
+    classId: cls,
+    targetDay: 'Thursday',
+    subject: 'Arabic',
+    note: 'التعرف على الهمزة وكتابتها وحل أوراق العمل ص 11',
+    arabicNote: 'نشاط التعرف على الهمزة وطريقة كتابتها وحل ورقة العمل ص 11 (ملاحظة لولي الأمر: ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع)',
+    bagItem: 'كشكول وأوراق عمل اللغة العربية',
+    block: 1,
+    week: 2,
+  },
 ]);
 
 /**
  * Week 2 Classwork
- * Grade: KG 1 (A, B, C, D, E) | Subject: English
- * Topic: Marvelous me | Week 2: 20/9/2026 - 24/9/2026 | Teacher: Mrs. Naglaa El kady
+ * Grade: KG 1 (A, B, C, D, E)
+ * Topic: Marvelous me (ما أروعني) | Week 2: 20/9/2026 - 24/9/2026
  */
 export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
   // Sunday 20/9/2026
@@ -96,6 +155,25 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       },
     ],
   },
+  {
+    id: `cw-${cls.toLowerCase()}-w2-sun-ar`,
+    classId: cls,
+    day: 'Sunday',
+    period: 2,
+    subject: 'Arabic',
+    title: 'التعرف على أنواع الخطوط',
+    pages: 'أوراق العمل ص 8\\9',
+    completed: false,
+    block: 1,
+    week: 2,
+    links: [
+      {
+        url: 'https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh',
+        title: 'التعرف على أنواع الخطوط',
+        type: 'video',
+      },
+    ],
+  },
 
   // Monday 21/9/2026
   {
@@ -110,13 +188,36 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
     week: 2,
     links: [
       {
-        url: 'https://www.youtube.com/watch?v=-h2Ss3mIXWQ',
+        url: 'https://www.youtube.com/watch?v=h2Ss3mIXWQ',
         title: "Face features' song",
         type: 'video',
       },
       {
         url: 'https://www.youtube.com/watch?v=rnssmovN9o8',
         title: 'Number 2',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `cw-${cls.toLowerCase()}-w2-mon-ar`,
+    classId: cls,
+    day: 'Monday',
+    period: 2,
+    subject: 'Arabic',
+    title: 'التعرف على أجزاء الجسم',
+    completed: false,
+    block: 1,
+    week: 2,
+    links: [
+      {
+        url: 'https://youtu.be/LdZBsrpGB-o?si=CBRJridZU7zjGErk',
+        title: 'أغنية أجزاء الجسم للأطفال',
+        type: 'video',
+      },
+      {
+        url: 'https://youtu.be/VBjlmwF99OI?si=mu-sQSJF4t4fA0CN',
+        title: 'فيديو تفاعلي عن أعضاء الجسم',
         type: 'video',
       },
     ],
@@ -137,6 +238,24 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       {
         url: 'https://www.youtube.com/watch?v=g7kK989HiRQ',
         title: 'School items',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `cw-${cls.toLowerCase()}-w2-tue-ar`,
+    classId: cls,
+    day: 'Tuesday',
+    period: 2,
+    subject: 'Arabic',
+    title: 'التعرف على أجزاء الوجه وملامحه',
+    completed: false,
+    block: 1,
+    week: 2,
+    links: [
+      {
+        url: 'https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H',
+        title: 'فيديو التعرف على ملامح وأجزاء الوجه',
         type: 'video',
       },
     ],
@@ -187,6 +306,30 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       },
     ],
   },
+  {
+    id: `cw-${cls.toLowerCase()}-w2-wed-ar`,
+    classId: cls,
+    day: 'Wednesday',
+    period: 2,
+    subject: 'Arabic',
+    title: 'التعرف على الحواس الخمسة (حاسة السمع)',
+    pages: 'أوراق العمل ص 10',
+    completed: false,
+    block: 1,
+    week: 2,
+    links: [
+      {
+        url: 'https://youtu.be/anpYAJqggiJs?si=rsyFtGFEG6PB0E-G',
+        title: 'أغنية الحواس الخمسة للأطفال',
+        type: 'video',
+      },
+      {
+        url: 'https://youtu.be/GOtZ7z9vym8?si=QHvDAFNUYpKtz65B',
+        title: 'فيديو تعليمي عن حاسة السمع',
+        type: 'video',
+      },
+    ],
+  },
 
   // Thursday 24/9/2026
   {
@@ -212,12 +355,31 @@ export const WEEK2_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       },
     ],
   },
+  {
+    id: `cw-${cls.toLowerCase()}-w2-thu-ar`,
+    classId: cls,
+    day: 'Thursday',
+    period: 2,
+    subject: 'Arabic',
+    title: 'التعرف على حرف الهمزة وطريقة كتابته ورسمه',
+    pages: 'أوراق العمل ص 11',
+    completed: false,
+    block: 1,
+    week: 2,
+    links: [
+      {
+        url: 'https://youtu.be/JAQzXgCOip0?si=-LHhR3A84dQe66di',
+        title: 'فيديو تعليمي تفاعلي لحرف الهمزة',
+        type: 'video',
+      },
+    ],
+  },
 ]);
 
 /**
  * Week 2 Homework
- * Grade: KG 1 (A, B, C, D, E) | Subject: English
- * Topic: Marvelous me | Week 2: 20/9/2026 - 24/9/2026 | Teacher: Mrs. Naglaa El kady
+ * Grade: KG 1 (A, B, C, D, E)
+ * Topic: Marvelous me (ما أروعني) | Week 2: 20/9/2026 - 24/9/2026
  */
 export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
   // Sunday 20/9/2026 Homework
@@ -253,6 +415,28 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap(
       },
     ],
   },
+  {
+    id: `hw-${cls.toLowerCase()}-w2-sun-ar`,
+    classId: cls,
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'Arabic',
+    task: 'حل ورقة العمل ص 3 من ملزمة الواجبات',
+    pages: 'ورقة العمل ص 3',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 2,
+    linkUrl: 'https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh',
+    linkTitle: 'التعرف على أنواع الخطوط',
+    links: [
+      {
+        url: 'https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh',
+        title: 'فيديو أنواع الخطوط والتمرين عليها',
+        type: 'video',
+      },
+    ],
+  },
 
   // Monday 21/9/2026 Homework
   {
@@ -266,17 +450,39 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap(
     priority: 'normal',
     block: 1,
     week: 2,
-    linkUrl: 'https://www.youtube.com/watch?v=-h2Ss3mIXWQ',
+    linkUrl: 'https://www.youtube.com/watch?v=h2Ss3mIXWQ',
     linkTitle: "Face features' song",
     links: [
       {
-        url: 'https://www.youtube.com/watch?v=-h2Ss3mIXWQ',
+        url: 'https://www.youtube.com/watch?v=h2Ss3mIXWQ',
         title: "1- Face features' song",
         type: 'video',
       },
       {
         url: 'https://www.youtube.com/watch?v=rnssmovN9o8',
         title: '2- Number 2',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `hw-${cls.toLowerCase()}-w2-mon-ar`,
+    classId: cls,
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'Arabic',
+    task: 'حل ورقة العمل ص 4 من ملزمة الواجبات',
+    pages: 'ورقة العمل ص 4',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 2,
+    linkUrl: 'https://youtu.be/LdZBsrpGB-o?si=CBRJridZU7zjGErk',
+    linkTitle: 'أغنية أجزاء الجسم للأطفال',
+    links: [
+      {
+        url: 'https://youtu.be/LdZBsrpGB-o?si=CBRJridZU7zjGErk',
+        title: 'فيديو أجزاء الجسم التفاعلي',
         type: 'video',
       },
     ],
@@ -300,6 +506,28 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap(
       {
         url: 'https://www.youtube.com/watch?v=g7kK989HiRQ',
         title: '1- School items video',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `hw-${cls.toLowerCase()}-w2-tue-ar`,
+    classId: cls,
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Arabic',
+    task: 'حل ورقة العمل ص 5 من ملزمة الواجبات',
+    pages: 'ورقة العمل ص 5',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 2,
+    linkUrl: 'https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H',
+    linkTitle: 'أجزاء الوجه ملامحه',
+    links: [
+      {
+        url: 'https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H',
+        title: 'فيديو ملامح الوجه للطفل',
         type: 'video',
       },
     ],
@@ -352,6 +580,28 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap(
       },
     ],
   },
+  {
+    id: `hw-${cls.toLowerCase()}-w2-wed-ar`,
+    classId: cls,
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'Arabic',
+    task: 'حل ورقة العمل ص 6 من ملزمة الواجبات والمشاهدة والتفاعل لتنمية حاسة السمع',
+    pages: 'ورقة العمل ص 6',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 2,
+    linkUrl: 'https://youtu.be/GOtZ7z9vym?si=QHvDAFNUYpKTz65B78',
+    linkTitle: 'أغنية الحواس للأطفال',
+    links: [
+      {
+        url: 'https://youtu.be/GOtZ7z9vym?si=QHvDAFNUYpKTz65B78',
+        title: 'فيديو تفاعلي للتعرف على الأصوات وحاسة السمع',
+        type: 'video',
+      },
+    ],
+  },
 
   // Thursday 24/9/2026 Homework
   {
@@ -380,5 +630,26 @@ export const ALL_LINK_AND_WEEK2_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap(
       },
     ],
   },
+  {
+    id: `hw-${cls.toLowerCase()}-w2-thu-ar`,
+    classId: cls,
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'Arabic',
+    task: 'حل ورقة العمل ص 7 من ملزمة الواجبات وكتابة الهمزة بخط جميل',
+    pages: 'ورقة العمل ص 7',
+    completed: false,
+    priority: 'normal',
+    block: 1,
+    week: 2,
+    linkUrl: 'https://youtu.be/JAQzXgCOip0?si=-LHhR3A84dQe66di',
+    linkTitle: 'كتابة حرف الهمزة',
+    links: [
+      {
+        url: 'https://youtu.be/JAQzXgCOip0?si=-LHhR3A84dQe66di',
+        title: 'فيديو ممتع لتعليم كتابة الهمزة للأطفال',
+        type: 'video',
+      },
+    ],
+  },
 ]);
-

@@ -148,6 +148,16 @@ function mapEntryToHomeworkRow(entry: HomeworkEntry): Partial<HomeworkRow> {
   };
 }
 
+function logSupabaseError(context: string, error: any) {
+  if (error && error.code === 'PGRST205') {
+    console.warn(`[Supabase Setup Info] Table associated with "${context}" does not exist in the database yet. To enable full database sync, please copy the SQL code in /supabase_schema.sql and execute it in your Supabase Dashboard SQL Editor.`);
+  } else if (error && error.code === '42703') {
+    console.warn(`[Supabase Schema Info] "${context}" is missing a column (Code 42703). This usually means your database table schema needs an update to include all latest columns like "id" or "current_block". Please run the SQL commands from /supabase_schema.sql (especially Table 6: planner_settings) in your Supabase Dashboard SQL Editor to align the columns.`);
+  } else {
+    console.error(`${context}:`, error);
+  }
+}
+
 // ----------------------------------------------------------------------
 // Automatic Initial Seeding Mechanism
 // ----------------------------------------------------------------------
@@ -175,7 +185,7 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
       .select('id', { count: 'exact', head: true });
 
     if (cwErr) {
-      console.warn('Error checking classwork count during seeding check:', cwErr);
+      logSupabaseError('Error checking classwork count during seeding check', cwErr);
     }
 
     const { count: hwCount, error: hwErr } = await supabase
@@ -183,7 +193,7 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
       .select('id', { count: 'exact', head: true });
 
     if (hwErr) {
-      console.warn('Error checking homework count during seeding check:', hwErr);
+      logSupabaseError('Error checking homework count during seeding check', hwErr);
     }
 
     const needClasswork = force || !cwCount || cwCount === 0;
@@ -200,7 +210,7 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
       if (!error) {
         seededCw = rows.length;
       } else {
-        console.error('Failed to seed classwork:', error);
+        logSupabaseError('Failed to seed classwork', error);
       }
     }
 
@@ -211,7 +221,7 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
       if (!error) {
         seededHw = rows.length;
       } else {
-        console.error('Failed to seed homework:', error);
+        logSupabaseError('Failed to seed homework', error);
       }
     }
 
@@ -226,7 +236,7 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
       if (!error) {
         seededTt = timetableRows.length;
       } else {
-        console.error('Failed to seed timetables:', error);
+        logSupabaseError('Failed to seed timetables', error);
       }
     }
 
@@ -260,7 +270,7 @@ export async function supabaseFetchClasswork(classId?: ClassId): Promise<Classwo
     }
     const { data, error } = await query;
     if (error) {
-      console.error('Supabase fetch classwork error:', error);
+      logSupabaseError('Supabase fetch classwork error', error);
       return [];
     }
     return (data || []).map(mapClassworkRowToEntry);
@@ -340,7 +350,7 @@ export async function supabaseFetchHomework(classId?: ClassId): Promise<Homework
     }
     const { data, error } = await query;
     if (error) {
-      console.error('Supabase fetch homework error:', error);
+      logSupabaseError('Supabase fetch homework error', error);
       return [];
     }
     return (data || []).map(mapHomeworkRowToEntry);
@@ -494,7 +504,7 @@ export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<
   try {
     const { data, error } = await supabase.from('timetables').select('*');
     if (error) {
-      console.error('Supabase fetch timetables error:', error);
+      logSupabaseError('Supabase fetch timetables error', error);
       return null;
     }
     if (!data || data.length === 0) return null;
@@ -577,7 +587,11 @@ export async function supabaseFetchStudentProgress(
       .eq('student_name', cleanName)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logSupabaseError('Supabase fetch student progress error', error);
+      return null;
+    }
+    if (!data) return null;
     return {
       completedClassworkIds: Array.isArray(data.completed_classwork_ids) ? data.completed_classwork_ids : [],
       completedHomeworkIds: Array.isArray(data.completed_homework_ids) ? data.completed_homework_ids : [],
@@ -628,7 +642,7 @@ export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
       .order('uploaded_at', { ascending: false });
 
     if (error) {
-      console.warn('Supabase fetch materials warning:', error.message);
+      logSupabaseError('Supabase fetch materials error', error);
       return [];
     }
     return (data || []).map((row: any) => ({
@@ -799,7 +813,11 @@ export async function supabaseFetchPlannerSettings(): Promise<{
       .eq('id', 'global')
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (error) {
+      logSupabaseError('Supabase fetch planner settings error', error);
+      return null;
+    }
+    if (!data) return null;
     return {
       currentBlock: data.current_block || 1,
       currentWeek: data.current_week || 1,
@@ -828,7 +846,11 @@ export async function supabaseSavePlannerSettings(settings: {
       },
       { onConflict: 'id' }
     );
-    return !error;
+    if (error) {
+      logSupabaseError('Supabase save planner settings error', error);
+      return false;
+    }
+    return true;
   } catch (e) {
     console.error('Supabase save planner settings exception:', e);
     return false;
@@ -860,7 +882,7 @@ export async function supabaseFetchTomorrowNotes(): Promise<any[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('Supabase fetch tomorrow notes error:', error.message);
+      logSupabaseError('Supabase fetch tomorrow notes error', error);
       return [];
     }
 

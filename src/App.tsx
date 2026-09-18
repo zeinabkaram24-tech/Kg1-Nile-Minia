@@ -69,9 +69,9 @@ function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[]
     if (raw) {
       const list: ClassworkEntry[] = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0 && list.some((c) => c.classId === 'KG1A')) {
-        const hasWeek2 = list.some((c) => (c.week || 1) === 2);
-        const fullList = hasWeek2 ? list : [...list, ...WEEK2_CLASSWORK];
-        if (!hasWeek2 && WEEK2_CLASSWORK.length > 0) {
+        const hasWeek2Arabic = list.some((c) => (c.week || 1) === 2 && c.subject === 'Arabic');
+        const fullList = hasWeek2Arabic ? list : [...list.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
+        if (!hasWeek2Arabic && WEEK2_CLASSWORK.length > 0) {
           localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullList));
         }
         if (profile?.mode === 'student' && profile.studentName) {
@@ -97,9 +97,9 @@ function getStoredCustomHomework(profile: UserProfile | null): HomeworkEntry[] {
     if (raw) {
       const list: HomeworkEntry[] = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0 && list.some((h) => h.classId === 'KG1A')) {
-        const hasWeek2 = list.some((h) => (h.week || 1) === 2);
-        const fullList = hasWeek2 ? list : [...list, ...ALL_LINK_AND_WEEK2_HOMEWORK];
-        if (!hasWeek2 && ALL_LINK_AND_WEEK2_HOMEWORK.length > 0) {
+        const hasWeek2Arabic = list.some((h) => (h.week || 1) === 2 && h.subject === 'Arabic');
+        const fullList = hasWeek2Arabic ? list : [...list.filter((h) => (h.week || 1) !== 2), ...ALL_LINK_AND_WEEK2_HOMEWORK];
+        if (!hasWeek2Arabic && ALL_LINK_AND_WEEK2_HOMEWORK.length > 0) {
           localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullList));
         }
         if (profile?.mode === 'student' && profile.studentName) {
@@ -197,11 +197,19 @@ export default function App() {
       const saved = localStorage.getItem('nile_custom_tomorrow_notes');
       const list = saved ? JSON.parse(saved) : [];
       if (Array.isArray(list)) {
-        return list;
+        const hasWeek2Arabic = list.some((n) => n.week === 2 && n.subject === 'Arabic');
+        if (hasWeek2Arabic) {
+          return list;
+        } else {
+          const cleanList = list.filter((n) => n.week !== 2);
+          const fullList = [...cleanList, ...WEEK2_SPECIAL_NOTES];
+          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullList));
+          return fullList;
+        }
       }
-      return [];
+      return WEEK2_SPECIAL_NOTES;
     } catch {
-      return [];
+      return WEEK2_SPECIAL_NOTES;
     }
   });
 
@@ -260,28 +268,32 @@ export default function App() {
         // 2. Fetch classwork
         const remoteCw = await supabaseFetchClasswork();
         if (isMounted) {
-          if (remoteCw.length > 0) {
+          const hasWeek2Arabic = remoteCw.some((c) => (c.week || 1) === 2 && c.subject === 'Arabic');
+          if (remoteCw.length > 0 && hasWeek2Arabic) {
             setClassworkList(remoteCw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
           } else {
-            // Seed default Arabic weekly plan if empty
-            setClassworkList(INITIAL_CLASSWORK);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(INITIAL_CLASSWORK));
-            supabaseBatchInsertClasswork(INITIAL_CLASSWORK).catch(console.warn);
+            const cleanCw = remoteCw.filter((c) => (c.week || 1) !== 2);
+            const fullCw = [...cleanCw, ...WEEK2_CLASSWORK];
+            setClassworkList(fullCw);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
+            supabaseBatchInsertClasswork(fullCw).catch(console.warn);
           }
         }
 
         // 3. Fetch homework
         const remoteHw = await supabaseFetchHomework();
         if (isMounted) {
-          if (remoteHw.length > 0) {
+          const hasWeek2Arabic = remoteHw.some((h) => (h.week || 1) === 2 && h.subject === 'Arabic');
+          if (remoteHw.length > 0 && hasWeek2Arabic) {
             setHomeworkList(remoteHw);
             localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
           } else {
-            // Seed default Arabic homework if empty
-            setHomeworkList(INITIAL_HOMEWORK);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(INITIAL_HOMEWORK));
-            supabaseBatchInsertHomework(INITIAL_HOMEWORK).catch(console.warn);
+            const cleanHw = remoteHw.filter((h) => (h.week || 1) !== 2);
+            const fullHw = [...cleanHw, ...ALL_LINK_AND_WEEK2_HOMEWORK];
+            setHomeworkList(fullHw);
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullHw));
+            supabaseBatchInsertHomework(fullHw).catch(console.warn);
           }
         }
 
@@ -301,9 +313,18 @@ export default function App() {
 
         // 6. Fetch tomorrow special notes
         const remoteTomorrow = await supabaseFetchTomorrowNotes();
-        if (isMounted && remoteTomorrow.length > 0) {
-          setCustomTomorrowNotes(remoteTomorrow);
-          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
+        if (isMounted) {
+          const hasWeek2Arabic = remoteTomorrow.some((n) => n.week === 2 && n.subject === 'Arabic');
+          if (remoteTomorrow.length > 0 && hasWeek2Arabic) {
+            setCustomTomorrowNotes(remoteTomorrow);
+            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
+          } else {
+            const cleanTomorrow = remoteTomorrow.filter((n) => n.week !== 2);
+            const fullTomorrow = [...cleanTomorrow, ...WEEK2_SPECIAL_NOTES];
+            setCustomTomorrowNotes(fullTomorrow);
+            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullTomorrow));
+            supabaseSaveTomorrowNotes(fullTomorrow).catch(console.warn);
+          }
         }
 
         if (isMounted) {
