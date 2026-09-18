@@ -210,22 +210,23 @@ export function smartParseWeeklyPlan(
 
         // Extract homework: Strictly from Homework column
         if (hwText && hwText.length >= 2 && !/^-+$/.test(hwText) && hwText !== 'لا شيء') {
-          const hwLinks = extractLinks(hwText);
-          const hwPages = extractPages(hwText);
-          const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(hwText) || hwText === '-';
-
-          rawHomework.push({
-            classId: defaultClass,
-            assignedDay: currentDay,
-            dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
-            subject: currentSubject,
-            task: isNoHw ? 'لا يوجد واجب اليوم' : hwText,
-            pages: hwPages,
-            completed: isNoHw,
-            priority: /urgent|هام|اختبار|quiz|ضروري/i.test(hwText) ? 'urgent' : 'normal',
-            linkUrl: hwLinks[0]?.url,
-            links: hwLinks.length > 0 ? hwLinks : undefined,
-          });
+          const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(hwText) || hwText === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(hwText);
+          if (!isNoHw) {
+            const hwLinks = extractLinks(hwText);
+            const hwPages = extractPages(hwText);
+            rawHomework.push({
+              classId: defaultClass,
+              assignedDay: currentDay,
+              dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
+              subject: currentSubject,
+              task: hwText,
+              pages: hwPages,
+              completed: false,
+              priority: /urgent|هام|اختبار|quiz|ضروري/i.test(hwText) ? 'urgent' : 'normal',
+              linkUrl: hwLinks[0]?.url,
+              links: hwLinks.length > 0 ? hwLinks : undefined,
+            });
+          }
         }
 
         // Extract note
@@ -360,19 +361,21 @@ export function smartParseWeeklyPlan(
               });
             }
           } else if (cur.type === 'hw') {
-            const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(content) || content === '-';
-            rawHomework.push({
-              classId: defaultClass,
-              assignedDay: currentDay,
-              dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
-              subject: currentSubject,
-              task: isNoHw ? 'لا يوجد واجب اليوم' : content,
-              pages,
-              completed: isNoHw,
-              priority: /urgent|هام|اختبار|quiz|ضروري/i.test(content) ? 'urgent' : 'normal',
-              linkUrl: links[0]?.url,
-              links: links.length > 0 ? links : undefined,
-            });
+            const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(content) || content === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(content);
+            if (!isNoHw) {
+              rawHomework.push({
+                classId: defaultClass,
+                assignedDay: currentDay,
+                dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
+                subject: currentSubject,
+                task: content,
+                pages,
+                completed: false,
+                priority: /urgent|هام|اختبار|quiz|ضروري/i.test(content) ? 'urgent' : 'normal',
+                linkUrl: links[0]?.url,
+                links: links.length > 0 ? links : undefined,
+              });
+            }
           } else if (cur.type === 'note') {
             rawTomorrowNotes.push({
               day: currentDay,
@@ -409,20 +412,22 @@ export function smartParseWeeklyPlan(
       activeSection = 'hw';
       const clean = cleanMarkerPrefix(rawLine, HW_MARKER_SOURCE);
       if (clean && clean !== '-' && clean !== 'لا شيء') {
-        const links = extractLinks(clean);
-        const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(clean);
-        rawHomework.push({
-          classId: defaultClass,
-          assignedDay: currentDay,
-          dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
-          subject: currentSubject,
-          task: isNoHw ? 'لا يوجد واجب اليوم' : clean,
-          pages: extractPages(clean),
-          completed: isNoHw,
-          priority: /urgent|هام|اختبار|quiz|ضروري/i.test(clean) ? 'urgent' : 'normal',
-          linkUrl: links[0]?.url,
-          links: links.length > 0 ? links : undefined,
-        });
+        const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(clean) || clean === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(clean);
+        if (!isNoHw) {
+          const links = extractLinks(clean);
+          rawHomework.push({
+            classId: defaultClass,
+            assignedDay: currentDay,
+            dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
+            subject: currentSubject,
+            task: clean,
+            pages: extractPages(clean),
+            completed: false,
+            priority: /urgent|هام|اختبار|quiz|ضروري/i.test(clean) ? 'urgent' : 'normal',
+            linkUrl: links[0]?.url,
+            links: links.length > 0 ? links : undefined,
+          });
+        }
       }
       continue;
     }
@@ -512,19 +517,21 @@ export function smartParseWeeklyPlan(
     const pages = extractPages(cleanContinuation);
 
     if (activeSection === 'hw') {
-      const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(cleanContinuation);
-      rawHomework.push({
-        classId: defaultClass,
-        assignedDay: currentDay,
-        dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
-        subject: currentSubject,
-        task: isNoHw ? 'لا يوجد واجب اليوم' : cleanContinuation,
-        pages,
-        completed: isNoHw,
-        priority: 'normal',
-        linkUrl: links[0]?.url,
-        links: links.length > 0 ? links : undefined,
-      });
+      const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(cleanContinuation) || cleanContinuation === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(cleanContinuation);
+      if (!isNoHw) {
+        rawHomework.push({
+          classId: defaultClass,
+          assignedDay: currentDay,
+          dueDay: NEXT_DAY_MAP[currentDay] || 'Monday',
+          subject: currentSubject,
+          task: cleanContinuation,
+          pages,
+          completed: false,
+          priority: 'normal',
+          linkUrl: links[0]?.url,
+          links: links.length > 0 ? links : undefined,
+        });
+      }
     } else if (activeSection === 'note') {
       rawTomorrowNotes.push({
         day: currentDay,
@@ -624,19 +631,21 @@ export function cleanAndValidatePlanResult(
     if (HW_PREFIX.test(title) || /^لا\s*يوجد\s*واجب/i.test(title)) {
       const cleanHw = title.replace(HW_PREFIX, '').trim();
       if (cleanHw && !HEADER_IGNORE_EXACT.test(cleanHw)) {
-        const isNoHw = /^لا\s*يوجد/i.test(cleanHw);
-        homework.push({
-          classId: (cw.classId as ClassId) || defaultClass,
-          assignedDay: cw.day || 'Sunday',
-          dueDay: NEXT_DAY_MAP[cw.day || 'Sunday'] || 'Monday',
-          subject: ((cw.subject as SubjectName) || (subjectHint as SubjectName) || 'Arabic'),
-          task: isNoHw ? 'لا يوجد واجب اليوم' : cleanHw,
-          pages: cw.pages || extractPages(cleanHw),
-          completed: isNoHw,
-          priority: /urgent|هام|اختبار|quiz|ضروري/i.test(cleanHw) ? 'urgent' : 'normal',
-          linkUrl: cw.linkUrl,
-          links: cw.links || extractLinks(cleanHw),
-        });
+        const isNoHw = /^لا\s*يوجد/i.test(cleanHw) || cleanHw === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(cleanHw);
+        if (!isNoHw) {
+          homework.push({
+            classId: (cw.classId as ClassId) || defaultClass,
+            assignedDay: cw.day || 'Sunday',
+            dueDay: NEXT_DAY_MAP[cw.day || 'Sunday'] || 'Monday',
+            subject: ((cw.subject as SubjectName) || (subjectHint as SubjectName) || 'Arabic'),
+            task: cleanHw,
+            pages: cw.pages || extractPages(cleanHw),
+            completed: false,
+            priority: /urgent|هام|اختبار|quiz|ضروري/i.test(cleanHw) ? 'urgent' : 'normal',
+            linkUrl: cw.linkUrl,
+            links: cw.links || extractLinks(cleanHw),
+          });
+        }
       }
       continue;
     }
@@ -724,18 +733,19 @@ export function cleanAndValidatePlanResult(
     task = task.replace(HW_PREFIX, '').trim();
     if (!task || HEADER_IGNORE_EXACT.test(task)) continue;
 
-    const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(task);
-
-    homework.push({
-      ...hw,
-      classId: (hw.classId as ClassId) || defaultClass,
-      subject: ((hw.subject as SubjectName) || (subjectHint as SubjectName) || 'Arabic'),
-      task: isNoHw ? 'لا يوجد واجب اليوم' : task,
-      pages: hw.pages || extractPages(task),
-      completed: isNoHw ? true : Boolean(hw.completed),
-      linkUrl: hw.linkUrl || extractLinks(task)[0]?.url,
-      links: hw.links || (extractLinks(task).length > 0 ? extractLinks(task) : undefined),
-    });
+    const isNoHw = /^لا\s*يوجد(?:\s*واجب)?/i.test(task) || task === '-' || /^(?:لا يوجد|مفيش|راحة)/i.test(task);
+    if (!isNoHw) {
+      homework.push({
+        ...hw,
+        classId: (hw.classId as ClassId) || defaultClass,
+        subject: ((hw.subject as SubjectName) || (subjectHint as SubjectName) || 'Arabic'),
+        task: task,
+        pages: hw.pages || extractPages(task),
+        completed: Boolean(hw.completed),
+        linkUrl: hw.linkUrl || extractLinks(task)[0]?.url,
+        links: hw.links || (extractLinks(task).length > 0 ? extractLinks(task) : undefined),
+      });
+    }
   }
 
   // Process raw tomorrowNotes

@@ -11,6 +11,7 @@ import {
   Shield,
   GraduationCap,
   FolderOpen,
+  Pencil,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, TOPIC_WEEK_DATES, ALL_CLASSES } from '../data/timetables';
@@ -33,6 +34,9 @@ interface NavbarProps {
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
   onOpenWeeklyPlan?: () => void;
+  isAdmin?: boolean;
+  isAdminLiveEdit?: boolean;
+  onToggleAdminLiveEdit?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -52,6 +56,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAdminAuth,
   onOpenMaterials,
   onOpenWeeklyPlan,
+  isAdmin = false,
+  isAdminLiveEdit = false,
+  onToggleAdminLiveEdit,
 }) => {
   const tabs = [
     {
@@ -106,16 +113,34 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            {/* Admin Button directly inside the top blue bar without any separation */}
-            <button
-              type="button"
-              onClick={onOpenAdminAuth}
-              className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
-              title="لوحة الأدمن / Admin Mode"
-            >
-              <Shield className="w-3.5 h-3.5 text-amber-300" />
-              <span>أدمن</span>
-            </button>
+            {/* Admin and Live Edit Buttons */}
+            <div className="flex items-center gap-1.5">
+              {isAdmin && onToggleAdminLiveEdit && (
+                <button
+                  type="button"
+                  onClick={onToggleAdminLiveEdit}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border active:scale-95 shrink-0 ${
+                    isAdminLiveEdit
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold shadow-amber-500/20'
+                      : 'bg-white/10 hover:bg-white/20 text-white border-white/25'
+                  }`}
+                  title="تعديل الدروس والواجبات والملاحظات مباشرة من كروت الصفحة"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>{isAdminLiveEdit ? 'تعديل مباشر: شغال ✏️' : 'تعديل مباشر ✏️'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={onOpenAdminAuth}
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
+                title="لوحة الأدمن / Admin Mode"
+              >
+                <Shield className="w-3.5 h-3.5 text-amber-300" />
+                <span>أدمن</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

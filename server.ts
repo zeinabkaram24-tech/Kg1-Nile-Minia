@@ -4,6 +4,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { smartParseWeeklyPlan, cleanAndValidatePlanResult } from './src/utils/smartWeeklyPlanParser';
 
 dotenv.config();
 
@@ -362,8 +363,6 @@ function getGenAI(): GoogleGenAI | null {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-
-import { smartParseWeeklyPlan, cleanAndValidatePlanResult } from './src/utils/smartWeeklyPlanParser';
 
 // API endpoint to parse Weekly Plan using Gemini or smart deterministic fallback
 app.post('/api/parse-weekly-plan', async (req, res) => {

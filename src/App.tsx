@@ -20,13 +20,14 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
+import { LiveEditItemModal, LiveEditModeType } from './components/LiveEditItemModal';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
   getStudentProgress,
   saveStudentProgress,
 } from './utils/studentStorage';
-import { Sparkles, Trash2, RotateCcw, Database, Cloud, CheckCircle } from 'lucide-react';
+import { Sparkles, Trash2, RotateCcw, Database, Cloud, CheckCircle, Pencil } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from './lib/supabase';
 import {
   seedInitialDataIfNeeded,
@@ -195,19 +196,29 @@ export default function App() {
     try {
       const saved = localStorage.getItem('nile_custom_tomorrow_notes');
       const list = saved ? JSON.parse(saved) : [];
-      if (Array.isArray(list) && list.length > 0) {
-        const hasWeek2 = list.some((n: any) => n.week === 2);
-        if (!hasWeek2 && WEEK2_SPECIAL_NOTES.length > 0) {
-          const merged = [...list, ...WEEK2_SPECIAL_NOTES];
-          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(merged));
-          return merged;
-        }
+      if (Array.isArray(list)) {
         return list;
       }
-      return [...SPECIAL_TEACHER_NOTES, ...WEEK2_SPECIAL_NOTES];
+      return [];
     } catch {
-      return [...SPECIAL_TEACHER_NOTES, ...WEEK2_SPECIAL_NOTES];
+      return [];
     }
+  });
+
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    return sessionStorage.getItem('nile_admin_authenticated') === 'true';
+  });
+  const [isAdminLiveEdit, setIsAdminLiveEdit] = useState<boolean>(() => {
+    return localStorage.getItem('nile_admin_live_edit') === 'true';
+  });
+  const [liveEditModalConfig, setLiveEditModalConfig] = useState<{
+    isOpen: boolean;
+    type: LiveEditModeType;
+    item?: any;
+    originalIndex?: number;
+  }>({
+    isOpen: false,
+    type: 'classwork',
   });
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -523,7 +534,14 @@ export default function App() {
 
   const handleAddHomework = async (entry: HomeworkEntry) => {
     setHomeworkList((prev) => {
-      const next = [entry, ...prev];
+      const idx = prev.findIndex((h) => h.id === entry.id);
+      let next: HomeworkEntry[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = entry;
+      } else {
+        next = [entry, ...prev];
+      }
       localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
@@ -536,9 +554,9 @@ export default function App() {
 
     const res = await supabaseUpsertHomework(entry);
     if (res.success) {
-      showToast('تمت إضافة الواجب وحفظه في Supabase بنجاح!');
+      showToast('تم حفظ الواجب في Supabase بنجاح!');
     } else {
-      showToast('تمت إضافة الواجب محلياً.');
+      showToast('تم حفظ الواجب محلياً.');
     }
   };
 
@@ -557,6 +575,31 @@ export default function App() {
 
     await supabaseDeleteHomework(id);
     showToast('تم حذف الواجب من قاعدة البيانات بنجاح.');
+  };
+
+  const handleSaveTomorrowNote = async (note: TomorrowSpecialNote, originalIndex?: number) => {
+    setCustomTomorrowNotes((prev) => {
+      let next: TomorrowSpecialNote[];
+      if (originalIndex !== undefined && originalIndex >= 0 && originalIndex < prev.length) {
+        next = prev.map((n, i) => (i === originalIndex ? note : n));
+      } else {
+        next = [note, ...prev];
+      }
+      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
+      supabaseSaveTomorrowNotes(next).catch(console.warn);
+      return next;
+    });
+    showToast('تم حفظ ملاحظة الغد بنجاح!');
+  };
+
+  const handleDeleteTomorrowNote = async (index: number) => {
+    setCustomTomorrowNotes((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
+      supabaseSaveTomorrowNotes(next).catch(console.warn);
+      return next;
+    });
+    showToast('تم حذف الملاحظة بنجاح.');
   };
 
   const handleApplyWeeklyPlan = async (
@@ -779,11 +822,26 @@ export default function App() {
         onSelectTab={setActiveTab}
         onSelectBlock={handleSelectBlock}
         onSelectWeek={handleSelectWeek}
+        isAdmin={isAdmin}
+        isAdminLiveEdit={isAdminLiveEdit}
+        onToggleAdminLiveEdit={() => {
+          setIsAdminLiveEdit((prev) => {
+            const next = !prev;
+            localStorage.setItem('nile_admin_live_edit', String(next));
+            if (next) {
+              showToast('تم تفعيل وضع التعديل المباشر ✏️ يمكنك الآن تعديل وحذف وإضافة أي درس أو واجب أو ملاحظة مباشرة');
+            } else {
+              showToast('تم إيقاف وضع التعديل المباشر.');
+            }
+            return next;
+          });
+        }}
         onOpenProfileModal={() => setIsAuthModalOpen(true)}
         onOpenAdminAuth={() => {
           setAdminDashboardInitialTab('materials');
           const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
           if (isAuthed) {
+            setIsAdmin(true);
             setIsAdminDashboardOpen(true);
           } else {
             setIsAdminAuthOpen(true);
@@ -793,6 +851,7 @@ export default function App() {
           setAdminDashboardInitialTab('weekly_plan');
           const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
           if (isAuthed) {
+            setIsAdmin(true);
             setIsAdminDashboardOpen(true);
           } else {
             setIsAdminAuthOpen(true);
@@ -804,6 +863,48 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Live Edit Active Sticky Banner */}
+        {isAdminLiveEdit && (
+          <div className="mb-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 p-3.5 sm:p-4 rounded-2xl shadow-sm border border-amber-400/90 flex flex-wrap items-center justify-between gap-2.5 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2.5 font-black text-xs sm:text-sm">
+              <div className="w-7 h-7 rounded-lg bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-2xs">
+                <Pencil className="w-3.5 h-3.5" />
+              </div>
+              <span>
+                وضع التعديل المباشر نشط (Live Edit Mode): اضغط على أيقونة القلم ✏️ لتعديل أي عنصر، أو سلة المهملات 🗑️ للحذف، أو زر الإضافة ➕.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (activeTab === 'classwork') {
+                    setLiveEditModalConfig({ isOpen: true, type: 'classwork', item: null });
+                  } else if (activeTab === 'homework') {
+                    setLiveEditModalConfig({ isOpen: true, type: 'homework', item: null });
+                  } else {
+                    setLiveEditModalConfig({ isOpen: true, type: 'tomorrow_note', item: null });
+                  }
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-2xs cursor-pointer active:scale-95"
+              >
+                + إضافة عنصر جديد
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAdminLiveEdit(false);
+                  localStorage.setItem('nile_admin_live_edit', 'false');
+                  showToast('تم إيقاف وضع التعديل المباشر.');
+                }}
+                className="bg-slate-950 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-2xs cursor-pointer active:scale-95"
+              >
+                إنهاء التعديل
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Toast Notification */}
         {toastMsg && (
           <div className="mb-4 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-md text-xs sm:text-sm font-semibold flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200">
@@ -833,6 +934,21 @@ export default function App() {
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
               onDeleteClasswork={handleDeleteClasswork}
+              isAdminLiveEdit={isAdminLiveEdit}
+              onEditClasswork={(cw) => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'classwork',
+                  item: cw,
+                });
+              }}
+              onAddClasswork={() => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'classwork',
+                  item: null,
+                });
+              }}
             />
           )}
 
@@ -847,6 +963,21 @@ export default function App() {
               onToggleHomework={handleToggleHomework}
               onAddHomework={handleAddHomework}
               onDeleteHomework={handleDeleteHomework}
+              isAdminLiveEdit={isAdminLiveEdit}
+              onEditHomework={(hw) => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'homework',
+                  item: hw,
+                });
+              }}
+              onAddNewHomework={() => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'homework',
+                  item: null,
+                });
+              }}
             />
           )}
 
@@ -858,6 +989,23 @@ export default function App() {
               currentWeek={currentWeek}
               timetables={timetables}
               customTomorrowNotes={customTomorrowNotes}
+              isAdminLiveEdit={isAdminLiveEdit}
+              onEditTomorrowNote={(note, idx) => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'tomorrow_note',
+                  item: note,
+                  originalIndex: idx,
+                });
+              }}
+              onDeleteTomorrowNote={handleDeleteTomorrowNote}
+              onAddTomorrowNote={() => {
+                setLiveEditModalConfig({
+                  isOpen: true,
+                  type: 'tomorrow_note',
+                  item: null,
+                });
+              }}
             />
           )}
 
@@ -945,6 +1093,8 @@ export default function App() {
         onClose={() => setIsAdminAuthOpen(false)}
         onSuccess={() => {
           setIsAdminAuthOpen(false);
+          setIsAdmin(true);
+          sessionStorage.setItem('nile_admin_authenticated', 'true');
           setIsAdminDashboardOpen(true);
         }}
       />
@@ -960,6 +1110,19 @@ export default function App() {
         currentBlock={currentBlock}
         currentWeek={currentWeek}
         initialTab={adminDashboardInitialTab}
+        isAdminLiveEdit={isAdminLiveEdit}
+        onToggleAdminLiveEdit={() => {
+          setIsAdminLiveEdit((prev) => {
+            const next = !prev;
+            localStorage.setItem('nile_admin_live_edit', String(next));
+            if (next) {
+              showToast('تم تفعيل وضع التعديل المباشر ✏️');
+            } else {
+              showToast('تم إيقاف وضع التعديل المباشر.');
+            }
+            return next;
+          });
+        }}
       />
 
       {/* School Materials Modal */}
@@ -968,6 +1131,22 @@ export default function App() {
         onClose={() => setIsMaterialsModalOpen(false)}
         currentClass={currentClass}
         currentBlock={currentBlock}
+      />
+
+      {/* Live Direct Edit Item Modal (Classwork / Homework / Tomorrow Note) */}
+      <LiveEditItemModal
+        isOpen={liveEditModalConfig.isOpen}
+        onClose={() => setLiveEditModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        type={liveEditModalConfig.type}
+        item={liveEditModalConfig.item}
+        originalIndex={liveEditModalConfig.originalIndex}
+        currentClass={currentClass}
+        selectedDay={selectedDay}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
+        onSaveClasswork={handleSaveClasswork}
+        onSaveHomework={handleAddHomework}
+        onSaveTomorrowNote={handleSaveTomorrowNote}
       />
     </div>
   );

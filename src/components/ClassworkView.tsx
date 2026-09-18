@@ -9,6 +9,9 @@ import {
   Layers,
   Sparkles,
   Clock,
+  Pencil,
+  Trash2,
+  Plus,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA } from '../data/timetables';
@@ -24,6 +27,10 @@ interface ClassworkViewProps {
   currentWeek?: number;
   timetables?: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
   onToggleClasswork: (id: string) => void;
+  isAdminLiveEdit?: boolean;
+  onEditClasswork?: (cw: ClassworkEntry) => void;
+  onDeleteClasswork?: (id: string) => void;
+  onAddClasswork?: () => void;
 }
 
 const ARABIC_DAYS: Record<SchoolDay, string> = {
@@ -61,6 +68,10 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
   currentWeek = 1,
   timetables,
   onToggleClasswork,
+  isAdminLiveEdit = false,
+  onEditClasswork,
+  onDeleteClasswork,
+  onAddClasswork,
 }) => {
   // Check if current class has ANY weekly plan entered for this Block and Week
   const hasPlanForWeek = classworkList.some(
@@ -243,6 +254,18 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
               المواد تظهر في الكلاس وورك فقط عند توفر الخطة الأسبوعية المعتمدة من إدارة المدرسة.
             </p>
+            {isAdminLiveEdit && onAddClasswork && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onAddClasswork}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-transform active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ إضافة درس لهذا اليوم</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -259,7 +282,18 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {isAdminLiveEdit && onAddClasswork && (
+                <button
+                  type="button"
+                  onClick={onAddClasswork}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-transform active:scale-95 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ إضافة درس لهذا اليوم</span>
+                </button>
+              )}
+
               {totalCount > 0 && (
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
                   <span>الإنجاز: {completedCount}/{totalCount} ({progressPercent}%)</span>
@@ -428,8 +462,37 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Actions (Check completion) */}
+                    {/* Actions (Check completion & Admin live edit) */}
                     <div className="flex items-center gap-2 self-end sm:self-center shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 w-full sm:w-auto justify-end">
+                      {isAdminLiveEdit && (
+                        <div className="flex items-center gap-1 bg-white/90 p-1 rounded-xl border border-slate-200 shadow-2xs">
+                          {onEditClasswork && (
+                            <button
+                              type="button"
+                              onClick={() => onEditClasswork(cwEntry)}
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                              title="تعديل هذا الدرس"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {onDeleteClasswork && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('هل أنت متأكد من حذف هذا الدرس نهائياً؟')) {
+                                  onDeleteClasswork(cwEntry.id);
+                                }
+                              }}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                              title="حذف هذا الدرس"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+
                       <button
                         onClick={handleToggleLesson}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${

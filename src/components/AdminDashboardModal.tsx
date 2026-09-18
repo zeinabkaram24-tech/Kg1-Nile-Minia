@@ -19,6 +19,7 @@ import {
   Copy,
   Check,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { ClassId, MaterialItem, ClassworkEntry, HomeworkEntry } from '../types';
 import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
@@ -62,6 +63,8 @@ interface AdminDashboardModalProps {
   currentBlock?: number;
   currentWeek?: number;
   initialTab?: 'materials' | 'weekly_plan' | 'supabase';
+  isAdminLiveEdit?: boolean;
+  onToggleAdminLiveEdit?: () => void;
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -74,6 +77,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   currentBlock = 1,
   currentWeek = 1,
   initialTab = 'materials',
+  isAdminLiveEdit = false,
+  onToggleAdminLiveEdit,
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -336,15 +341,34 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              id="admin-dashboard-close-btn"
-              onClick={onClose}
-              type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              <span>خروج</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleAdminLiveEdit) onToggleAdminLiveEdit();
+                  onClose();
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  isAdminLiveEdit
+                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                }`}
+                title="تعديل مباشر على الصفحة دون الحاجة لرفع ملفات"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>{isAdminLiveEdit ? 'تعديل مباشر: شغال ✏️' : 'تعديل مباشر ✏️'}</span>
+              </button>
+
+              <button
+                id="admin-dashboard-close-btn"
+                onClick={onClose}
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              >
+                <span>خروج</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
           {/* Navigation Tabs (Materials vs Weekly Plan vs Supabase) */}
@@ -405,6 +429,43 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                 <span>{errorMessage}</span>
               </div>
             )}
+
+            {/* Live Edit Mode Banner Card */}
+            <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 border border-indigo-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
+                    <span>وضع التعديل المباشر في التطبيق (Direct Live Edit)</span>
+                    {isAdminLiveEdit && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
+                        مفعل حالياً
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-[11px] text-slate-600 font-semibold mt-0.5">
+                    تعديل وحذف وإضافة الدروس والواجبات والملاحظات مباشرة من كروت الصفحة بنقرة زر واحدة.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleAdminLiveEdit) onToggleAdminLiveEdit();
+                  onClose();
+                }}
+                className={`inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 shadow-xs active:scale-95 ${
+                  isAdminLiveEdit
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                }`}
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>{isAdminLiveEdit ? 'إيقاف التعديل المباشر' : 'تفعيل والتعديل في الصفحة الآن ✏️'}</span>
+              </button>
+            </div>
 
             {adminTab === 'weekly_plan' ? (
               /* WEEKLY PLAN SMART PARSER TAB CONTENT */

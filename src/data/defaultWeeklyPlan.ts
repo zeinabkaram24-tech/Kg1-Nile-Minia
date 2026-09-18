@@ -9,53 +9,7 @@ export type { TomorrowSpecialNote as SpecialTeacherNote };
  */
 const KG1_CLASSES: ClassId[] = ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'];
 
-export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = KG1_CLASSES.flatMap((cls) => [
-  {
-    classId: cls,
-    targetDay: 'Sunday',
-    subject: 'Arabic',
-    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    block: 1,
-    week: 1,
-  },
-  {
-    classId: cls,
-    targetDay: 'Monday',
-    subject: 'Arabic',
-    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    block: 1,
-    week: 1,
-  },
-  {
-    classId: cls,
-    targetDay: 'Tuesday',
-    subject: 'Arabic',
-    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    block: 1,
-    week: 1,
-  },
-  {
-    classId: cls,
-    targetDay: 'Wednesday',
-    subject: 'Arabic',
-    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    block: 1,
-    week: 1,
-  },
-  {
-    classId: cls,
-    targetDay: 'Thursday',
-    subject: 'Arabic',
-    note: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    arabicNote: 'ضرورة استماع الطفل لروابط الفيديوهات المرسلة لتنمية مهارة الاستماع لدى الطفل.',
-    block: 1,
-    week: 1,
-  },
-]);
+export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [];
 
 /**
  * Weekly Plan Classwork
@@ -170,34 +124,6 @@ export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
  * Only the YouTube links without page numbers or extra text.
  */
 export const WEEK1_BASE_HOMEWORK: HomeworkEntry[] = KG1_CLASSES.flatMap((cls) => [
-  // Sunday Homework (الأحد 13/9)
-  {
-    id: `hw-${cls.toLowerCase()}-sun-ar`,
-    classId: cls,
-    assignedDay: 'Sunday',
-    dueDay: 'Monday',
-    subject: 'Arabic',
-    task: 'لا يوجد واجب اليوم (استقبال وتهيئة)',
-    completed: true,
-    priority: 'normal',
-    block: 1,
-    week: 1,
-  },
-
-  // Monday Homework (الإثنين 14/9)
-  {
-    id: `hw-${cls.toLowerCase()}-mon-ar`,
-    classId: cls,
-    assignedDay: 'Monday',
-    dueDay: 'Tuesday',
-    subject: 'Arabic',
-    task: 'لا يوجد واجب اليوم (استقبال وتهيئة)',
-    completed: true,
-    priority: 'normal',
-    block: 1,
-    week: 1,
-  },
-
   // Tuesday Homework (واجب يوم الثلاثاء 15/9)
   {
     id: `hw-${cls.toLowerCase()}-tue-ar`,
