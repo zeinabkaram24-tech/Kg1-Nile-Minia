@@ -4,6 +4,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { createClient } from '@supabase/supabase-js';
 import { smartParseWeeklyPlan, cleanAndValidatePlanResult } from './src/utils/smartWeeklyPlanParser';
 import dbRouter from './server_db';
 
@@ -11,6 +12,53 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
+
+// Supabase server-side configuration (safe from browser exposure)
+const SB_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+const isConfigured = Boolean(
+  SB_URL &&
+  SB_KEY &&
+  !SB_URL.includes('placeholder') &&
+  (SB_URL.startsWith('http://') || SB_URL.startsWith('https://'))
+);
+
+const supabase = isConfigured ? createClient(SB_URL, SB_KEY) : null;
+
+function mapMaterialItemToRow(item: any) {
+  return {
+    id: item.id,
+    file_name: item.fileName || 'unnamed',
+    file_size: Number(item.fileSize) || 0,
+    file_data: item.fileData || null,
+    file_url: item.fileUrl || null,
+    block: Number(item.block || item.blockNumber || 1),
+    section: item.section || 'Main sheet',
+    class_id: item.classId || 'ALL',
+    title: item.title || null,
+    category: item.category || null,
+    notes: item.notes || null,
+    uploaded_at: item.uploadedAt || new Date().toISOString(),
+  };
+}
+
+function mapRowToMaterialItem(row: any) {
+  return {
+    id: row.id,
+    fileName: row.file_name,
+    fileSize: row.file_size,
+    fileData: row.file_data,
+    fileUrl: row.file_url,
+    block: row.block,
+    section: row.section,
+    classId: row.class_id,
+    title: row.title,
+    category: row.category,
+    notes: row.notes,
+    uploadedAt: row.uploaded_at,
+  };
+}
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -115,13 +163,27 @@ function persistMaterialsToDisk() {
 // Materials API Endpoints (Sync Mobile ⇄ Laptop)
 
 // 1. Get All Materials
-app.get('/api/materials', (req, res) => {
-  const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
-  res.json({
-    success: true,
-    materials: activeMaterials,
-    deletedIds: Array.from(deletedMaterialIds),
-  });
+app.get('/api/materials', async (req, res) => {
+  try {
+    if (supabase) {
+      const { data, error } = await supabase.from('materials').select('*');
+      if (!error && data) {
+        const serverItems = data.map(mapRowToMaterialItem);
+        inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+        persistMaterialsToDisk();
+      } else if (error) {
+        console.error('Supabase fetch materials warning:', error);
+      }
+    }
+    const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+    res.json({
+      success: true,
+      materials: activeMaterials,
+      deletedIds: Array.from(deletedMaterialIds),
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // 2. Serve PDF file binary directly with correct headers and cache
@@ -159,7 +221,7 @@ app.get('/api/materials/pdf/:id', (req, res) => {
 });
 
 // 3. Bidirectional Sync: Accepts client's local materials & deletedIds, merges them, and returns complete clean list
-app.post('/api/materials/sync', (req, res) => {
+app.post('/api/materials/sync', async (req, res) => {
   try {
     const { materials, deletedIds: clientDeletedIds } = req.body;
     let changed = false;
@@ -222,6 +284,21 @@ app.post('/api/materials/sync', (req, res) => {
       persistDeletedIdsToDisk();
     }
 
+    if (supabase) {
+      try {
+        const allDeleted = Array.from(deletedMaterialIds);
+        if (allDeleted.length > 0) {
+          await supabase.from('materials').delete().in('id', allDeleted);
+        }
+        const rows = inMemoryMaterials.map(mapMaterialItemToRow);
+        if (rows.length > 0) {
+          await supabase.from('materials').upsert(rows);
+        }
+      } catch (sbErr) {
+        console.error('Supabase sync database operation failure:', sbErr);
+      }
+    }
+
     const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
     res.json({
       success: true,
@@ -234,7 +311,7 @@ app.post('/api/materials/sync', (req, res) => {
 });
 
 // 4. Save/Update Single Material (Un-tombstone if re-uploaded intentionally)
-app.post('/api/materials/single', (req, res) => {
+app.post('/api/materials/single', async (req, res) => {
   try {
     const item = req.body;
     if (!item || !item.id) {
@@ -261,6 +338,17 @@ app.post('/api/materials/single', (req, res) => {
     }
 
     persistMaterialsToDisk();
+
+    if (supabase) {
+      try {
+        const row = mapMaterialItemToRow(cleanItem);
+        const { error } = await supabase.from('materials').upsert(row);
+        if (error) console.error('Supabase single upsert warning:', error);
+      } catch (sbErr) {
+        console.error('Supabase single upsert error:', sbErr);
+      }
+    }
+
     res.json({ success: true, material: cleanItem });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -268,7 +356,7 @@ app.post('/api/materials/single', (req, res) => {
 });
 
 // 5. Bulk Save
-app.post('/api/materials/save', (req, res) => {
+app.post('/api/materials/save', async (req, res) => {
   try {
     const { materials } = req.body;
     if (Array.isArray(materials)) {
@@ -282,6 +370,19 @@ app.post('/api/materials/save', (req, res) => {
       inMemoryMaterials = materials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
       persistMaterialsToDisk();
       persistDeletedIdsToDisk();
+
+      if (supabase) {
+        try {
+          const rows = inMemoryMaterials.map(mapMaterialItemToRow);
+          if (rows.length > 0) {
+            const { error } = await supabase.from('materials').upsert(rows);
+            if (error) console.error('Supabase bulk save warning:', error);
+          }
+        } catch (sbErr) {
+          console.error('Supabase bulk save error:', sbErr);
+        }
+      }
+
       return res.json({ success: true, count: inMemoryMaterials.length });
     }
     res.status(400).json({ success: false, error: 'materials array is required' });
@@ -291,7 +392,7 @@ app.post('/api/materials/save', (req, res) => {
 });
 
 // 6. Delete Material (Permanent Deletion across all devices)
-app.delete('/api/materials/:id', (req, res) => {
+app.delete('/api/materials/:id', async (req, res) => {
   try {
     const { id } = req.params;
     if (id) {
@@ -307,6 +408,15 @@ app.delete('/api/materials/:id', (req, res) => {
           fs.unlinkSync(filePath);
         } catch {}
       }
+
+      if (supabase) {
+        try {
+          const { error } = await supabase.from('materials').delete().eq('id', id);
+          if (error) console.error('Supabase delete material warning:', error);
+        } catch (sbErr) {
+          console.error('Supabase delete material error:', sbErr);
+        }
+      }
     }
 
     res.json({ success: true, deletedId: id, deletedIds: Array.from(deletedMaterialIds) });
@@ -316,35 +426,48 @@ app.delete('/api/materials/:id', (req, res) => {
 });
 
 // 7. Clear All Materials
-app.post('/api/materials/clear', (req, res) => {
-  for (const m of inMemoryMaterials) {
-    if (m && m.id) {
-      deletedMaterialIds.add(m.id);
-      const filePath = path.join(UPLOADS_DIR, `${m.id}.pdf`);
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch {}
-      }
-    }
-  }
-  inMemoryMaterials = [];
-  persistMaterialsToDisk();
-  persistDeletedIdsToDisk();
-
-  // Clean uploads directory
+app.post('/api/materials/clear', async (req, res) => {
   try {
-    if (fs.existsSync(UPLOADS_DIR)) {
-      const files = fs.readdirSync(UPLOADS_DIR);
-      for (const file of files) {
-        fs.unlinkSync(path.join(UPLOADS_DIR, file));
+    for (const m of inMemoryMaterials) {
+      if (m && m.id) {
+        deletedMaterialIds.add(m.id);
+        const filePath = path.join(UPLOADS_DIR, `${m.id}.pdf`);
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch {}
+        }
       }
     }
-  } catch (e) {
-    console.warn('Error clearing uploads dir:', e);
-  }
+    inMemoryMaterials = [];
+    persistMaterialsToDisk();
+    persistDeletedIdsToDisk();
 
-  res.json({ success: true, message: 'All materials cleared from server' });
+    // Clean uploads directory
+    try {
+      if (fs.existsSync(UPLOADS_DIR)) {
+        const files = fs.readdirSync(UPLOADS_DIR);
+        for (const file of files) {
+          fs.unlinkSync(path.join(UPLOADS_DIR, file));
+        }
+      }
+    } catch (e) {
+      console.warn('Error clearing uploads dir:', e);
+    }
+
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('materials').delete().neq('id', 'placeholder');
+        if (error) console.error('Supabase clear materials warning:', error);
+      } catch (sbErr) {
+        console.error('Supabase clear materials error:', sbErr);
+      }
+    }
+
+    res.json({ success: true, message: 'All materials cleared from server' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Helper to get GoogleGenAI client safely (lazy initialization)
@@ -471,7 +594,7 @@ ${planText}
       console.warn('Gemini generateContent with gemini-3.8-flash error, trying fallback:', aiErr?.message || aiErr);
       try {
         const fallbackResp = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
+          model: 'gemini-3.1-flash-lite',
           contents: prompt,
           config: {
             responseMimeType: 'application/json',

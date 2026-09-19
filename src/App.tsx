@@ -70,10 +70,27 @@ function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[]
       const list: ClassworkEntry[] = JSON.parse(raw);
       if (Array.isArray(list) && list.length > 0 && list.some((c) => c.classId === 'KG1A')) {
         const hasWeek2Arabic = list.some((c) => (c.week || 1) === 2 && c.subject === 'Arabic');
-        const fullList = hasWeek2Arabic ? list : [...list.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
+        const hasWeek1English = list.some((c) => (c.week || 1) === 1 && c.subject === 'English');
+        
+        let fullList = list;
+        let changed = false;
+
         if (!hasWeek2Arabic && WEEK2_CLASSWORK.length > 0) {
+          fullList = [...fullList.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
+          changed = true;
+        }
+
+        if (!hasWeek1English) {
+          const week1Eng = INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 1 && c.subject === 'English');
+          // Filter out any potential partial week 1 english entries to avoid duplicates
+          fullList = [...fullList.filter((c) => !((c.week || 1) === 1 && c.subject === 'English')), ...week1Eng];
+          changed = true;
+        }
+
+        if (changed) {
           localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullList));
         }
+
         if (profile?.mode === 'student' && profile.studentName) {
           const progress = getStudentProgress(profile.studentName);
           const set = new Set(progress.completedClassworkIds);
@@ -266,8 +283,19 @@ export default function App() {
           const week2Count = remoteCw.filter((c) => (c.week || 1) === 2).length;
           // If we have at least 5 classwork items for Week 2, use remote. Else, auto-merge defaults.
           if (remoteCw.length > 0 && week2Count >= 5) {
-            setClassworkList(remoteCw);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
+            const hasWeek1English = remoteCw.some((c) => (c.week || 1) === 1 && c.subject === 'English');
+            if (!hasWeek1English) {
+              const week1Eng = INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 1 && c.subject === 'English');
+              const fullCw = [...remoteCw, ...week1Eng];
+              setClassworkList(fullCw);
+              localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
+              if (isSupabaseConfigured) {
+                supabaseBatchInsertClasswork(week1Eng).catch(console.warn);
+              }
+            } else {
+              setClassworkList(remoteCw);
+              localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
+            }
           } else {
             const baseCw = remoteCw.length > 0 ? remoteCw : INITIAL_CLASSWORK;
             const cleanCw = baseCw.filter((c) => (c.week || 1) !== 2);

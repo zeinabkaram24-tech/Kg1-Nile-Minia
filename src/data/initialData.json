@@ -394,6 +394,436 @@
           "type": "video"
         }
       ]
+    },
+    {
+      "id": "cw-kg1a-mon-en",
+      "classId": "KG1A",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "First day of school",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1a-tue-en",
+      "classId": "KG1A",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/fPMjnlTEZwU?feature=shared",
+          "title": "Walking, walking",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1",
+          "title": "Time table",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1a-wed-en",
+      "classId": "KG1A",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/kz_EQSfFx0g?feature=shared",
+          "title": "counting",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=41cJ0mqWses",
+          "title": "Class furniture",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1a-thu-en",
+      "classId": "KG1A",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/Na9YR73Tma8?feature=shared",
+          "title": "Tall and short",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=TZTIkzAMvnY",
+          "title": "Maisy",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/03n6_3ZNs-8?feature=shared",
+          "title": "Yellow",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-mon-en",
+      "classId": "KG1B",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "First day of school",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1b-tue-en",
+      "classId": "KG1B",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/fPMjnlTEZwU?feature=shared",
+          "title": "Walking, walking",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1",
+          "title": "Time table",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-wed-en",
+      "classId": "KG1B",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/kz_EQSfFx0g?feature=shared",
+          "title": "counting",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=41cJ0mqWses",
+          "title": "Class furniture",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1b-thu-en",
+      "classId": "KG1B",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/Na9YR73Tma8?feature=shared",
+          "title": "Tall and short",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=TZTIkzAMvnY",
+          "title": "Maisy",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/03n6_3ZNs-8?feature=shared",
+          "title": "Yellow",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-mon-en",
+      "classId": "KG1C",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "First day of school",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1c-tue-en",
+      "classId": "KG1C",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/fPMjnlTEZwU?feature=shared",
+          "title": "Walking, walking",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1",
+          "title": "Time table",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-wed-en",
+      "classId": "KG1C",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/kz_EQSfFx0g?feature=shared",
+          "title": "counting",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=41cJ0mqWses",
+          "title": "Class furniture",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1c-thu-en",
+      "classId": "KG1C",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/Na9YR73Tma8?feature=shared",
+          "title": "Tall and short",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=TZTIkzAMvnY",
+          "title": "Maisy",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/03n6_3ZNs-8?feature=shared",
+          "title": "Yellow",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-mon-en",
+      "classId": "KG1D",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "First day of school",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1d-tue-en",
+      "classId": "KG1D",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/fPMjnlTEZwU?feature=shared",
+          "title": "Walking, walking",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1",
+          "title": "Time table",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-wed-en",
+      "classId": "KG1D",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/kz_EQSfFx0g?feature=shared",
+          "title": "counting",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=41cJ0mqWses",
+          "title": "Class furniture",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1d-thu-en",
+      "classId": "KG1D",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/Na9YR73Tma8?feature=shared",
+          "title": "Tall and short",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=TZTIkzAMvnY",
+          "title": "Maisy",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/03n6_3ZNs-8?feature=shared",
+          "title": "Yellow",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-mon-en",
+      "classId": "KG1E",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "First day of school",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": []
+    },
+    {
+      "id": "cw-kg1e-tue-en",
+      "classId": "KG1E",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/fPMjnlTEZwU?feature=shared",
+          "title": "Walking, walking",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1",
+          "title": "Time table",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-wed-en",
+      "classId": "KG1E",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/kz_EQSfFx0g?feature=shared",
+          "title": "counting",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=41cJ0mqWses",
+          "title": "Class furniture",
+          "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "cw-kg1e-thu-en",
+      "classId": "KG1E",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.",
+      "completed": false,
+      "block": 1,
+      "week": 1,
+      "links": [
+        {
+          "url": "https://youtu.be/Na9YR73Tma8?feature=shared",
+          "title": "Tall and short",
+          "type": "video"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=TZTIkzAMvnY",
+          "title": "Maisy",
+          "type": "video"
+        },
+        {
+          "url": "https://youtu.be/03n6_3ZNs-8?feature=shared",
+          "title": "Yellow",
+          "type": "video"
+        }
+      ]
     }
   ],
   "homework": [

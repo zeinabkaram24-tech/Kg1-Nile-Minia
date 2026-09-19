@@ -534,48 +534,18 @@ export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
 }
 
 export async function supabaseUpsertMaterial(item: MaterialItem): Promise<{ success: boolean; error?: any }> {
-  try {
-    const copy = { ...item };
-    if (copy.fileData) {
-      delete copy.fileData;
-    }
-    const res = await fetch('/api/materials/single', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(copy),
-    });
-    const json = await res.json();
-    return { success: json.success, error: json.error };
-  } catch (e: any) {
-    console.error('Upsert material backend error:', e);
-    return { success: false, error: e.message };
-  }
+  // Backend sync handles this automatically. Return success to avoid redundant POST requests.
+  return { success: true };
 }
 
 export async function supabaseDeleteMaterial(id: string): Promise<{ success: boolean; error?: any }> {
-  try {
-    const res = await fetch(`/api/materials/${id}`, {
-      method: 'DELETE',
-    });
-    const json = await res.json();
-    return { success: json.success, error: json.error };
-  } catch (e: any) {
-    console.error('Delete material backend error:', e);
-    return { success: false, error: e.message };
-  }
+  // Backend sync handles this automatically. Return success to avoid redundant DELETE requests.
+  return { success: true };
 }
 
 export async function supabaseClearAllMaterials(): Promise<boolean> {
-  try {
-    const res = await fetch('/api/materials/clear', {
-      method: 'POST',
-    });
-    const json = await res.json();
-    return json.success;
-  } catch (e) {
-    console.error('Clear materials backend error:', e);
-    return false;
-  }
+  // Backend sync handles this automatically. Return success to avoid redundant POST requests.
+  return true;
 }
 
 // ----------------------------------------------------------------------
@@ -625,20 +595,8 @@ export async function supabaseUploadMaterialFile(
 }
 
 export async function supabaseDeleteMaterialFile(filePathOrUrl: string): Promise<boolean> {
-  try {
-    const id = filePathOrUrl.split('/').pop()?.replace('.pdf', '') || '';
-    if (id) {
-      const res = await fetch(`/api/materials/${id}`, {
-        method: 'DELETE',
-      });
-      const json = await res.json();
-      return json.success;
-    }
-    return false;
-  } catch (e) {
-    console.error('Delete material file backend error:', e);
-    return false;
-  }
+  // Backend sync handles this automatically. Return true to avoid redundant DELETE requests.
+  return true;
 }
 
 // ----------------------------------------------------------------------

@@ -42,6 +42,17 @@ export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
     block: 1,
     week: 1,
   },
+  {
+    id: `cw-${cls.toLowerCase()}-mon-en`,
+    classId: cls,
+    day: 'Monday',
+    period: 2,
+    subject: 'English',
+    title: 'First day of school',
+    completed: false,
+    block: 1,
+    week: 1,
+  },
 
   // Tuesday (الثلاثاء 15/9/2026)
   {
@@ -64,6 +75,29 @@ export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       {
         url: 'https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl',
         title: 'https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `cw-${cls.toLowerCase()}-tue-en`,
+    classId: cls,
+    day: 'Tuesday',
+    period: 3,
+    subject: 'English',
+    title: '1-Daily visual timetable.\n2-Use photographs of the signs and read together in Arabic and English.\n3-Obey instructions in a large open area.',
+    completed: false,
+    block: 1,
+    week: 1,
+    links: [
+      {
+        url: 'https://youtu.be/fPMjnlTEZwU?feature=shared',
+        title: 'Walking, walking',
+        type: 'video',
+      },
+      {
+        url: 'https://www.youtube.com/watch?v=sGOqhmw76v4&list=RDsGOqhmw76v4&start_radio=1',
+        title: 'Time table',
         type: 'video',
       },
     ],
@@ -94,6 +128,29 @@ export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       },
     ],
   },
+  {
+    id: `cw-${cls.toLowerCase()}-wed-en`,
+    classId: cls,
+    day: 'Wednesday',
+    period: 1,
+    subject: 'English',
+    title: '1-Look at printed signs and notice that the signs are written in English and Arabic.\n2-Labels for furniture in the nursery.\n3-Every day count up to five using the fingers of one hand, introduce 0,1',
+    completed: false,
+    block: 1,
+    week: 1,
+    links: [
+      {
+        url: 'https://youtu.be/kz_EQSfFx0g?feature=shared',
+        title: 'counting',
+        type: 'video',
+      },
+      {
+        url: 'https://www.youtube.com/watch?v=41cJ0mqWses',
+        title: 'Class furniture',
+        type: 'video',
+      },
+    ],
+  },
 
   // Thursday (الخميس 17/9/2026)
   {
@@ -111,6 +168,34 @@ export const WEEK1_CLASSWORK: ClassworkEntry[] = KG1_CLASSES.flatMap((cls) => [
       {
         url: 'https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws',
         title: 'https://youtu.be/ocwAHmoHkMk?si=d8Is97zI_9gzfiws',
+        type: 'video',
+      },
+    ],
+  },
+  {
+    id: `cw-${cls.toLowerCase()}-thu-en`,
+    classId: cls,
+    day: 'Thursday',
+    period: 3,
+    subject: 'English',
+    title: '1-(yellow colour).\n2-Print with hands.\n3-Continue a book – ‘Maisy’s Bedtime’ by Lucy Collins ISBN 0-7445-6764-5.\n4-Choose the tallest/shortest teddy.',
+    completed: false,
+    block: 1,
+    week: 1,
+    links: [
+      {
+        url: 'https://youtu.be/Na9YR73Tma8?feature=shared',
+        title: 'Tall and short',
+        type: 'video',
+      },
+      {
+        url: 'https://www.youtube.com/watch?v=TZTIkzAMvnY',
+        title: 'Maisy',
+        type: 'video',
+      },
+      {
+        url: 'https://youtu.be/03n6_3ZNs-8?feature=shared',
+        title: 'Yellow',
         type: 'video',
       },
     ],
