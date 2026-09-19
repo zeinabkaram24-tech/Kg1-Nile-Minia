@@ -193,7 +193,7 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
     const payloadMaterials = await Promise.all(
       localMaterials.map(async (m) => {
         const itemCopy = { ...m };
-        if (!itemCopy.fileUrl && !itemCopy.fileData) {
+        if (!itemCopy.fileData) {
           try {
             const blob = await getMaterialBlob(itemCopy.id);
             if (blob) {
@@ -283,7 +283,7 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
 
         for (const item of validRemote) {
           store.put(item);
-          if (item.fileData && item.fileData.startsWith('data:')) {
+          if (item.fileData) {
             try {
               const blob = dataUrlToBlob(item.fileData);
               saveMaterialBlob(item.id, blob).catch(() => {});
@@ -316,7 +316,7 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
     } catch (blobErr) {
       console.warn('Could not cache blob:', blobErr);
     }
-  } else if (item.fileData && item.fileData.startsWith('data:')) {
+  } else if (item.fileData) {
     try {
       const blob = dataUrlToBlob(item.fileData);
       await saveMaterialBlob(item.id, blob);
@@ -333,7 +333,7 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
         item.fileUrl = uploadRes.publicUrl;
         if (item.fileData) delete item.fileData;
       }
-    } else if (!item.fileUrl && item.fileData && item.fileData.startsWith('data:')) {
+    } else if (!item.fileUrl && item.fileData) {
       const blob = dataUrlToBlob(item.fileData);
       const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf');
       if (uploadRes.success && uploadRes.publicUrl) {
@@ -490,12 +490,18 @@ export function formatBytes(bytes: number, decimals = 1): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-// Convert data URL to Blob
+// Convert data URL or raw base64 to Blob
 export function dataUrlToBlob(dataUrl: string): Blob {
-  const parts = dataUrl.split(',');
-  const mimeMatch = parts[0].match(/:(.*?);/);
-  const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
-  const bstr = atob(parts[1]);
+  let mime = 'application/pdf';
+  let bstr = '';
+  if (dataUrl.includes(',')) {
+    const parts = dataUrl.split(',');
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    if (mimeMatch) mime = mimeMatch[1];
+    bstr = atob(parts[1]);
+  } else {
+    bstr = atob(dataUrl);
+  }
   let n = bstr.length;
   const u8arr = new Uint8Array(n);
   while (n--) {
@@ -515,9 +521,7 @@ export async function getMaterialItemBlob(item: MaterialItem): Promise<Blob | nu
 
   if (item.fileData) {
     try {
-      if (item.fileData.startsWith('data:')) {
-        return dataUrlToBlob(item.fileData);
-      }
+      return dataUrlToBlob(item.fileData);
     } catch (e) {
       console.warn('Could not parse dataUrl:', e);
     }

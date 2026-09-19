@@ -203,9 +203,9 @@ app.get('/api/materials/pdf/:id', (req, res) => {
 
   // Fallback: check in-memory if item has fileData
   const found = inMemoryMaterials.find((m) => m.id === id);
-  if (found && found.fileData && typeof found.fileData === 'string' && found.fileData.includes(',')) {
+  if (found && found.fileData && typeof found.fileData === 'string') {
     try {
-      const b64 = found.fileData.split(',')[1];
+      const b64 = found.fileData.includes(',') ? found.fileData.split(',')[1] : found.fileData;
       const buf = Buffer.from(b64, 'base64');
       fs.writeFileSync(filePath, buf);
       res.setHeader('Content-Type', 'application/pdf');
