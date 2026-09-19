@@ -189,11 +189,12 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
     const rawLocal = await getAllMaterials();
     const localMaterials = rawLocal.filter((m) => m && m.id && !deletedIds.has(m.id));
 
-    // 2. Prepare items to sync to server, attaching file data from local IndexedDB blobs if needed
+    // 2. Prepare items to sync to server, attaching file data from local IndexedDB blobs only if they haven't been uploaded yet (no fileUrl)
     const payloadMaterials = await Promise.all(
       localMaterials.map(async (m) => {
         const itemCopy = { ...m };
-        if (!itemCopy.fileData) {
+        // ONLY attach fileData if the item does NOT have a valid fileUrl (not uploaded yet)
+        if (!itemCopy.fileUrl && !itemCopy.fileData) {
           try {
             const blob = await getMaterialBlob(itemCopy.id);
             if (blob) {
@@ -202,6 +203,9 @@ export async function syncMaterialsFromCloud(): Promise<MaterialItem[]> {
           } catch (e) {
             console.warn(`Could not read blob for ${itemCopy.id}:`, e);
           }
+        } else {
+          // Ensure fileData is NOT sent to save bandwidth and prevent browser tab crashes
+          delete itemCopy.fileData;
         }
         return itemCopy;
       })
@@ -374,6 +378,7 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
   }
 
   // 4. Save to local IndexedDB
+  if (item.fileData) delete item.fileData;
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -673,7 +678,7 @@ export function saveMaterials(materials: MaterialItem[], asAdmin?: boolean): voi
   const sanitized = materials
     .filter((m) => m && m.id && !deletedIds.has(m.id))
     .map((m) => {
-      if (m.fileData && m.fileData.length > 50000) {
+      if (m.fileData) {
         const { fileData, ...rest } = m;
         return rest;
       }
