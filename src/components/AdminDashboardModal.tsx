@@ -65,6 +65,7 @@ interface AdminDashboardModalProps {
   initialTab?: 'materials' | 'weekly_plan' | 'supabase';
   isAdminLiveEdit?: boolean;
   onToggleAdminLiveEdit?: () => void;
+  supabaseStatus?: 'connected' | 'offline' | 'checking';
 }
 
 export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
@@ -79,6 +80,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   initialTab = 'materials',
   isAdminLiveEdit = false,
   onToggleAdminLiveEdit,
+  supabaseStatus = 'offline',
 }) => {
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -491,7 +493,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xs ${
-                          isSupabaseConfigured ? 'bg-emerald-600' : 'bg-slate-500'
+                          supabaseStatus === 'connected' ? 'bg-emerald-600' : 'bg-amber-500'
                         }`}
                       >
                         <Cloud className="w-6 h-6" />
@@ -499,22 +501,22 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm sm:text-base font-black text-slate-900">
-                            حالة اتصال Supabase:
+                            حالة اتصال السيرفر بـ Supabase:
                           </h3>
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                              isSupabaseConfigured
+                              supabaseStatus === 'connected'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                                : 'bg-rose-100 text-rose-800 border border-rose-300'
+                                : 'bg-amber-100 text-amber-800 border border-amber-300'
                             }`}
                           >
-                            {isSupabaseConfigured ? 'متصل وجاهز (Configured)' : 'غير متصل (Check .env)'}
+                            {supabaseStatus === 'connected' ? 'سحابي متصل (Cloud Connected)' : 'تخزين مؤقت محلي (Offline Sandbox)'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 mt-1 font-medium">
-                          {isSupabaseConfigured
-                            ? 'تم ضبط مفاتيح VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY بنجاح. العمليات الحالية تتجه لـ Supabase.'
-                            : 'يرجى التأكد من إضافة VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY في ملف البيئة.'}
+                          {supabaseStatus === 'connected'
+                            ? 'تم الربط بنجاح وقراءة البيانات مباشرة من السحابة. التحديثات متزامنة فورياً مع كافة الهواتف.'
+                            : 'يعمل السيرفر حالياً بنمط حفظ محلي مؤقت بالذاكرة، ولا يشارك التعديلات مع بقية الأجهزة.'}
                         </p>
                       </div>
                     </div>
@@ -522,14 +524,48 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                     <button
                       type="button"
                       onClick={handleSeedDatabase}
-                      disabled={isSeeding || !isSupabaseConfigured}
+                      disabled={isSeeding}
                       className="px-4 py-2.5 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
                     >
                       <RefreshCw className={`w-4 h-4 ${isSeeding ? 'animate-spin' : ''}`} />
-                      <span>{isSeeding ? 'جاري الاستيراد...' : 'استيراد وحفظ initialData.json في Supabase'}</span>
+                      <span>{isSeeding ? 'جاري الاستيراد...' : 'استيراد وحفظ initialData.json في قاعدة البيانات'}</span>
                     </button>
                   </div>
                 </div>
+
+                {/* Database Synchronization Guide for Multiple Devices */}
+                {supabaseStatus !== 'connected' && (
+                  <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-5 shadow-2xs space-y-3">
+                    <div className="flex items-center gap-2 text-amber-800">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <h4 className="font-black text-sm">💡 لماذا لا تظهر تعديلاتي على الموبايل أو الهواتف الأخرى؟</h4>
+                    </div>
+                    <div className="text-xs leading-relaxed space-y-2 text-amber-800/90 font-medium">
+                      <p>
+                        لقد قمت بإجراء التعديلات على اللاب توب، وبسبب عدم ربط التطبيق بقاعدة بيانات سحابية حقيقية (Supabase) بعد، 
+                        فإن التعديلات <strong>تُحفظ داخل المتصفح الحالي للاب توب فقط</strong> بشكل مؤقت.
+                      </p>
+                      <p>
+                        وعندما تفتح التطبيق من الموبايل أو يفتحه معلم آخر، فإنه يبدأ كـ "حساب جديد" متصل بالسيرفر مباشرة، 
+                        والسيرفر حالياً يعمل بملفات مؤقتة تُمسح بمجرد إعادة تشغيل السيرفر أو انقطاع النشاط (لأن حاوية الاستضافة stateless).
+                      </p>
+                      <div className="bg-white/80 border border-amber-300/60 rounded-xl p-3.5 space-y-2 mt-3 text-slate-800">
+                        <p className="font-bold text-slate-900 text-xs">🚀 خطوات الحل وتفعيل التزامن الفوري والدائم على كافة الأجهزة (خلال دقيقة واحدة):</p>
+                        <ol className="list-decimal list-inside space-y-1.5 text-xs text-slate-700">
+                          <li>اذهب إلى حسابك في <strong>Google AI Studio</strong>.</li>
+                          <li>من القائمة العلوية أو الجانبية، اضغط على زر <strong>Settings (الإعدادات)</strong> ثم <strong>Secret Keys</strong>.</li>
+                          <li>قم بإضافة مفتاحي البيئة السحابية الخاصين بمشروع Supabase الخاص بك:
+                            <ul className="list-disc list-inside mr-5 mt-1 text-slate-600 space-y-0.5">
+                              <li>اسم المفتاح الأول: <code className="bg-slate-100 text-rose-600 px-1 py-0.5 rounded font-mono font-bold text-xs">VITE_SUPABASE_URL</code> والقيمة هي (رابط الـ Project URL).</li>
+                              <li>اسم المفتاح الثاني: <code className="bg-slate-100 text-rose-600 px-1 py-0.5 rounded font-mono font-bold text-xs">VITE_SUPABASE_ANON_KEY</code> والقيمة هي (رابط الـ API Key - anon public).</li>
+                            </ul>
+                          </li>
+                          <li>احفظ الإعدادات، وأعد تحميل التطبيق. ستتحول الحالة بالأعلى لـ <span className="text-emerald-600 font-bold">"سحابي متصل" 🟢</span>، وسيتم تشغيل التزامن الفوري بين اللاب توب والستاف وجميع الموبايلات بنجاح!</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Schema Information & SQL Code */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">

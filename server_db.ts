@@ -2,6 +2,9 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -649,6 +652,15 @@ router.post('/api/db/student-progress/save', async (req, res) => {
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+router.get('/api/db/status', (req, res) => {
+  res.json({
+    success: true,
+    configured: isConfigured,
+    provider: isConfigured ? 'supabase' : 'local_json',
+    url: SB_URL ? `${SB_URL.substring(0, 20)}...` : null,
+  });
 });
 
 export default router;

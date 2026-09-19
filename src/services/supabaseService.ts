@@ -677,3 +677,20 @@ export async function supabaseDeleteTomorrowNote(id: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function supabaseCheckDatabaseStatus(): Promise<{ configured: boolean; provider: string; url: string | null }> {
+  try {
+    const res = await fetch('/api/db/status');
+    const json = await res.json();
+    if (json.success) {
+      return {
+        configured: !!json.configured,
+        provider: json.provider || 'local_json',
+        url: json.url || null,
+      };
+    }
+  } catch (e) {
+    console.error('Check database status error:', e);
+  }
+  return { configured: false, provider: 'local_json', url: null };
+}

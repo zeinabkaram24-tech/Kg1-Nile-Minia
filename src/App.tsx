@@ -53,6 +53,7 @@ import {
   supabaseDeleteClassworkForScope,
   supabaseDeleteHomeworkForScope,
   supabaseDeleteTomorrowNotesForScope,
+  supabaseCheckDatabaseStatus,
 } from './services/supabaseService';
 
 const STORAGE_KEYS = {
@@ -383,7 +384,8 @@ export default function App() {
         }
 
         if (isMounted) {
-          setSupabaseStatus('connected');
+          const dbStatus = await supabaseCheckDatabaseStatus();
+          setSupabaseStatus(dbStatus.configured ? 'connected' : 'offline');
         }
       } catch (err) {
         console.error('Failed to sync initial data from Supabase:', err);
@@ -1179,6 +1181,7 @@ export default function App() {
         currentWeek={currentWeek}
         initialTab={adminDashboardInitialTab}
         isAdminLiveEdit={isAdminLiveEdit}
+        supabaseStatus={supabaseStatus}
         onToggleAdminLiveEdit={() => {
           setIsAdminLiveEdit((prev) => {
             const next = !prev;
