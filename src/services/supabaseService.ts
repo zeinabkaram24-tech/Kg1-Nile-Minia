@@ -423,10 +423,21 @@ export async function supabaseClearAllHomework(): Promise<boolean> {
 export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<SchoolDay, PeriodSlot[]>> | null> {
   try {
     const res = await fetch('/api/db/timetables');
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
     const json = await res.json();
     return json.success ? json.data : null;
   } catch (e) {
-    console.error('Fetch timetables backend error:', e);
+    console.warn('Timetable database load status: Using local cache fallback', e);
+    try {
+      const raw = localStorage.getItem('nile_planner_custom_timetables_v1');
+      if (raw) {
+        return JSON.parse(raw);
+      }
+    } catch (fallbackErr) {
+      console.error('Local timetable fallback failed:', fallbackErr);
+    }
     return null;
   }
 }

@@ -183,7 +183,16 @@ app.get('/api/materials', async (req, res) => {
         
         if (result && !result.error && result.data) {
           const serverItems = result.data.map(mapRowToMaterialItem);
-          inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+          const serverFiltered = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+          
+          // Merge: Keep local items that are not in the server items list to avoid overwriting newly generated local PDFs
+          const merged = [...serverFiltered];
+          for (const localItem of inMemoryMaterials) {
+            if (localItem && localItem.id && !merged.some((s) => s.id === localItem.id)) {
+              merged.push(localItem);
+            }
+          }
+          inMemoryMaterials = merged;
           persistMaterialsToDisk();
         } else if (result && result.error) {
           console.error('Supabase fetch materials database error:', result.error);
@@ -310,7 +319,16 @@ app.post('/api/materials/sync', async (req, res) => {
         
         if (result && !result.error && result.data) {
           const serverItems = result.data.map(mapRowToMaterialItem);
-          inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+          const serverFiltered = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+          
+          // Merge: Keep local items that are not in the server items list to avoid overwriting newly generated local PDFs
+          const merged = [...serverFiltered];
+          for (const localItem of inMemoryMaterials) {
+            if (localItem && localItem.id && !merged.some((s) => s.id === localItem.id)) {
+              merged.push(localItem);
+            }
+          }
+          inMemoryMaterials = merged;
         } else if (result && result.error) {
           console.error('Supabase sync database error:', result.error);
         }

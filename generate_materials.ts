@@ -396,7 +396,17 @@ const newItems = [
 ];
 
 // Prepend new items to display first, filter duplicates
-const combined = [...newItems, ...existing.filter((item) => !newItems.some((n) => n.fileName === item.fileName))];
+let sanitizedExisting = existing.map((item) => {
+  if (item && item.fileUrl && item.fileUrl.includes('supabase.co')) {
+    return {
+      ...item,
+      fileUrl: `/api/materials/pdf/${item.id}`
+    };
+  }
+  return item;
+});
+
+const combined = [...newItems, ...sanitizedExisting.filter((item) => !newItems.some((n) => n.fileName === item.fileName))];
 fs.writeFileSync(MATERIALS_FILE, JSON.stringify(combined, null, 2), 'utf-8');
 
 console.log('Successfully generated and registered all 4 worksheets in materials store!');

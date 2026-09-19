@@ -398,8 +398,9 @@ export default function App() {
     syncFromSupabase();
 
     // Setup Supabase Real-time listener for multi-device sync
+    let channel: any = null;
     if (isSupabaseConfigured) {
-      const channel = supabase
+      channel = supabase
         .channel('school-realtime-channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, async () => {
           const fresh = await supabaseFetchClasswork();
@@ -439,15 +440,21 @@ export default function App() {
           }
         })
         .subscribe();
-
-      return () => {
-        isMounted = false;
-        supabase.removeChannel(channel);
-      };
     }
+
+    // Set up background polling fallback to sync across devices/users every 30 seconds
+    const pollInterval = setInterval(() => {
+      if (isMounted) {
+        syncFromSupabase();
+      }
+    }, 30000);
 
     return () => {
       isMounted = false;
+      clearInterval(pollInterval);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, []);
 
