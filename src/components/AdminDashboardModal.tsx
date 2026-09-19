@@ -232,9 +232,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           setTimeout(() => {
             setSuccessMessage(null);
           }, 4000);
-        } catch (saveErr) {
+        } catch (saveErr: any) {
           console.error(saveErr);
-          setErrorMessage('حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
+          setErrorMessage(saveErr.message || 'حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
           setIsUploading(false);
         }
       };

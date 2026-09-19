@@ -346,21 +346,26 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
   }
 
   // 3. Send to Express server endpoint (STRICTLY AWAITED for guaranteed cross-device persistence)
-  try {
-    const res = await fetch('/api/materials/single', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.material && data.material.fileUrl) {
-        item.fileUrl = data.material.fileUrl;
-        if (item.fileData) delete item.fileData;
-      }
+  const res = await fetch('/api/materials/single', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item),
+  });
+  if (res.ok) {
+    const data = await res.json();
+    if (data.supabaseError) {
+      const dbErr = data.supabaseError;
+      throw new Error(
+        `فشل الحفظ في قاعدة البيانات السحابية: ${dbErr.message || JSON.stringify(dbErr)}. ` +
+        `يرجى التأكد من تشغيل كود SQL لإنشاء جدول materials أو إضافة عمود file_data في لوحة تحكم Supabase.`
+      );
     }
-  } catch (serverErr) {
-    console.warn('Server single upload notice:', serverErr);
+    if (data.material && data.material.fileUrl) {
+      item.fileUrl = data.material.fileUrl;
+      if (item.fileData) delete item.fileData;
+    }
+  } else {
+    throw new Error('فشل السيرفر في معالجة رفع الملف.');
   }
 
   // 4. Save to local IndexedDB

@@ -187,7 +187,7 @@ app.get('/api/materials', async (req, res) => {
 });
 
 // 2. Serve PDF file binary directly with correct headers and cache
-app.get('/api/materials/pdf/:id', (req, res) => {
+app.get('/api/materials/pdf/:id', async (req, res) => {
   const { id } = req.params;
   if (deletedMaterialIds.has(id)) {
     return res.status(404).json({ success: false, error: 'File has been deleted' });
@@ -201,7 +201,32 @@ app.get('/api/materials/pdf/:id', (req, res) => {
     return res.sendFile(filePath);
   }
 
-  // Fallback: check in-memory if item has fileData
+  // 1. Try to fetch from Supabase directly!
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('file_data')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data && data.file_data) {
+        const b64 = data.file_data.includes(',') ? data.file_data.split(',')[1] : data.file_data;
+        const buf = Buffer.from(b64, 'base64');
+        fs.writeFileSync(filePath, buf);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(buf);
+      } else if (error) {
+        console.warn('Direct Supabase PDF fetch error:', error);
+      }
+    } catch (sbErr) {
+      console.warn('Direct Supabase PDF fetch exception:', sbErr);
+    }
+  }
+
+  // 2. Fallback: check in-memory if item has fileData
   const found = inMemoryMaterials.find((m) => m.id === id);
   if (found && found.fileData && typeof found.fileData === 'string') {
     try {
@@ -339,17 +364,22 @@ app.post('/api/materials/single', async (req, res) => {
 
     persistMaterialsToDisk();
 
+    let supabaseError = null;
     if (supabase) {
       try {
         const row = mapMaterialItemToRow(cleanItem);
         const { error } = await supabase.from('materials').upsert(row);
-        if (error) console.error('Supabase single upsert warning:', error);
-      } catch (sbErr) {
+        if (error) {
+          console.error('Supabase single upsert warning:', error);
+          supabaseError = error;
+        }
+      } catch (sbErr: any) {
         console.error('Supabase single upsert error:', sbErr);
+        supabaseError = { message: sbErr.message || 'Exception occurred' };
       }
     }
 
-    res.json({ success: true, material: cleanItem });
+    res.json({ success: true, material: cleanItem, supabaseError });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
