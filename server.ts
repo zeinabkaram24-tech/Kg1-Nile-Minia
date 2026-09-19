@@ -172,13 +172,24 @@ function persistMaterialsToDisk() {
 app.get('/api/materials', async (req, res) => {
   try {
     if (supabase) {
-      const { data, error } = await supabase.from('materials').select('*');
-      if (!error && data) {
-        const serverItems = data.map(mapRowToMaterialItem);
-        inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
-        persistMaterialsToDisk();
-      } else if (error) {
-        console.error('Supabase fetch materials warning:', error);
+      try {
+        // Run with a 2.5-second timeout
+        const dbPromise = supabase.from('materials').select('*');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase DB Timeout')), 2500)
+        );
+
+        const result: any = await Promise.race([dbPromise, timeoutPromise]);
+        
+        if (result && !result.error && result.data) {
+          const serverItems = result.data.map(mapRowToMaterialItem);
+          inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+          persistMaterialsToDisk();
+        } else if (result && result.error) {
+          console.error('Supabase fetch materials database error:', result.error);
+        }
+      } catch (sbErr: any) {
+        console.warn('Supabase fetch materials bypassed or timed out:', sbErr.message);
       }
     }
     const activeMaterials = inMemoryMaterials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
@@ -285,6 +296,28 @@ app.post('/api/materials/sync', async (req, res) => {
   try {
     const { materials, deletedIds: clientDeletedIds } = req.body;
     let changed = false;
+
+    // Fetch latest from Supabase on every sync to prevent different containers/devices from overwriting each other
+    if (supabase) {
+      try {
+        // Run with a 2.5-second timeout
+        const dbPromise = supabase.from('materials').select('*');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase Sync DB Timeout')), 2500)
+        );
+
+        const result: any = await Promise.race([dbPromise, timeoutPromise]);
+        
+        if (result && !result.error && result.data) {
+          const serverItems = result.data.map(mapRowToMaterialItem);
+          inMemoryMaterials = serverItems.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
+        } else if (result && result.error) {
+          console.error('Supabase sync database error:', result.error);
+        }
+      } catch (sbLoadErr: any) {
+        console.error('Supabase load on sync bypassed or timed out:', sbLoadErr.message);
+      }
+    }
 
     // A. Merge client deleted IDs (tombstones)
     if (Array.isArray(clientDeletedIds) && clientDeletedIds.length > 0) {

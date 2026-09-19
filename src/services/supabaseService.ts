@@ -525,10 +525,22 @@ export async function supabaseSaveStudentProgress(
 export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
   try {
     const res = await fetch('/api/materials');
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
     const json = await res.json();
     return json.success ? json.materials : [];
   } catch (e) {
-    console.error('Fetch materials backend error:', e);
+    console.warn('Network materials load status: Using offline storage fallback', e);
+    try {
+      const raw = localStorage.getItem('materials_store.json');
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch (fallbackErr) {
+      console.error('Local fallback parsing failed:', fallbackErr);
+    }
     return [];
   }
 }

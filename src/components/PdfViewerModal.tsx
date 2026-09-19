@@ -265,10 +265,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         if (isCancelled) return;
 
         if (!bytes || bytes.length === 0) {
-          // If no binary data found, check if direct fileUrl can be opened
+          // If no binary data found, check if direct fileUrl can be opened via iframe embed
           if (item.fileUrl) {
-            window.open(item.fileUrl, '_blank');
-            onClose();
+            setDriveEmbedUrl(item.fileUrl);
+            setIsLoading(false);
             return;
           }
           setLoadError('تعذر العثور على بيانات ملف الـ PDF للعرض.');
@@ -286,6 +286,11 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
       } catch (err: any) {
         console.error('Error loading PDF document:', err);
         if (!isCancelled) {
+          if (item && item.fileUrl) {
+            setDriveEmbedUrl(item.fileUrl);
+            setIsLoading(false);
+            return;
+          }
           setLoadError('حدث خطأ أثناء فتح ملف الـ PDF. يمكنك تحميل الملف مباشرة.');
           setIsLoading(false);
         }
