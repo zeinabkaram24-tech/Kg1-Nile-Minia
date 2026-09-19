@@ -73,8 +73,8 @@ function savePdfFromItem(item: any): string | null {
     const filePath = path.join(UPLOADS_DIR, `${item.id}.pdf`);
 
     // 1. If base64 fileData is provided, write to disk
-    if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
-      const b64 = item.fileData.split(',')[1];
+    if (item.fileData && typeof item.fileData === 'string') {
+      const b64 = item.fileData.includes(',') ? item.fileData.split(',')[1] : item.fileData;
       const buf = Buffer.from(b64, 'base64');
       fs.writeFileSync(filePath, buf);
       return `/api/materials/pdf/${item.id}`;

@@ -197,19 +197,14 @@ export default function App() {
       const saved = localStorage.getItem('nile_custom_tomorrow_notes');
       const list = saved ? JSON.parse(saved) : [];
       if (Array.isArray(list)) {
-        const hasWeek2Arabic = list.some((n) => n.week === 2 && n.subject === 'Arabic');
-        if (hasWeek2Arabic) {
-          return list;
-        } else {
-          const cleanList = list.filter((n) => n.week !== 2);
-          const fullList = [...cleanList, ...WEEK2_SPECIAL_NOTES];
-          localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullList));
-          return fullList;
-        }
+        // Unconditionally filter out week 2 tomorrow notes to ensure a clean slate as requested
+        const cleanList = list.filter((n) => n.week !== 2);
+        localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(cleanList));
+        return cleanList;
       }
-      return WEEK2_SPECIAL_NOTES;
+      return [];
     } catch {
-      return WEEK2_SPECIAL_NOTES;
+      return [];
     }
   });
 
@@ -719,29 +714,27 @@ export default function App() {
       return next;
     });
 
-    if (newTomorrowNotes && newTomorrowNotes.length > 0) {
-      setCustomTomorrowNotes((prev) => {
-        const filtered =
-          mode === 'append'
-            ? prev
-            : prev.filter((n) => {
-                const nBlock = n.block || 1;
-                const nWeek = n.week || 1;
-                const isSame =
-                  nBlock === targetBlock &&
-                  nWeek === targetWeek &&
-                  (targetClasses.includes(n.classId as ClassId) || n.classId === 'ALL');
-                if (!isSame) return true;
-                if (mode === 'replace_subject' && subjectFilter) {
-                  return (n.subject || '').toLowerCase() !== subjectFilter.toLowerCase();
-                }
-                return false;
-              });
-        const next = [...newTomorrowNotes, ...filtered];
-        localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
-        return next;
-      });
-    }
+    setCustomTomorrowNotes((prev) => {
+      const filtered =
+        mode === 'append'
+          ? prev
+          : prev.filter((n) => {
+              const nBlock = n.block || 1;
+              const nWeek = n.week || 1;
+              const isSame =
+                nBlock === targetBlock &&
+                nWeek === targetWeek &&
+                (targetClasses.includes(n.classId as ClassId) || n.classId === 'ALL');
+              if (!isSame) return true;
+              if (mode === 'replace_subject' && subjectFilter) {
+                return (n.subject || '').toLowerCase() !== subjectFilter.toLowerCase();
+              }
+              return false;
+            });
+      const next = newTomorrowNotes && newTomorrowNotes.length > 0 ? [...newTomorrowNotes, ...filtered] : filtered;
+      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
+      return next;
+    });
 
     // Supabase scoped cleanup & insert
     if (mode === 'replace_week' || mode === 'replace_subject') {

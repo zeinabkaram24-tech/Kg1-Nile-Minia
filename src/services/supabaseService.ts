@@ -536,7 +536,7 @@ export async function supabaseFetchMaterials(): Promise<MaterialItem[]> {
 export async function supabaseUpsertMaterial(item: MaterialItem): Promise<{ success: boolean; error?: any }> {
   try {
     const copy = { ...item };
-    if (copy.fileData && copy.fileUrl) {
+    if (copy.fileData) {
       delete copy.fileData;
     }
     const res = await fetch('/api/materials/single', {
