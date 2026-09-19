@@ -201,25 +201,54 @@ app.get('/api/materials/pdf/:id', async (req, res) => {
     return res.sendFile(filePath);
   }
 
-  // 1. Try to fetch from Supabase directly!
+    // 1. Try to fetch from Supabase Storage or Database directly!
   if (supabase) {
     try {
-      const { data, error } = await supabase
-        .from('materials')
-        .select('file_data')
-        .eq('id', id)
-        .maybeSingle();
+      const storageFileName = `${id}.pdf`;
+      const fullPath = `uploads/${storageFileName}`;
 
-      if (!error && data && data.file_data) {
-        const b64 = data.file_data.includes(',') ? data.file_data.split(',')[1] : data.file_data;
-        const buf = Buffer.from(b64, 'base64');
+      const { data: fileBlob, error: downloadError } = await supabase.storage
+        .from('materials')
+        .download(fullPath);
+
+      if (!downloadError && fileBlob) {
+        const arrayBuffer = await fileBlob.arrayBuffer();
+        const buf = Buffer.from(arrayBuffer);
         fs.writeFileSync(filePath, buf);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Cache-Control', 'public, max-age=86400');
         return res.send(buf);
-      } else if (error) {
-        console.warn('Direct Supabase PDF fetch error:', error);
+      }
+
+      // Database fallback
+      const { data, error } = await supabase
+        .from('materials')
+        .select('file_data, file_url')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (!error && data) {
+        if (data.file_data) {
+          const b64 = data.file_data.includes(',') ? data.file_data.split(',')[1] : data.file_data;
+          const buf = Buffer.from(b64, 'base64');
+          fs.writeFileSync(filePath, buf);
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          return res.send(buf);
+        } else if (data.file_url) {
+          const fetchRes = await fetch(data.file_url);
+          if (fetchRes.ok) {
+            const arrayBuffer = await fetchRes.arrayBuffer();
+            const buf = Buffer.from(arrayBuffer);
+            fs.writeFileSync(filePath, buf);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            return res.send(buf);
+          }
+        }
       }
     } catch (sbErr) {
       console.warn('Direct Supabase PDF fetch exception:', sbErr);
@@ -283,9 +312,36 @@ app.post('/api/materials/sync', async (req, res) => {
         }
 
         const existingIdx = inMemoryMaterials.findIndex((m) => m.id === clientItem.id);
+
+        let publicUrl = null;
+        if (supabase && clientItem.fileData) {
+          try {
+            const b64 = clientItem.fileData.includes(',') ? clientItem.fileData.split(',')[1] : clientItem.fileData;
+            const buf = Buffer.from(b64, 'base64');
+            const storageFileName = `${clientItem.id}.pdf`;
+            const fullPath = `uploads/${storageFileName}`;
+
+            // Upload to materials bucket under uploads/ subfolder
+            const { error: uploadError } = await supabase.storage
+              .from('materials')
+              .upload(fullPath, buf, {
+                contentType: 'application/pdf',
+                upsert: true
+              });
+
+            if (!uploadError) {
+              publicUrl = supabase.storage.from('materials').getPublicUrl('uploads/' + storageFileName).data.publicUrl;
+            }
+          } catch (storageErr) {
+            console.error('Sync Supabase Storage exception:', storageErr);
+          }
+        }
+
         const pdfUrl = savePdfFromItem(clientItem);
         const cleanItem = { ...clientItem };
-        if (pdfUrl) {
+        if (publicUrl) {
+          cleanItem.fileUrl = publicUrl;
+        } else if (pdfUrl) {
           cleanItem.fileUrl = pdfUrl;
         }
 
@@ -349,9 +405,39 @@ app.post('/api/materials/single', async (req, res) => {
       persistDeletedIdsToDisk();
     }
 
+    let publicUrl = null;
+    if (supabase && item.fileData) {
+      try {
+        const b64 = item.fileData.includes(',') ? item.fileData.split(',')[1] : item.fileData;
+        const buf = Buffer.from(b64, 'base64');
+        const storageFileName = `${item.id}.pdf`;
+        const fullPath = `uploads/${storageFileName}`;
+
+        // Upload to materials bucket under uploads/ subfolder
+        const { error: uploadError } = await supabase.storage
+          .from('materials')
+          .upload(fullPath, buf, {
+            contentType: 'application/pdf',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('Supabase Storage upload error:', uploadError);
+        } else {
+          // Retrieve the public URL using the user's exact required format:
+          publicUrl = supabase.storage.from('materials').getPublicUrl('uploads/' + storageFileName).data.publicUrl;
+          console.log('Successfully uploaded PDF to Supabase Storage. Public URL:', publicUrl);
+        }
+      } catch (storageErr) {
+        console.error('Supabase Storage exception:', storageErr);
+      }
+    }
+
     const pdfUrl = savePdfFromItem(item);
     const cleanItem = { ...item };
-    if (pdfUrl) {
+    if (publicUrl) {
+      cleanItem.fileUrl = publicUrl;
+    } else if (pdfUrl) {
       cleanItem.fileUrl = pdfUrl;
     }
 
@@ -393,8 +479,37 @@ app.post('/api/materials/save', async (req, res) => {
       for (const m of materials) {
         if (m && m.id) {
           deletedMaterialIds.delete(m.id);
+
+          let publicUrl = null;
+          if (supabase && m.fileData) {
+            try {
+              const b64 = m.fileData.includes(',') ? m.fileData.split(',')[1] : m.fileData;
+              const buf = Buffer.from(b64, 'base64');
+              const storageFileName = `${m.id}.pdf`;
+              const fullPath = `uploads/${storageFileName}`;
+
+              // Upload to materials bucket under uploads/ subfolder
+              const { error: uploadError } = await supabase.storage
+                .from('materials')
+                .upload(fullPath, buf, {
+                  contentType: 'application/pdf',
+                  upsert: true
+                });
+
+              if (!uploadError) {
+                publicUrl = supabase.storage.from('materials').getPublicUrl('uploads/' + storageFileName).data.publicUrl;
+              }
+            } catch (storageErr) {
+              console.error('Bulk save Supabase Storage exception:', storageErr);
+            }
+          }
+
           const pdfUrl = savePdfFromItem(m);
-          if (pdfUrl) m.fileUrl = pdfUrl;
+          if (publicUrl) {
+            m.fileUrl = publicUrl;
+          } else if (pdfUrl) {
+            m.fileUrl = pdfUrl;
+          }
         }
       }
       inMemoryMaterials = materials.filter((m) => m && m.id && !deletedMaterialIds.has(m.id));
