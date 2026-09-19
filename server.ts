@@ -406,37 +406,54 @@ app.post('/api/materials/upload-file', async (req, res) => {
     }
 
     const storageFileName = materialId ? `${materialId}.pdf` : (fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
-    const fullPath = `uploads/${storageFileName}`;
+    const matId = materialId || storageFileName.replace('.pdf', '');
 
-    if (!supabase) {
-      return res.status(400).json({ success: false, error: 'Supabase is not configured on the server. Please set SUPABASE_URL and SUPABASE_ANON_KEY in settings.' });
-    }
-
-    // Auto-create bucket if missing
-    try {
-      await supabase.storage.createBucket('materials', { public: true });
-    } catch (e) {
-      // Ignore if already exists
-    }
-
+    // 1. Decode base64 and write to local UPLOADS_DIR immediately
     const b64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
     const buf = Buffer.from(b64, 'base64');
+    
+    const localFilePath = path.join(UPLOADS_DIR, `${matId}.pdf`);
+    fs.writeFileSync(localFilePath, buf);
+    console.log(`Saved PDF locally on server disk: ${localFilePath}`);
 
-    // Upload to materials bucket
-    const { error: uploadError } = await supabase.storage
-      .from('materials')
-      .upload(fullPath, buf, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
+    // Default URL is the local server endpoint
+    let publicUrl = `/api/materials/pdf/${matId}`;
 
-    if (uploadError) {
-      console.error('Server upload error to Supabase Storage:', uploadError);
-      return res.status(500).json({ success: false, error: uploadError.message });
+    // 2. Upload to Supabase Storage Bucket if configured
+    if (supabase) {
+      try {
+        const fullPath = `uploads/${matId}.pdf`;
+        
+        // Define a promise that uploads to storage
+        const uploadPromise = supabase.storage
+          .from('materials')
+          .upload(fullPath, buf, {
+            contentType: 'application/pdf',
+            upsert: true
+          });
+
+        // Define a 3.5 second timeout promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Supabase Storage Upload Timeout')), 3500)
+        );
+
+        // Race them!
+        const result: any = await Promise.race([uploadPromise, timeoutPromise]);
+        
+        if (result && result.error) {
+          console.error('Supabase Storage upload returned error:', result.error);
+        } else {
+          // Success! Fetch public url
+          const sUrl = supabase.storage.from('materials').getPublicUrl(fullPath).data.publicUrl;
+          if (sUrl) {
+            publicUrl = sUrl;
+            console.log('Server successfully uploaded PDF to Supabase Storage:', publicUrl);
+          }
+        }
+      } catch (err: any) {
+        console.warn('Supabase storage upload bypassed or timed out:', err.message);
+      }
     }
-
-    const publicUrl = supabase.storage.from('materials').getPublicUrl(fullPath).data.publicUrl;
-    console.log('Server successfully uploaded PDF to Supabase Storage:', publicUrl);
 
     return res.json({ success: true, publicUrl });
   } catch (err: any) {
