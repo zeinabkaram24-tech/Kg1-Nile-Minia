@@ -234,7 +234,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           }, 4000);
         } catch (saveErr: any) {
           console.error(saveErr);
-          setErrorMessage(saveErr.message || 'حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
+          setErrorMessage('حدث خطأ أثناء حفظ الملف. يرجى المحاولة مرة أخرى.');
           setIsUploading(false);
         }
       };
@@ -564,6 +564,21 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
                         </ol>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {localStorage.getItem('nile_supabase_sync_error') && (
+                  <div className="bg-rose-50 border border-rose-200 text-rose-900 rounded-2xl p-5 shadow-2xs space-y-2">
+                    <div className="flex items-center gap-2 text-rose-800">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <h4 className="font-black text-sm">⚠️ تنبيه: فشل الحفظ السحابي التلقائي لبعض الملفات!</h4>
+                    </div>
+                    <p className="text-xs font-medium leading-relaxed">
+                      السبب التقني: <code className="bg-rose-100 px-1.5 py-0.5 rounded font-mono text-rose-700">{localStorage.getItem('nile_supabase_sync_error')}</code>
+                    </p>
+                    <p className="text-xs text-rose-800/80 leading-relaxed">
+                      لحل هذا الإشكال، يرجى نسخ كود SQL الموضح بالأسفل كاملاً، والذهاب إلى حسابك في Supabase ثم فتح <strong>SQL Editor</strong>، ولصقه والضغط على <strong>Run</strong> لتحديث هيكل الجداول وخصوصاً إضافة عمود <code className="bg-rose-100 text-rose-700 px-1 font-mono rounded">file_data</code> لجدول الـ materials.
+                    </p>
                   </div>
                 )}
 
