@@ -44,6 +44,7 @@ import {
   resetToDefaultMaterials,
 } from '../utils/materialsStorage';
 import { saveMaterialBlob } from '../utils/materialsDb';
+import { supabaseUploadMaterialFile } from '../services/supabaseService';
 import {
   openMaterialSheetInNewTab,
   downloadMaterialSheet,
@@ -374,18 +375,15 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
     let finalFileUrl: string | undefined = undefined;
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch('/api/materials/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.fileUrl) finalFileUrl = data.fileUrl;
+      console.log(`Direct attach: Uploading ${file.name} to Supabase storage...`);
+      const uploadRes = await supabaseUploadMaterialFile(file, file.name);
+      if (uploadRes.success && uploadRes.publicUrl) {
+        finalFileUrl = uploadRes.publicUrl;
+      } else if (uploadRes.error) {
+        console.error('Direct attach: Supabase Storage upload failed:', uploadRes.error);
       }
-    } catch {
-      // Ignore
+    } catch (uploadErr) {
+      console.error('Direct attach exception:', uploadErr);
     }
 
     updateMaterialItem(matId, {
@@ -429,25 +427,21 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
       }
     }
 
-    // Direct server upload for 100% binary preservation if a local file is chosen
+    // Direct client-side upload to Supabase Storage if a local file is chosen
     if (selectedMatFile) {
       try {
-        const formData = new FormData();
-        formData.append('file', selectedMatFile);
-        formData.append('title', matTitle.trim());
-        formData.append('subjectId', matSubjectId);
-
-        const res = await fetch('/api/materials/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.fileUrl) finalFileUrl = data.fileUrl;
-          if (data.fileName) finalFileName = data.fileName;
+        console.log(`Direct add: Uploading ${finalFileName} to Supabase storage...`);
+        const uploadRes = await supabaseUploadMaterialFile(selectedMatFile, finalFileName || selectedMatFile.name);
+        if (uploadRes.success && uploadRes.publicUrl) {
+          finalFileUrl = uploadRes.publicUrl;
+          if (uploadRes.filePath) {
+            finalFileName = uploadRes.filePath.replace('uploads/', '');
+          }
+        } else if (uploadRes.error) {
+          console.error('Direct add: Supabase Storage upload failed:', uploadRes.error);
         }
       } catch (uploadErr) {
-        console.warn('Server upload notice:', uploadErr);
+        console.error('Direct add exception:', uploadErr);
       }
     }
 

@@ -5,9 +5,12 @@ export const isSupabaseConfigured = true;
 
 export const MATERIALS_BUCKET = 'materials';
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://dummy-project.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy-anon-key-prevent-crash';
+
 export const supabase: SupabaseClient = createClient(
-  'https://dummy-project.supabase.co',
-  'dummy-anon-key-prevent-crash',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: false,

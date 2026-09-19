@@ -1,4 +1,4 @@
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, PeriodSlot, SubjectName, MaterialItem } from '../types';
 import initialData from '../data/initialData.json';
 
@@ -556,40 +556,39 @@ export async function supabaseUploadMaterialFile(
   originalFileName: string
 ): Promise<{ success: boolean; publicUrl?: string; filePath?: string; error?: any }> {
   try {
-    const id = `mat_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
     const safeFileName = originalFileName.endsWith('.pdf') ? originalFileName : `${originalFileName}.pdf`;
+    const finalPath = `uploads/${safeFileName}`;
 
-    const res = await fetch('/api/materials/single', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id,
-        fileName: safeFileName,
-        fileSize: file.size,
-        fileData: base64,
-        fileUrl: `/api/materials/pdf/${id}`,
-        uploadedAt: new Date().toISOString(),
-      }),
-    });
+    console.log(`Uploading file ${safeFileName} directly to Supabase storage path: ${finalPath}`);
 
-    const json = await res.json();
-    if (json.success) {
-      return {
-        success: true,
-        publicUrl: `/api/materials/pdf/${id}`,
-        filePath: `${id}.pdf`,
-      };
+    // Call supabase.storage.from('materials').upload(...) directly sending actual file/blob
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('materials')
+      .upload(finalPath, file, {
+        upsert: true,
+        contentType: file.type || 'application/pdf',
+      });
+
+    if (uploadError) {
+      console.error('Supabase Storage direct upload error:', uploadError);
+      return { success: false, error: uploadError };
     }
-    return { success: false, error: json.error || 'Failed to save upload' };
+
+    // Retrieve the public URL
+    const { data } = supabase.storage
+      .from('materials')
+      .getPublicUrl(finalPath);
+
+    const publicUrl = data?.publicUrl;
+    console.log('Successfully uploaded file directly. Public URL:', publicUrl);
+
+    return {
+      success: true,
+      publicUrl,
+      filePath: finalPath,
+    };
   } catch (e: any) {
-    console.error('Upload file backend error:', e);
+    console.error('Direct upload exception in frontend:', e);
     return { success: false, error: e.message };
   }
 }
