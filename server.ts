@@ -14,7 +14,13 @@ const app = express();
 const PORT = 3000;
 
 // Supabase server-side configuration (safe from browser exposure)
-const SB_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+let rawSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+if (rawSbUrl.endsWith('/rest/v1/')) {
+  rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 9);
+} else if (rawSbUrl.endsWith('/rest/v1')) {
+  rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 8);
+}
+const SB_URL = rawSbUrl;
 const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 const isConfigured = Boolean(

@@ -388,7 +388,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
     updateMaterialItem(matId, {
       fileName: file.name,
-      fileUrl: finalFileUrl || `/api/materials/file/${encodeURIComponent(file.name)}`,
+      fileUrl: finalFileUrl || `/api/materials/pdf/${matId}`,
       fileType: file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined),
     });
     setMaterialsList(getSavedMaterials());
@@ -456,7 +456,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
       categoryLabel,
       itemType: 'sheet',
       fileName: finalFileName,
-      fileUrl: finalFileUrl || (finalFileName ? `/api/materials/file/${encodeURIComponent(finalFileName)}` : undefined),
+      fileUrl: finalFileUrl || `/api/materials/pdf/${generatedMatId}`,
       fileData: undefined, // Prevent localStorage quota bloat
       fileType: detectedType,
       unitTitle: matUnit.trim() || undefined,
