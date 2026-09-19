@@ -331,12 +331,14 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
       const uploadRes = await supabaseUploadMaterialFile(originalFile, item.fileName || 'document.pdf');
       if (uploadRes.success && uploadRes.publicUrl) {
         item.fileUrl = uploadRes.publicUrl;
+        if (item.fileData) delete item.fileData;
       }
     } else if (!item.fileUrl && item.fileData && item.fileData.startsWith('data:')) {
       const blob = dataUrlToBlob(item.fileData);
       const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf');
       if (uploadRes.success && uploadRes.publicUrl) {
         item.fileUrl = uploadRes.publicUrl;
+        if (item.fileData) delete item.fileData;
       }
     }
   } catch (storageErr) {
@@ -354,6 +356,7 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
       const data = await res.json();
       if (data.material && data.material.fileUrl) {
         item.fileUrl = data.material.fileUrl;
+        if (item.fileData) delete item.fileData;
       }
     }
   } catch (serverErr) {

@@ -469,6 +469,9 @@ router.get('/api/db/tomorrow-notes', async (req, res) => {
     let list = readJsonFile<any[]>(FILE_PATHS.tomorrow_notes, []);
     
     if (supabase) {
+      // Clean up week 2 tomorrow notes from Supabase as requested by the user
+      await supabase.from('tomorrow_notes').delete().eq('week', 2);
+
       const { data, error } = await supabase.from('tomorrow_notes').select('*');
       if (!error && data) {
         const parsed = data.map((row) => ({

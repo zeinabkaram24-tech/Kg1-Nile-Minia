@@ -60,6 +60,49 @@ function cleanMarkerPrefix(str: string, markerSource: string): string {
 }
 
 /**
+ * Validates if the content of a note actually contains valid note indicators
+ * or quiz/test keywords. Empty or standard content without these will be ignored.
+ */
+export function isValidTomorrowNoteContent(text: string): boolean {
+  if (!text) return false;
+  const cleaned = text.trim();
+  if (cleaned === '-' || cleaned === 'لا شيء' || cleaned === 'لا يوجد' || /^لا\s*يوجد/i.test(cleaned)) {
+    return false;
+  }
+
+  const keywords = [
+    'ملاحظة',
+    'ملاحظات',
+    'ملحوظة',
+    'تنبيه',
+    'تنبيهات',
+    'هام',
+    'إحضار',
+    'أدوات',
+    'كشكول',
+    'ألوان',
+    'مسطرة',
+    'كتاب',
+    'quiz',
+    'test',
+    'اختبار',
+    'امتحان',
+    'تقييم',
+    'كويز',
+    'كويزات',
+    'assessment',
+    'exam',
+    'notes',
+    'note',
+    'remarque',
+    'bring'
+  ];
+
+  const lower = cleaned.toLowerCase();
+  return keywords.some(kw => lower.includes(kw));
+}
+
+/**
  * Intelligent deterministic weekly plan parser for Arabic, English, and Mixed curricula.
  * Strictly adheres to the official Weekly Plan table format:
  * - اليوم (Day)
@@ -230,7 +273,7 @@ export function smartParseWeeklyPlan(
         }
 
         // Extract note
-        if (noteText && noteText.length >= 2 && !/^-+$/.test(noteText) && noteText !== 'لا شيء') {
+        if (noteText && noteText.length >= 2 && !/^-+$/.test(noteText) && noteText !== 'لا شيء' && isValidTomorrowNoteContent(noteText)) {
           rawTomorrowNotes.push({
             day: currentDay,
             targetDay: currentDay,
@@ -377,14 +420,16 @@ export function smartParseWeeklyPlan(
               });
             }
           } else if (cur.type === 'note') {
-            rawTomorrowNotes.push({
-              day: currentDay,
-              targetDay: currentDay,
-              subject: currentSubject,
-              note: content,
-              arabicNote: content,
-              bagItem: /إحضار|أدوات|كشكول|كتاب|ألوان/i.test(content) ? content : undefined,
-            });
+            if (isValidTomorrowNoteContent(content)) {
+              rawTomorrowNotes.push({
+                day: currentDay,
+                targetDay: currentDay,
+                subject: currentSubject,
+                note: content,
+                arabicNote: content,
+                bagItem: /إحضار|أدوات|كشكول|كتاب|ألوان/i.test(content) ? content : undefined,
+              });
+            }
           }
         }
         continue;
@@ -395,7 +440,7 @@ export function smartParseWeeklyPlan(
     if (hasNote) {
       activeSection = 'note';
       const clean = cleanMarkerPrefix(rawLine, NOTE_MARKER_SOURCE);
-      if (clean && clean !== '-' && clean !== 'لا شيء') {
+      if (clean && clean !== '-' && clean !== 'لا شيء' && isValidTomorrowNoteContent(clean)) {
         rawTomorrowNotes.push({
           day: currentDay,
           targetDay: currentDay,
@@ -653,7 +698,7 @@ export function cleanAndValidatePlanResult(
     // Check if it's actually a note (or contains "ملاحظات" or "ملاحظة")
     if (NOTE_PREFIX.test(title) || /ملاحظات|ملاحظة|ملحوظة/i.test(title)) {
       const cleanNote = title.replace(NOTE_PREFIX, '').trim();
-      if (cleanNote && !HEADER_IGNORE_EXACT.test(cleanNote)) {
+      if (cleanNote && !HEADER_IGNORE_EXACT.test(cleanNote) && isValidTomorrowNoteContent(cleanNote)) {
         const d = cw.day || 'Sunday';
         tomorrowNotes.push({
           day: d,
@@ -715,7 +760,7 @@ export function cleanAndValidatePlanResult(
     // Check if it's actually a note (or contains "ملاحظات" or "ملاحظة")
     if (NOTE_PREFIX.test(task) || /ملاحظات|ملاحظة|ملحوظة/i.test(task)) {
       const cleanNote = task.replace(NOTE_PREFIX, '').trim();
-      if (cleanNote && !HEADER_IGNORE_EXACT.test(cleanNote)) {
+      if (cleanNote && !HEADER_IGNORE_EXACT.test(cleanNote) && isValidTomorrowNoteContent(cleanNote)) {
         const d = hw.assignedDay || 'Sunday';
         tomorrowNotes.push({
           day: d,
@@ -753,7 +798,7 @@ export function cleanAndValidatePlanResult(
     let note = (n.note || n.arabicNote || '').trim();
     if (!note || HEADER_IGNORE_EXACT.test(note)) continue;
     note = note.replace(NOTE_PREFIX, '').trim();
-    if (!note) continue;
+    if (!note || !isValidTomorrowNoteContent(note)) continue;
 
     const tDay = (n.targetDay || n.day || 'Sunday') as SchoolDay;
     tomorrowNotes.push({
