@@ -392,6 +392,53 @@ app.post('/api/materials/sync', async (req, res) => {
 });
 
 // 4. Save/Update Single Material (Un-tombstone if re-uploaded intentionally)
+app.post('/api/materials/upload-file', async (req, res) => {
+  try {
+    const { fileData, fileName, materialId } = req.body;
+    if (!fileData) {
+      return res.status(400).json({ success: false, error: 'fileData is required' });
+    }
+
+    const storageFileName = materialId ? `${materialId}.pdf` : (fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+    const fullPath = `uploads/${storageFileName}`;
+
+    if (!supabase) {
+      return res.status(400).json({ success: false, error: 'Supabase is not configured on the server. Please set SUPABASE_URL and SUPABASE_ANON_KEY in settings.' });
+    }
+
+    // Auto-create bucket if missing
+    try {
+      await supabase.storage.createBucket('materials', { public: true });
+    } catch (e) {
+      // Ignore if already exists
+    }
+
+    const b64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
+    const buf = Buffer.from(b64, 'base64');
+
+    // Upload to materials bucket
+    const { error: uploadError } = await supabase.storage
+      .from('materials')
+      .upload(fullPath, buf, {
+        contentType: 'application/pdf',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('Server upload error to Supabase Storage:', uploadError);
+      return res.status(500).json({ success: false, error: uploadError.message });
+    }
+
+    const publicUrl = supabase.storage.from('materials').getPublicUrl(fullPath).data.publicUrl;
+    console.log('Server successfully uploaded PDF to Supabase Storage:', publicUrl);
+
+    return res.json({ success: true, publicUrl });
+  } catch (err: any) {
+    console.error('Server upload handler exception:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/materials/single', async (req, res) => {
   try {
     const item = req.body;
@@ -408,6 +455,11 @@ app.post('/api/materials/single', async (req, res) => {
     let publicUrl = null;
     if (supabase && item.fileData) {
       try {
+        // Auto-create bucket if missing
+        try {
+          await supabase.storage.createBucket('materials', { public: true });
+        } catch {}
+
         const b64 = item.fileData.includes(',') ? item.fileData.split(',')[1] : item.fileData;
         const buf = Buffer.from(b64, 'base64');
         const storageFileName = `${item.id}.pdf`;

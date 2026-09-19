@@ -328,14 +328,14 @@ export async function saveMaterial(item: MaterialItem, originalFile?: File | Blo
   // 2. Upload to Supabase Storage Bucket if bucket exists
   try {
     if (originalFile) {
-      const uploadRes = await supabaseUploadMaterialFile(originalFile, item.fileName || 'document.pdf');
+      const uploadRes = await supabaseUploadMaterialFile(originalFile, item.fileName || 'document.pdf', item.id);
       if (uploadRes.success && uploadRes.publicUrl) {
         item.fileUrl = uploadRes.publicUrl;
         if (item.fileData) delete item.fileData;
       }
     } else if (!item.fileUrl && item.fileData) {
       const blob = dataUrlToBlob(item.fileData);
-      const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf');
+      const uploadRes = await supabaseUploadMaterialFile(blob, item.fileName || 'document.pdf', item.id);
       if (uploadRes.success && uploadRes.publicUrl) {
         item.fileUrl = uploadRes.publicUrl;
         if (item.fileData) delete item.fileData;
@@ -726,13 +726,13 @@ export async function syncMaterialsFromServer(): Promise<MaterialItem[]> {
   return getSavedMaterials();
 }
 
-export function addMaterialItem(item: Omit<MaterialItem, 'id' | 'createdAt'>): MaterialItem {
+export function addMaterialItem(item: Omit<MaterialItem, 'createdAt'> & { id?: string }): MaterialItem {
   const current = getSavedMaterials();
   const newItem: MaterialItem = {
     ...item,
-    id: `mat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    id: item.id || `mat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     createdAt: Date.now(),
-  };
+  } as MaterialItem;
   removeLocalDeletedId(newItem.id);
   const updated = [newItem, ...current];
   saveMaterials(updated, true);

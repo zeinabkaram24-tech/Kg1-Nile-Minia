@@ -375,8 +375,8 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
     let finalFileUrl: string | undefined = undefined;
     try {
-      console.log(`Direct attach: Uploading ${file.name} to Supabase storage...`);
-      const uploadRes = await supabaseUploadMaterialFile(file, file.name);
+      console.log(`Direct attach: Uploading ${file.name} to Supabase storage with id ${matId}...`);
+      const uploadRes = await supabaseUploadMaterialFile(file, file.name, matId);
       if (uploadRes.success && uploadRes.publicUrl) {
         finalFileUrl = uploadRes.publicUrl;
       } else if (uploadRes.error) {
@@ -417,6 +417,8 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
     let finalFileUrl = matFileUrl.trim() || undefined;
     let finalFileName = matFileName.trim() || selectedMatFile?.name || undefined;
 
+    const generatedMatId = `mat-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+
     if (matInputMode === 'link') {
       if (!finalFileUrl) {
         alert('يرجى إدخال رابط الملف (Google Drive أو OneDrive أو أي رابط مباشر) لإدراج الشيت.');
@@ -430,8 +432,8 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
     // Direct client-side upload to Supabase Storage if a local file is chosen
     if (selectedMatFile) {
       try {
-        console.log(`Direct add: Uploading ${finalFileName} to Supabase storage...`);
-        const uploadRes = await supabaseUploadMaterialFile(selectedMatFile, finalFileName || selectedMatFile.name);
+        console.log(`Direct add: Uploading ${finalFileName} to Supabase storage with id ${generatedMatId}...`);
+        const uploadRes = await supabaseUploadMaterialFile(selectedMatFile, finalFileName || selectedMatFile.name, generatedMatId);
         if (uploadRes.success && uploadRes.publicUrl) {
           finalFileUrl = uploadRes.publicUrl;
           if (uploadRes.filePath) {
@@ -446,6 +448,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
     }
 
     const newMat = addMaterialItem({
+      id: generatedMatId,
       title: matTitle.trim(),
       subjectId: matSubjectId,
       blockNumber: matBlock,

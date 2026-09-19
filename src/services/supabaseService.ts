@@ -553,42 +553,48 @@ export async function supabaseClearAllMaterials(): Promise<boolean> {
 // ----------------------------------------------------------------------
 export async function supabaseUploadMaterialFile(
   file: File | Blob,
-  originalFileName: string
+  originalFileName: string,
+  materialId?: string
 ): Promise<{ success: boolean; publicUrl?: string; filePath?: string; error?: any }> {
   try {
     const safeFileName = originalFileName.endsWith('.pdf') ? originalFileName : `${originalFileName}.pdf`;
     const finalPath = `uploads/${safeFileName}`;
 
-    console.log(`Uploading file ${safeFileName} directly to Supabase storage path: ${finalPath}`);
+    console.log(`Uploading file ${safeFileName} via server proxy...`);
 
-    // Call supabase.storage.from('materials').upload(...) directly sending actual file/blob
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('materials')
-      .upload(finalPath, file, {
-        upsert: true,
-        contentType: file.type || 'application/pdf',
-      });
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
-    if (uploadError) {
-      console.error('Supabase Storage direct upload error:', uploadError);
-      return { success: false, error: uploadError };
+    const res = await fetch('/api/materials/upload-file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileData: base64,
+        fileName: safeFileName,
+        materialId,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return { success: false, error: errText || 'Server error uploading file' };
     }
 
-    // Retrieve the public URL
-    const { data } = supabase.storage
-      .from('materials')
-      .getPublicUrl(finalPath);
-
-    const publicUrl = data?.publicUrl;
-    console.log('Successfully uploaded file directly. Public URL:', publicUrl);
-
-    return {
-      success: true,
-      publicUrl,
-      filePath: finalPath,
-    };
+    const json = await res.json();
+    if (json.success) {
+      return {
+        success: true,
+        publicUrl: json.publicUrl,
+        filePath: finalPath,
+      };
+    }
+    return { success: false, error: json.error || 'Failed to save upload' };
   } catch (e: any) {
-    console.error('Direct upload exception in frontend:', e);
+    console.error('Upload file proxy error:', e);
     return { success: false, error: e.message };
   }
 }
