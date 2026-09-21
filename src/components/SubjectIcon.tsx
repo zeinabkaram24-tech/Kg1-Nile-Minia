@@ -43,6 +43,8 @@ export const SubjectIcon: React.FC<SubjectIconProps> = ({
     case 'ICT':
       return <Laptop className={`text-cyan-600 ${className}`} size={size} />;
     case 'Arts':
+    case 'Art':
+    case 'art':
       return <Palette className={`text-rose-500 ${className}`} size={size} />;
     case 'Music':
       return <Music className={`text-fuchsia-600 ${className}`} size={size} />;

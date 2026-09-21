@@ -14,7 +14,6 @@ import {
 import { ClassId, ClassworkEntry, HomeworkEntry, ParsedWeeklyPlanResponse } from '../types';
 import { parseWeeklyPlanWithAI } from '../services/aiClassifier';
 import { SUBJECT_METADATA } from '../data/timetables';
-import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from '../data/defaultWeeklyPlan';
 
 interface WeeklyPlanModalProps {
   isOpen: boolean;
@@ -22,25 +21,23 @@ interface WeeklyPlanModalProps {
   currentClass: ClassId;
   currentBlock?: number;
   currentWeek?: number;
-  onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[]) => void;
+  onApplyPlan: (classwork: ClassworkEntry[], homework: HomeworkEntry[], mode?: 'merge' | 'replace') => void;
 }
 
-const SAMPLE_WEEKLY_PLAN = `KG 1 Weekly Plan - Nile Egyptian International School
+const SAMPLE_WEEKLY_PLAN = `Grade 2 Weekly Plan - Nile Egyptian International School
 
 Sunday:
 - French: Unité 1 Salutations. CW: Manuel p. 6-8. HW: None
 - Mathematics: Place Value up to 100 with base-ten blocks. CW: Student Book p. 14-17. HW: Practice Book p. 11 exercises 1-8 (Due Monday)
 - Arabic: درس أنا أستطيع. CW: كتاب التلميذ ص 12-15. HW: كتابة الفقرة الأولى في كشكول الواجب (Due Tuesday)
-- Arabic: ملاحظات: ضرورة استماع التلميذ لرابط فيديو القراءة لتنمية مهارة الاستماع https://youtu.be/arabic-lesson
 - Science: Habitats & Living Things. CW: Learner's Book p. 18-21. HW: Workbook p. 15
-- English: Phonics: Letter P /p/ (heavy P with top circle) & words (pen, pig, pot). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday) https://youtu.be/phonics-letter-p
+- English: Unit 1 Back to School (Phonics short a & e). CW: Pupil's Book p. 10-13. HW: Activity Book p. 8 (Due Monday)
 
 Monday:
 - PE: Agility ladder & ball bouncing. Bring sports shoes!
-- English: Story Time The Kind Rabbit & Letter P practice. CW: Pupil's Book p. 14-15. HW: Copybook sentences
+- English: Story Time The Kind Rabbit. CW: Pupil's Book p. 14-15. HW: Copybook sentences
 - Mathematics: Comparing numbers with <, >, =. CW: Student Book p. 18-20. HW: Practice Book p. 12 (Due Tuesday)
 - Arabic: أسماء الإشارة (هذا وهذه). CW: كتاب المدرسة ص 16. HW: حل التدريب 3
-- Notes: Please pack extra water bottle and PE shoes for sports day.
 
 Tuesday:
 - Social Studies: My Community and Neighborhood. CW: Book p. 8-11. HW: Draw 3 places in notebook (Due Wednesday)
@@ -48,7 +45,7 @@ Tuesday:
 - Arts: Primary colors & watercolor painting. Bring sketch and watercolor set!
 - Religion: سورة الفلق وحفظ الآيات الكريمة. HW: حفظ السورة للتسميع (Urgent Quiz)
 - French: L'alphabet français A à H. CW: Cahier p. 11. HW: Cahier d'activités p. 7
-- English: Phonics Letter P handwriting and sound practice. CW: Workbook p. 16. HW: Practice tracing letter p (البي التقيلة p)
+- English: Sight words & sentence building. CW: Workbook p. 16. HW: Practice spelling list
 
 Wednesday:
 - English: Comprehension Animal Friends. CW: Pupil's Book p. 18. HW: Study 10 spelling words for Thursday Quiz (Urgent)
@@ -66,11 +63,14 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
   isOpen,
   onClose,
   currentClass,
+  currentBlock = 1,
+  currentWeek = 2,
   onApplyPlan,
 }) => {
   const [planText, setPlanText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedResult, setParsedResult] = useState<ParsedWeeklyPlanResponse | null>(null);
+  const [mode, setMode] = useState<'merge' | 'replace'>('replace');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -84,7 +84,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
     setIsProcessing(true);
 
     try {
-      const result = await parseWeeklyPlanWithAI(planText, currentClass);
+      const result = await parseWeeklyPlanWithAI(planText, currentClass, currentBlock, currentWeek);
       setParsedResult(result);
     } catch (err: any) {
       setErrorMsg('Classification encountered an issue, but local rules were applied.');
@@ -101,12 +101,14 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       id: `cw-imported-${Date.now()}-${idx}`,
       classId: currentClass,
       day: cw.day || 'Sunday',
-      period: cw.period || (idx % 6) + 1,
+      period: cw.period || (idx % 8) + 1,
       subject: cw.subject || 'English',
       title: cw.title || 'Lesson',
       details: cw.details,
       pages: cw.pages,
       completed: false,
+      block: currentBlock,
+      week: (cw as any).week || currentWeek,
     }));
 
     const finalHomework: HomeworkEntry[] = parsedResult.homework.map((hw, idx) => ({
@@ -120,9 +122,11 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       pages: hw.pages,
       completed: false,
       priority: hw.priority || 'normal',
+      block: currentBlock,
+      week: (hw as any).week || currentWeek,
     }));
 
-    onApplyPlan(finalClasswork, finalHomework);
+    onApplyPlan(finalClasswork, finalHomework, mode);
     onClose();
   };
 
@@ -156,32 +160,18 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
         {/* Modal Body */}
         <div className="py-4 space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+            <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-bold text-slate-700">
                 Paste Weekly Plan (English, Arabic, or School Text):
               </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onApplyPlan(INITIAL_CLASSWORK, INITIAL_HOMEWORK);
-                    onClose();
-                  }}
-                  className="text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
-                  title="استعادة الويكلي بلان العربي الأصلي مع كافة لينكات اليوتيوب وتفاصيل الدروس"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>استعادة الويكلي بلان العربي باللينكات</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPlanText(SAMPLE_WEEKLY_PLAN)}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-1"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Fill Sample
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setPlanText(SAMPLE_WEEKLY_PLAN)}
+                className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold inline-flex items-center gap-1"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                Fill Sample Grade 2 Plan
+              </button>
             </div>
 
             <textarea
@@ -191,9 +181,8 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
               placeholder="Paste your weekly plan here... For example:
 Sunday:
 - Math: Classwork pages 14-17. Homework page 11 (Due Monday)
-- English: Phonics: Letter P /p/ (sound of heavy P with circle on top). Homework activity book p. 8 https://youtu.be/phonics-p
-- Arabic: درس أنا أستطيع، كتابة الفقرة الأولى في كشكول الواجب
-- Arabic: ملاحظات: الاستماع لفيديو القراءة لتنمية مهارة الاستماع"
+- English: Phonics short a and e. Homework activity book p. 8
+- Arabic: درس أنا أستطيع، كتابة الفقرة الأولى في كشكول الواجب"
               className="w-full text-xs sm:text-sm p-3 font-mono bg-slate-50 rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -278,13 +267,66 @@ Sunday:
                 </div>
               </div>
 
+              {/* Mode Selection: Replace vs Merge */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-black text-slate-800">
+                    طريقة تطبيق الخطة (Import Mode):
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    {mode === 'replace' ? 'استبدال كامل' : 'دمج وإضافة'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setMode('replace')}
+                    className={`p-2.5 rounded-xl border text-right transition-all ${
+                      mode === 'replace'
+                        ? 'bg-purple-50 border-purple-500 text-purple-950 ring-2 ring-purple-400/40 font-black shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-start gap-1.5 font-black text-xs">
+                      <RefreshCw className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                      <span>استبدال القديمة بالجديدة</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 font-normal leading-relaxed">
+                      حذف خطة المادة السابقة لهذا الأسبوع واستبدالها بالخطة الجديدة منعاً للتكرار
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode('merge')}
+                    className={`p-2.5 rounded-xl border text-right transition-all ${
+                      mode === 'merge'
+                        ? 'bg-indigo-50 border-indigo-500 text-indigo-950 ring-2 ring-indigo-400/40 font-black shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-start gap-1.5 font-black text-xs">
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>إدخالها مع القديمة (دمج)</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 font-normal leading-relaxed">
+                      الإبقاء على الحصص والبيانات الحالية وإضافة الخطة الجديدة إليها
+                    </p>
+                  </button>
+                </div>
+              </div>
+
               <div className="pt-2">
                 <button
                   onClick={handleApply}
                   className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-xs transition-colors flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Apply to {currentClass} Planner</span>
+                  <span>
+                    {mode === 'replace'
+                      ? `استبدال الخطة القديمة وتطبيق الجديدة على ${currentClass}`
+                      : `دمج الخطة وتطبيقها على ${currentClass}`}
+                  </span>
                 </button>
               </div>
             </div>

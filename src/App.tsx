@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, PeriodSlot } from './types';
-import { INITIAL_CLASSWORK, INITIAL_HOMEWORK, SPECIAL_TEACHER_NOTES, TomorrowSpecialNote } from './data/defaultWeeklyPlan';
-import { WEEK2_CLASSWORK, ALL_LINK_AND_WEEK2_HOMEWORK, WEEK2_SPECIAL_NOTES } from './data/week2Plan';
-import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH } from './data/timetables';
-import {
-  getStoredTimetables,
-  saveAllStoredTimetables,
-  clearAllStoredTimetables,
-} from './utils/timetableStorage';
-import { clearAllMaterialsStorage, syncMaterialsFromCloud } from './utils/materialsStorage';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, TomorrowSpecialNote } from './types';
+import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
+import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH, NEXT_SCHOOL_DAY } from './data/timetables';
 import { Navbar } from './components/Navbar';
 import { ClassworkView } from './components/ClassworkView';
 import { HomeworkView } from './components/HomeworkView';
@@ -20,121 +13,144 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
-import { LiveEditItemModal, LiveEditModeType } from './components/LiveEditItemModal';
+import { clearAllMaterials } from './utils/materialsStorage';
+import { PdfViewerModal } from './components/PdfViewerModal';
+import { SupabaseConfigModal } from './components/SupabaseConfigModal';
+import { InteractiveEditorModal } from './components/InteractiveEditorModal';
+import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedPlannerItemId } from './utils/tomorrowNotesStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
   getStudentProgress,
   saveStudentProgress,
+  getGuestProgress,
+  saveGuestProgress,
+  syncStudentProgressFromDb,
 } from './utils/studentStorage';
-import { Sparkles, Trash2, RotateCcw, Database, Cloud, CheckCircle, Pencil } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from './lib/supabase';
 import {
-  seedInitialDataIfNeeded,
-  supabaseFetchClasswork,
-  supabaseUpsertClasswork,
-  supabaseDeleteClasswork,
-  supabaseBatchInsertClasswork,
-  supabaseClearAllClasswork,
-  supabaseFetchHomework,
-  supabaseUpsertHomework,
-  supabaseDeleteHomework,
-  supabaseBatchInsertHomework,
-  supabaseClearAllHomework,
-  supabaseFetchTimetables,
-  supabaseSaveAllTimetables,
-  supabaseClearAllTimetables,
-  supabaseFetchStudentProgress,
-  supabaseSaveStudentProgress,
-  supabaseFetchPlannerSettings,
-  supabaseSavePlannerSettings,
-  supabaseFetchTomorrowNotes,
-  supabaseSaveTomorrowNotes,
-  supabaseDeleteClassworkForScope,
-  supabaseDeleteHomeworkForScope,
-  supabaseDeleteTomorrowNotesForScope,
-  supabaseCheckDatabaseStatus,
-} from './services/supabaseService';
+  isSupabaseConfigured,
+  supabase,
+  fetchAllClasswork,
+  upsertClasswork,
+  updateClassworkCompletion,
+  deleteClasswork,
+  bulkInsertClasswork,
+  fetchAllHomework,
+  upsertHomework,
+  updateHomeworkCompletion,
+  deleteHomework,
+  bulkInsertHomework,
+  seedInitialDataIfEmpty,
+  forceSyncBaselineToSupabase,
+  fetchPlannerSettings,
+  savePlannerSetting,
+  rowToClasswork,
+  rowToHomework,
+  ClassworkRow,
+  HomeworkRow,
+  syncSupabaseConfigWithServer,
+  syncLocalDataToServer,
+  saveActiveSupabaseConfig,
+  getLocalCustomClasswork,
+  getLocalCustomHomework,
+  saveLocalCustomClasswork,
+  saveLocalCustomHomework,
+} from './lib/supabase';
+import initialData from './data/initialData.json';
+import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon } from 'lucide-react';
+import { getAutoDetectedToday } from './utils/academicCalendar';
+
+// Real local app storage with fallback for browser environment
+const appStorage = {
+  getItem: (key: string) => {
+    try {
+      return typeof window !== 'undefined' ? window.localStorage?.getItem(key) : null;
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, val: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.setItem(key, val);
+    } catch {}
+  },
+  removeItem: (key: string) => {
+    try {
+      if (typeof window !== 'undefined') window.localStorage?.removeItem(key);
+    } catch {}
+  }
+};
 
 const STORAGE_KEYS = {
   CLASS: 'nile_planner_current_class_v3',
   DAY: 'nile_planner_selected_day_v3',
   WEEK: 'nile_planner_current_week_v3',
-  CUSTOM_CLASSWORK: 'nile_planner_custom_classwork_v4',
-  CUSTOM_HOMEWORK: 'nile_planner_custom_homework_v3',
 };
 
-function getStoredCustomClasswork(profile: UserProfile | null): ClassworkEntry[] {
+function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
+  const cached = getLocalCustomClasswork();
+  let deletedSet = new Set<string>();
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_CLASSWORK);
+    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
     if (raw) {
-      const list: ClassworkEntry[] = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0 && list.some((c) => c.classId === 'KG1A')) {
-        const hasWeek2Arabic = list.some((c) => (c.week || 1) === 2 && c.subject === 'Arabic');
-        const hasWeek1English = list.some((c) => (c.week || 1) === 1 && c.subject === 'English');
-        
-        let fullList = list;
-        let changed = false;
-
-        if (!hasWeek2Arabic && WEEK2_CLASSWORK.length > 0) {
-          fullList = [...fullList.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
-          changed = true;
-        }
-
-        if (!hasWeek1English) {
-          const week1Eng = INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 1 && c.subject === 'English');
-          // Filter out any potential partial week 1 english entries to avoid duplicates
-          fullList = [...fullList.filter((c) => !((c.week || 1) === 1 && c.subject === 'English')), ...week1Eng];
-          changed = true;
-        }
-
-        if (changed) {
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullList));
-        }
-
-        if (profile?.mode === 'student' && profile.studentName) {
-          const progress = getStudentProgress(profile.studentName);
-          const set = new Set(progress.completedClassworkIds);
-          return fullList.map((c) => ({
-            ...c,
-            completed: set.has(c.id),
-          }));
-        }
-        return fullList.map((c) => ({ ...c, completed: false }));
-      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedSet = new Set(parsed);
     }
-  } catch (e) {
-    console.error('Failed to load custom classwork:', e);
+  } catch {}
+
+  const map = new Map<string, ClassworkEntry>();
+  INITIAL_CLASSWORK.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+  if (cached && cached.length > 0) {
+    cached.forEach((c) => { if (c && c.id) map.set(c.id, c); });
   }
-  return INITIAL_CLASSWORK;
+  const source = Array.from(map.values()).filter((c) => !deletedSet.has(c.id));
+  if (profile?.mode === 'student' && profile.studentName) {
+    const progress = getStudentProgress(profile.studentName);
+    const set = new Set(progress.completedClassworkIds);
+    return source.map((c) => ({
+      ...c,
+      completed: set.has(c.id),
+    }));
+  }
+  const guestProgress = getGuestProgress();
+  const guestSet = new Set(guestProgress.completedClassworkIds);
+  return source.map((c) => ({
+    ...c,
+    completed: guestSet.has(c.id),
+  }));
 }
 
-function getStoredCustomHomework(profile: UserProfile | null): HomeworkEntry[] {
+function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
+  const cached = getLocalCustomHomework();
+  let deletedSet = new Set<string>();
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_HOMEWORK);
+    const raw = appStorage.getItem('nile_deleted_planner_item_ids_v3');
     if (raw) {
-      const list: HomeworkEntry[] = JSON.parse(raw);
-      if (Array.isArray(list) && list.length > 0 && list.some((h) => h.classId === 'KG1A')) {
-        const hasWeek2Arabic = list.some((h) => (h.week || 1) === 2 && h.subject === 'Arabic');
-        const fullList = hasWeek2Arabic ? list : [...list.filter((h) => (h.week || 1) !== 2), ...ALL_LINK_AND_WEEK2_HOMEWORK];
-        if (!hasWeek2Arabic && ALL_LINK_AND_WEEK2_HOMEWORK.length > 0) {
-          localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullList));
-        }
-        if (profile?.mode === 'student' && profile.studentName) {
-          const progress = getStudentProgress(profile.studentName);
-          const set = new Set(progress.completedHomeworkIds);
-          return fullList.map((h) => ({
-            ...h,
-            completed: set.has(h.id),
-          }));
-        }
-        return fullList.map((h) => ({ ...h, completed: false }));
-      }
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) deletedSet = new Set(parsed);
     }
-  } catch (e) {
-    console.error('Failed to load custom homework:', e);
+  } catch {}
+
+  const map = new Map<string, HomeworkEntry>();
+  INITIAL_HOMEWORK.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+  if (cached && cached.length > 0) {
+    cached.forEach((h) => { if (h && h.id) map.set(h.id, h); });
   }
-  return INITIAL_HOMEWORK;
+  const source = Array.from(map.values()).filter((h) => !deletedSet.has(h.id));
+  if (profile?.mode === 'student' && profile.studentName) {
+    const progress = getStudentProgress(profile.studentName);
+    const set = new Set(progress.completedHomeworkIds);
+    return source.map((h) => ({
+      ...h,
+      completed: set.has(h.id),
+    }));
+  }
+  const guestProgress = getGuestProgress();
+  const guestSet = new Set(guestProgress.completedHomeworkIds);
+  return source.map((h) => ({
+    ...h,
+    completed: guestSet.has(h.id),
+  }));
 }
 
 export default function App() {
@@ -147,367 +163,350 @@ export default function App() {
     return getActiveUserProfile() === null;
   });
 
+  // Real-world automatic date detection (e.g. today is 21st, opens directly on Monday 21st, Topic 1, Week 2)
+  const autoDetected = useMemo(() => getAutoDetectedToday(), []);
+
   // Class selection (KG1A, KG1B, KG1C, KG1D, KG1E)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const profile = getActiveUserProfile();
-    if (profile?.classId && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(profile.classId)) {
-      return profile.classId;
-    }
-    const saved = localStorage.getItem(STORAGE_KEYS.CLASS);
-    if (saved && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(saved)) {
-      return saved as ClassId;
-    }
-    return 'KG1A';
+    if (profile?.classId) return profile.classId;
+    const saved = appStorage.getItem(STORAGE_KEYS.CLASS);
+    return saved && (saved.startsWith('KG1') || saved.startsWith('G2') || ['A','B','C','D','E','2A','2B','2C','2D','2E'].includes(saved)) ? saved : 'KG1A';
   });
 
-  // Current Topic / Block (1, 2, 3, 4)
+  // Current Topic (1, 2, 3, 4) - Automatically defaults to today's academic topic
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
-    const saved = localStorage.getItem('nile_planner_block');
-    return saved ? Number(saved) : 1;
+    return autoDetected.topic;
   });
 
-  // Current Week (1, 2, 3, 4) - Starts Week 2
+  // Current Week (1, 2, 3, 4) - Automatically defaults to today's academic week
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.WEEK);
-    return saved ? Number(saved) : 2;
+    return autoDetected.week;
   });
 
-  // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday)
+  // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday) - Automatically defaults to today's real day!
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.DAY);
-    if (saved && SCHOOL_DAYS.includes(saved as SchoolDay)) {
-      return saved as SchoolDay;
-    }
-    const dayOfWeek = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const dayMap: Record<number, SchoolDay> = {
-      0: 'Sunday',
-      1: 'Monday',
-      2: 'Tuesday',
-      3: 'Wednesday',
-      4: 'Thursday',
-      5: 'Sunday',
-      6: 'Sunday',
-    };
-    return dayMap[dayOfWeek] || 'Sunday';
+    return autoDetected.day;
   });
 
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
   const [activeTab, setActiveTab] = useState<'classwork' | 'homework' | 'tomorrow' | 'timetable'>('classwork');
 
-  // Dynamic Timetables state
-  const [timetables, setTimetables] = useState<Record<ClassId, Record<SchoolDay, PeriodSlot[]>>>(() => {
-    return getStoredTimetables();
+  // Supabase Connection Status
+  const [supabaseStatus, setSupabaseStatus] = useState<'connecting' | 'connected' | 'unconfigured' | 'error'>(() => {
+    return isSupabaseConfigured ? 'connecting' : 'unconfigured';
   });
 
-  // Classwork state initialized with storage
+  // Classwork state initialized based on user profile
   const [classworkList, setClassworkList] = useState<ClassworkEntry[]>(() => {
-    return getStoredCustomClasswork(getActiveUserProfile());
+    return getProfileClasswork(getActiveUserProfile());
   });
 
-  // Homework state initialized with storage
+  // Homework state initialized based on user profile
   const [homeworkList, setHomeworkList] = useState<HomeworkEntry[]>(() => {
-    return getStoredCustomHomework(getActiveUserProfile());
+    return getProfileHomework(getActiveUserProfile());
   });
 
-  // Tomorrow Notes state (Teacher notes, supply bag items, Arabic & English notes)
-  const [customTomorrowNotes, setCustomTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
-    try {
-      const saved = localStorage.getItem('nile_custom_tomorrow_notes');
-      const list = saved ? JSON.parse(saved) : [];
-      if (Array.isArray(list)) {
-        // Unconditionally filter out week 2 tomorrow notes to ensure a clean slate as requested
-        const cleanList = list.filter((n) => n.week !== 2);
-        localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(cleanList));
-        return cleanList;
-      }
-      return [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return sessionStorage.getItem('nile_admin_authenticated') === 'true';
-  });
-  const [isAdminLiveEdit, setIsAdminLiveEdit] = useState<boolean>(() => {
-    return localStorage.getItem('nile_admin_live_edit') === 'true';
-  });
-  const [liveEditModalConfig, setLiveEditModalConfig] = useState<{
-    isOpen: boolean;
-    type: LiveEditModeType;
-    item?: any;
-    originalIndex?: number;
-  }>({
-    isOpen: false,
-    type: 'classwork',
-  });
+  // Admin Direct Edit Mode and Interactive Editor States
+  const [isAdminEditMode, setIsAdminEditMode] = useState<boolean>(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState<boolean>(false);
+  const [editorModalMode, setEditorModalMode] = useState<'add' | 'edit'>('add');
+  const [editorItemType, setEditorItemType] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
+  const [selectedEditorItem, setSelectedEditorItem] = useState<any>(null);
 
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isAdminAuthOpen, setIsAdminAuthOpen] = useState(false);
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
-  const [adminDashboardInitialTab, setAdminDashboardInitialTab] = useState<'materials' | 'weekly_plan' | 'supabase'>('materials');
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
-  const [isSupabaseSyncing, setIsSupabaseSyncing] = useState<boolean>(false);
-  const [supabaseStatus, setSupabaseStatus] = useState<'connected' | 'offline' | 'checking'>(
-    isSupabaseConfigured ? 'checking' : 'offline'
-  );
+  const [isSupabaseConfigOpen, setIsSupabaseConfigOpen] = useState(false);
 
-  // Initial load, Auto-seeding and Real-time syncing with Supabase
+  // Listen for Supabase config updates (saving URL / API Key from UI)
   useEffect(() => {
-    let isMounted = true;
-
-    async function syncFromSupabase() {
-      // 1. Sync materials from Cloud (Supabase or server fallback) immediately
+    const handleConfigUpdated = async () => {
+      setSupabaseStatus('connecting');
       try {
-        await syncMaterialsFromCloud();
-      } catch (e) {
-        console.warn('Initial cloud materials sync warning:', e);
-      }
-
-      if (!isSupabaseConfigured) {
-        setSupabaseStatus('offline');
-        return;
-      }
-
-      setIsSupabaseSyncing(true);
-      try {
-        // 1. Seed initial data if tables are empty
-        const seedResult = await seedInitialDataIfNeeded();
-        if (seedResult.seeded) {
-          console.log('Seeded initial data into Supabase:', seedResult);
-        }
-
-        // 2. Fetch classwork
-        const remoteCw = await supabaseFetchClasswork();
-        if (isMounted) {
-          const week2Count = remoteCw.filter((c) => (c.week || 1) === 2).length;
-          // If we have at least 5 classwork items for Week 2, use remote. Else, auto-merge defaults.
-          if (remoteCw.length > 0 && week2Count >= 5) {
-            const hasWeek1English = remoteCw.some((c) => (c.week || 1) === 1 && c.subject === 'English');
-            if (!hasWeek1English) {
-              const week1Eng = INITIAL_CLASSWORK.filter((c) => (c.week || 1) === 1 && c.subject === 'English');
-              const fullCw = [...remoteCw, ...week1Eng];
-              setClassworkList(fullCw);
-              localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
-              if (isSupabaseConfigured) {
-                supabaseBatchInsertClasswork(week1Eng).catch(console.warn);
-              }
-            } else {
-              setClassworkList(remoteCw);
-              localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(remoteCw));
-            }
-          } else {
-            const baseCw = remoteCw.length > 0 ? remoteCw : INITIAL_CLASSWORK;
-            const cleanCw = baseCw.filter((c) => (c.week || 1) !== 2);
-            const fullCw = [...cleanCw, ...WEEK2_CLASSWORK];
-            setClassworkList(fullCw);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
-            if (isSupabaseConfigured) {
-              supabaseBatchInsertClasswork(fullCw).catch(console.warn);
-            }
-          }
-        }
-
-        // 3. Fetch homework
-        const remoteHw = await supabaseFetchHomework();
-        if (isMounted) {
-          const week2Count = remoteHw.filter((h) => (h.week || 1) === 2).length;
-          // If we have at least 5 homework items for Week 2, use remote. Else, auto-merge defaults.
-          if (remoteHw.length > 0 && week2Count >= 5) {
-            setHomeworkList(remoteHw);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(remoteHw));
-          } else {
-            const baseHw = remoteHw.length > 0 ? remoteHw : INITIAL_HOMEWORK;
-            const cleanHw = baseHw.filter((h) => (h.week || 1) !== 2);
-            const fullHw = [...cleanHw, ...ALL_LINK_AND_WEEK2_HOMEWORK];
-            setHomeworkList(fullHw);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullHw));
-            if (isSupabaseConfigured) {
-              supabaseBatchInsertHomework(fullHw).catch(console.warn);
-            }
-          }
-        }
-
-        // 4. Fetch timetables
-        const remoteTt = await supabaseFetchTimetables();
-        if (isMounted && remoteTt) {
-          setTimetables(remoteTt);
-          saveAllStoredTimetables(remoteTt);
-        }
-
-        // 5. Fetch planner settings (Active Block & Week)
-        const remoteSettings = await supabaseFetchPlannerSettings();
-        if (isMounted) {
-          if (remoteSettings) {
-            if (remoteSettings.currentBlock) setCurrentBlock(remoteSettings.currentBlock);
-            if (remoteSettings.currentWeek) {
-              const savedWeek = localStorage.getItem(STORAGE_KEYS.WEEK);
-              if (savedWeek) {
-                setCurrentWeek(Number(savedWeek));
-              } else {
-                // If database setting is 1 (old week), automatically upgrade it to Week 2 globally
-                const finalWeek = remoteSettings.currentWeek === 1 ? 2 : remoteSettings.currentWeek;
-                setCurrentWeek(finalWeek);
-                if (remoteSettings.currentWeek === 1 && isSupabaseConfigured) {
-                  supabaseSavePlannerSettings({
-                    currentBlock: remoteSettings.currentBlock || 1,
-                    currentWeek: 2,
-                  }).catch(console.warn);
-                }
-              }
-            }
-          } else if (isSupabaseConfigured) {
-            // Seed defaults of week 2 if missing entirely
-            supabaseSavePlannerSettings({ currentBlock: 1, currentWeek: 2 }).catch(console.warn);
-          }
-        }
-
-        // 6. Fetch tomorrow special notes
-        const remoteTomorrow = await supabaseFetchTomorrowNotes();
-        if (isMounted) {
-          const week2Count = remoteTomorrow.filter((n) => n.week === 2).length;
-          // If we have at least 2 tomorrow notes for Week 2, use remote. Else, auto-merge defaults.
-          if (remoteTomorrow.length > 0 && week2Count >= 2) {
-            setCustomTomorrowNotes(remoteTomorrow);
-            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(remoteTomorrow));
-          } else {
-            const baseTomorrow = remoteTomorrow.length > 0 ? remoteTomorrow : WEEK2_SPECIAL_NOTES;
-            const cleanTomorrow = baseTomorrow.filter((n) => n.week !== 2);
-            const fullTomorrow = [...cleanTomorrow, ...WEEK2_SPECIAL_NOTES];
-            setCustomTomorrowNotes(fullTomorrow);
-            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullTomorrow));
-            if (isSupabaseConfigured) {
-              supabaseSaveTomorrowNotes(fullTomorrow).catch(console.warn);
-            }
-          }
-        }
-
-        if (isMounted) {
-          const dbStatus = await supabaseCheckDatabaseStatus();
-          setSupabaseStatus(dbStatus.configured ? 'connected' : 'offline');
-        }
+        const [cwData, hwData] = await Promise.all([
+          fetchAllClasswork(),
+          fetchAllHomework(),
+        ]);
+        if (cwData && cwData.length > 0) setClassworkList(cwData);
+        if (hwData && hwData.length > 0) setHomeworkList(hwData);
+        setSupabaseStatus('connected');
+        showToast('تم تحديث اتصال Supabase وقراءة البيانات السحابية بنجاح!');
       } catch (err) {
-        console.error('Failed to sync initial data from Supabase:', err);
-        if (isMounted) setSupabaseStatus('offline');
-      } finally {
-        if (isMounted) setIsSupabaseSyncing(false);
+        console.error('Error reloading data after Supabase config change:', err);
+        setSupabaseStatus('error');
       }
-    }
+    };
 
-    syncFromSupabase();
-
-    // Setup Supabase Real-time listener for multi-device sync
-    let channel: any = null;
-    if (isSupabaseConfigured) {
-      channel = supabase
-        .channel('school-realtime-channel')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, async () => {
-          const fresh = await supabaseFetchClasswork();
-          if (isMounted && fresh.length > 0) {
-            setClassworkList(fresh);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fresh));
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, async () => {
-          const fresh = await supabaseFetchHomework();
-          if (isMounted && fresh.length > 0) {
-            setHomeworkList(fresh);
-            localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fresh));
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'timetables' }, async () => {
-          const fresh = await supabaseFetchTimetables();
-          if (isMounted && fresh) {
-            setTimetables(fresh);
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, async () => {
-          await syncMaterialsFromCloud();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_settings' }, async () => {
-          const freshSettings = await supabaseFetchPlannerSettings();
-          if (isMounted && freshSettings) {
-            if (freshSettings.currentBlock) setCurrentBlock(freshSettings.currentBlock);
-            if (freshSettings.currentWeek) setCurrentWeek(freshSettings.currentWeek);
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'tomorrow_notes' }, async () => {
-          const freshNotes = await supabaseFetchTomorrowNotes();
-          if (isMounted && freshNotes.length > 0) {
-            setCustomTomorrowNotes(freshNotes);
-            localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(freshNotes));
-          }
-        })
-        .subscribe();
-    }
-
-    // Set up background polling fallback to sync across devices/users every 30 seconds
-    const pollInterval = setInterval(() => {
-      if (isMounted) {
-        syncFromSupabase();
-      }
-    }, 30000);
-
+    window.addEventListener('supabase_config_updated', handleConfigUpdated);
     return () => {
-      isMounted = false;
-      clearInterval(pollInterval);
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      window.removeEventListener('supabase_config_updated', handleConfigUpdated);
     };
   }, []);
 
-  // Listen to timetable updates from other components
   useEffect(() => {
-    const handleTimetableChange = () => {
-      setTimetables(getStoredTimetables());
-    };
-    window.addEventListener('timetableUpdated', handleTimetableChange);
-    return () => window.removeEventListener('timetableUpdated', handleTimetableChange);
-  }, []);
+    if (isAdminEditMode) {
+      showToast('🛠️ تم تفعيل وضع التعديل المباشر! يمكنك الآن إضافة وتعديل وحذف أي عنصر مباشرة من الصفحة.');
+    }
+  }, [isAdminEditMode]);
 
-  // Persistence effects for class, week, day
+  // Persistence & Sync effects for class, week, day
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
+    appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
+    if (isSupabaseConfigured) {
+      savePlannerSetting('current_class', currentClass);
+    }
   }, [currentClass]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
+    appStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
+    if (isSupabaseConfigured) {
+      savePlannerSetting('current_week', String(currentWeek));
+    }
   }, [currentWeek]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
+    appStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
+    if (isSupabaseConfigured) {
+      savePlannerSetting('selected_day', selectedDay);
+    }
   }, [selectedDay]);
+
+  // Initial Server and Supabase Data Initialization & Realtime Subscriptions
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initializeFromSupabase() {
+      try {
+        // Enforce hard wipe of stale client-side caches so all classes (A, B, C, D, E) and materials are clean
+        const WIPE_VERSION = 'nile_data_wipe_clean_v10_topic_week2_all_links_today';
+        if (typeof window !== 'undefined' && localStorage.getItem(WIPE_VERSION) !== 'done') {
+          const keysToClean = [
+            'classwork_planner_custom_entries_v3',
+            'homework_planner_custom_entries_v3',
+            'tomorrow_special_notes_custom_v3',
+            'nile_planner_custom_classwork_v2',
+            'nile_planner_custom_homework_v2',
+            'nile_planner_classwork_b1_w1_w2_v9',
+            'nile_planner_homework_b1_w1_w2_v9',
+            'school_materials_fallback',
+            'nile_deleted_tomorrow_note_ids_v3',
+            'nile_deleted_planner_item_ids_v3',
+          ];
+          keysToClean.forEach((k) => {
+            try { localStorage.removeItem(k); } catch {}
+            try { sessionStorage.removeItem(k); } catch {}
+          });
+          clearAllMaterials().catch(() => {});
+          fetch('/api/materials/clear', { method: 'POST' }).catch(() => {});
+          fetch('/api/planner-data/clear', { method: 'POST' }).catch(() => {});
+          if (isSupabaseConfigured) {
+            Promise.resolve(supabase.from('classwork').delete().neq('id', '___')).catch(() => {});
+            Promise.resolve(supabase.from('homework').delete().neq('id', '___')).catch(() => {});
+            Promise.resolve(supabase.from('materials').delete().neq('id', '___')).catch(() => {});
+            Promise.resolve(supabase.from('tomorrow_notes').delete().neq('id', '___')).catch(() => {});
+          }
+          try { localStorage.setItem(WIPE_VERSION, 'done'); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.WEEK, String(autoDetected.week)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.DAY, autoDetected.day); } catch {}
+          try { localStorage.setItem('nile_planner_block', String(autoDetected.topic)); } catch {}
+        }
+
+        if (isSupabaseConfigured) {
+          setSupabaseStatus('connecting');
+          // Force-sync updated local codebase baseline data to Supabase first
+          await forceSyncBaselineToSupabase().catch(() => {});
+        } else {
+          setSupabaseStatus('unconfigured');
+        }
+
+        // Fetch classwork, homework, and planner settings IMMEDIATELY in parallel
+        const [cwData, hwData, settings] = await Promise.all([
+          fetchAllClasswork(),
+          fetchAllHomework(),
+          fetchPlannerSettings(),
+        ]);
+
+        // Background non-blocking tasks: credentials sync, local data sync, and lazy seeding
+        Promise.allSettled([
+          syncLocalDataToServer(),
+          syncSupabaseConfigWithServer(),
+        ]).then(() => {
+          if (isSupabaseConfigured && (!cwData || cwData.length === 0) && (!hwData || hwData.length === 0)) {
+            seedInitialDataIfEmpty().catch(() => {});
+          }
+        }).catch(() => {});
+
+        if (!isMounted) return;
+
+        const profile = getActiveUserProfile();
+        let progress: any = null;
+        if (profile?.mode === 'student' && profile.studentName) {
+          if (isSupabaseConfigured) {
+            try {
+              progress = await syncStudentProgressFromDb(profile.studentName);
+            } catch (err) {
+              console.warn('Error fetching student progress from Supabase:', err);
+              progress = getStudentProgress(profile.studentName);
+            }
+          } else {
+            progress = getStudentProgress(profile.studentName);
+          }
+        }
+
+        // Apply classwork with student or guest completion checks
+        if (cwData && cwData.length > 0) {
+          const uniqueCwMap = new Map<string, ClassworkEntry>();
+          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+          const dedupedCw = Array.from(uniqueCwMap.values());
+
+          if (profile?.mode === 'student' && profile.studentName) {
+            const cwSet = new Set(progress ? progress.completedClassworkIds : []);
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          } else {
+            const guestProgress = getGuestProgress();
+            const cwSet = new Set(guestProgress.completedClassworkIds);
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          }
+        }
+
+        // Apply homework with student or guest completion checks
+        if (hwData && hwData.length > 0) {
+          const uniqueHwMap = new Map<string, HomeworkEntry>();
+          hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+          const dedupedHw = Array.from(uniqueHwMap.values());
+
+          const normalizedHw = dedupedHw.map((h) => {
+            if (
+              (h.id === 'hw-w2-ar-tue-g2a-wb' ||
+                h.id === 'hw-w2-ar-tue-g2b-wb' ||
+                h.id === 'hw-w2-ar-tue-g2c-wb' ||
+                (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
+              (h.task.includes('46') || h.pages.includes('46') || h.details.includes('46'))
+            ) {
+              return {
+                ...h,
+                task: h.task.replace(/46/g, '47'),
+                pages: h.pages.replace(/46/g, '47'),
+                details: h.details.replace(/46/g, '47'),
+              };
+            }
+            return h;
+          });
+
+          if (profile?.mode === 'student' && profile.studentName) {
+            const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
+            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          } else {
+            const guestProgress = getGuestProgress();
+            const hwSet = new Set(guestProgress.completedHomeworkIds);
+            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          }
+        }
+
+        // Apply settings if found in DB only if user has no local choice saved
+        const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
+        if (
+          !localClass &&
+          settings.current_class &&
+          (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
+        ) {
+          setCurrentClass(settings.current_class as ClassId);
+        }
+        const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
+        if (!localWeek && settings.current_week) {
+          setCurrentWeek(Number(settings.current_week) || 3);
+        }
+        const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
+        if (!localDay && settings.selected_day) {
+          const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+          if (validDays.includes(settings.selected_day as SchoolDay)) {
+            setSelectedDay(settings.selected_day as SchoolDay);
+          }
+        }
+        const localBlock = appStorage.getItem('nile_planner_block');
+        if (!localBlock && settings.current_block) {
+          setCurrentBlock(Number(settings.current_block) || 1);
+        }
+
+        if (isSupabaseConfigured) {
+          setSupabaseStatus('connected');
+        }
+      } catch (err) {
+        console.error('Failed to initialize data from server/Supabase:', err);
+        if (isMounted && isSupabaseConfigured) setSupabaseStatus('error');
+      }
+    }
+
+    initializeFromSupabase();
+
+    // Setup Supabase Realtime Channels only if configured
+    if (!isSupabaseConfigured) return;
+    const channel = supabase
+      .channel('planner-realtime-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newCw = rowToClasswork(payload.new as ClassworkRow);
+          setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedCw = rowToClasswork(payload.new as ClassworkRow);
+          setClassworkList((prev) =>
+            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = payload.old.id;
+          setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newHw = rowToHomework(payload.new as HomeworkRow);
+          setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedHw = rowToHomework(payload.new as HomeworkRow);
+          setHomeworkList((prev) =>
+            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = payload.old.id;
+          setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+    setTimeout(() => setToastMsg(null), 4500);
   };
 
-  // Switch student profile
-  const handleSelectProfile = async (newProfile: UserProfile | null) => {
+  // Handle switching user profile (Student vs Guest)
+  const handleSelectProfile = async (newProfile: UserProfile) => {
     setUserProfile(newProfile);
     setActiveUserProfile(newProfile);
 
-    if (newProfile?.mode === 'student' && newProfile.studentName) {
-      if (newProfile.classId) {
-        setCurrentClass(newProfile.classId);
-      }
+    if (newProfile.classId && newProfile.classId !== currentClass) {
+      setCurrentClass(newProfile.classId);
+    }
 
-      let cwSet: Set<string>;
-      let hwSet: Set<string>;
-
-      // Try fetching student progress from Supabase first
-      const remoteProgress = await supabaseFetchStudentProgress(newProfile.studentName);
-      if (remoteProgress) {
-        cwSet = new Set(remoteProgress.completedClassworkIds);
-        hwSet = new Set(remoteProgress.completedHomeworkIds);
-      } else {
-        const progress = getStudentProgress(newProfile.studentName);
-        cwSet = new Set(progress.completedClassworkIds);
-        hwSet = new Set(progress.completedHomeworkIds);
+    if (newProfile.mode === 'student' && newProfile.studentName) {
+      let progress = getStudentProgress(newProfile.studentName);
+      if (isSupabaseConfigured) {
+        try {
+          progress = await syncStudentProgressFromDb(newProfile.studentName);
+        } catch (e) {
+          console.warn('Could not sync student progress on login:', e);
+        }
       }
+      const cwSet = new Set(progress.completedClassworkIds);
+      const hwSet = new Set(progress.completedHomeworkIds);
 
       setClassworkList((prev) =>
         prev.map((c) => ({
@@ -521,37 +520,67 @@ export default function App() {
           completed: hwSet.has(h.id),
         }))
       );
-      showToast(`مرحباً يا ${newProfile.studentName}! تم تحميل بياناتك.`);
+      showToast(`مرحباً يا ${newProfile.studentName}! تم تحميل إنجازاتك وواجباتك المحفوظة.`);
     } else {
-      // Guest mode
-      setClassworkList((prev) => prev.map((c) => ({ ...c, completed: false })));
-      setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: false })));
-      showToast('تم الدخول كزائر (تصفح فقط).');
+      // Guest mode: Restore guest progress
+      const guestProgress = getGuestProgress();
+      const cwSet = new Set(guestProgress.completedClassworkIds);
+      const hwSet = new Set(guestProgress.completedHomeworkIds);
+      setClassworkList((prev) => prev.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+      setHomeworkList((prev) => prev.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+      showToast('تم التبديل لوضع الزائر (تُحفظ علامات الإنجاز على هذا الجهاز).');
     }
   };
 
-  // Classwork handlers (CRUD -> Supabase + local cache)
+  // Classwork handlers with Supabase CRUD
   const handleToggleClasswork = async (id: string) => {
-    setClassworkList((prev) => {
-      const updated = prev.map((c) => (c.id === id ? { ...c, completed: !c.completed } : c));
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(updated));
-      const target = updated.find((c) => c.id === id);
-      if (target) {
-        supabaseUpsertClasswork(target).catch(console.warn);
-      }
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = updated.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
+    const currentItem = classworkList.find((c) => c.id === id);
+    const nextCompleted = currentItem ? !currentItem.completed : true;
+
+    // 1. Synchronous state update for immediate UI feedback
+    setClassworkList((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, completed: nextCompleted } : c))
+    );
+
+    // 2. Persist progress in student or guest storage
+    if (userProfile?.mode === 'student' && userProfile.studentName) {
+      const currentProgress = getStudentProgress(userProfile.studentName);
+      const cwSet = new Set(currentProgress.completedClassworkIds);
+      if (nextCompleted) {
+        cwSet.add(id);
       } else {
-        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
+        cwSet.delete(id);
       }
-      return updated;
-    });
+      const newCwIds = Array.from(cwSet);
+      const hwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
+      saveStudentProgress(userProfile.studentName, newCwIds, hwIds, currentClass);
+    } else {
+      const guestProgress = getGuestProgress();
+      const cwSet = new Set(guestProgress.completedClassworkIds);
+      if (nextCompleted) {
+        cwSet.add(id);
+      } else {
+        cwSet.delete(id);
+      }
+      saveGuestProgress(
+        Array.from(cwSet),
+        homeworkList.filter((h) => h.completed).map((h) => h.id)
+      );
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        await updateClassworkCompletion(id, nextCompleted);
+      } catch (e) {
+        console.warn('Could not update classwork completion in Supabase:', e);
+      }
+    }
   };
 
   const handleSaveClasswork = async (entry: ClassworkEntry) => {
+    try {
+      await removeDeletedPlannerItemId(entry.id);
+    } catch {}
     setClassworkList((prev) => {
       const idx = prev.findIndex((c) => c.id === entry.id);
       let next: ClassworkEntry[];
@@ -559,336 +588,344 @@ export default function App() {
         next = [...prev];
         next[idx] = entry;
       } else {
-        next = [...prev, entry];
+        next = [entry, ...prev];
       }
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
 
-    const res = await supabaseUpsertClasswork(entry);
-    if (res.success) {
-      showToast('تم حفظ الدرس في Supabase بنجاح!');
+    try {
+      await upsertClasswork(entry);
+    } catch (e) {
+      console.error('Error saving classwork:', e);
+    }
+    showToast('تم حفظ الحصة بنجاح!');
+  };
+
+  // Homework handlers with Supabase CRUD
+  const handleToggleHomework = async (id: string) => {
+    const currentItem = homeworkList.find((h) => h.id === id);
+    const nextCompleted = currentItem ? !currentItem.completed : true;
+
+    // 1. Synchronous state update for immediate UI feedback
+    setHomeworkList((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, completed: nextCompleted } : h))
+    );
+
+    // 2. Persist progress in student or guest storage
+    if (userProfile?.mode === 'student' && userProfile.studentName) {
+      const currentProgress = getStudentProgress(userProfile.studentName);
+      const hwSet = new Set(currentProgress.completedHomeworkIds);
+      if (nextCompleted) {
+        hwSet.add(id);
+      } else {
+        hwSet.delete(id);
+      }
+      const newHwIds = Array.from(hwSet);
+      const cwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+      saveStudentProgress(userProfile.studentName, cwIds, newHwIds, currentClass);
     } else {
-      showToast('تم حفظ الدرس محلياً.');
+      const guestProgress = getGuestProgress();
+      const hwSet = new Set(guestProgress.completedHomeworkIds);
+      if (nextCompleted) {
+        hwSet.add(id);
+      } else {
+        hwSet.delete(id);
+      }
+      saveGuestProgress(
+        classworkList.filter((c) => c.completed).map((c) => c.id),
+        Array.from(hwSet)
+      );
+    }
+
+    try {
+      await updateHomeworkCompletion(id, nextCompleted);
+    } catch (e) {
+      console.warn('Could not update homework completion:', e);
     }
   };
 
-  const handleDeleteClasswork = async (id: string) => {
-    setClassworkList((prev) => {
-      const next = prev.filter((c) => c.id !== id);
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = next.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = homeworkList.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
-      }
-      return next;
-    });
-
-    await supabaseDeleteClasswork(id);
-    showToast('تم حذف الدرس من الخطة وقاعدة البيانات بنجاح');
-  };
-
-  // Homework handlers (CRUD -> Supabase + local cache)
-  const handleToggleHomework = async (id: string) => {
-    setHomeworkList((prev) => {
-      const updated = prev.map((h) => (h.id === id ? { ...h, completed: !h.completed } : h));
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(updated));
-      const target = updated.find((h) => h.id === id);
-      if (target) {
-        supabaseUpsertHomework(target).catch(console.warn);
-      }
-      if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = updated.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
-      } else {
-        showToast('تنبيه: أنت تتصفح كزائر، لن يتم حفظ علامة الإنجاز بعد إغلاق المتصفح.');
-      }
-      return updated;
-    });
-  };
-
   const handleAddHomework = async (entry: HomeworkEntry) => {
+    try {
+      await removeDeletedPlannerItemId(entry.id);
+    } catch {}
     setHomeworkList((prev) => {
       const idx = prev.findIndex((h) => h.id === entry.id);
       let next: HomeworkEntry[];
       if (idx >= 0) {
         next = [...prev];
-        next[idx] = entry;
+        next[idx] = { ...prev[idx], ...entry };
       } else {
         next = [entry, ...prev];
       }
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       if (userProfile?.mode === 'student' && userProfile.studentName) {
         const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
         const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
         saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
       }
       return next;
     });
 
-    const res = await supabaseUpsertHomework(entry);
-    if (res.success) {
-      showToast('تم حفظ الواجب في Supabase بنجاح!');
-    } else {
-      showToast('تم حفظ الواجب محلياً.');
+    try {
+      await upsertHomework(entry);
+    } catch (e) {
+      console.error('Error adding homework:', e);
     }
+    showToast('تم حفظ الواجب المنزلي بنجاح!');
   };
 
   const handleDeleteHomework = async (id: string) => {
     setHomeworkList((prev) => {
       const next = prev.filter((h) => h.id !== id);
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
       if (userProfile?.mode === 'student' && userProfile.studentName) {
-        const completedCwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
-        const completedHwIds = next.filter((h) => h.completed).map((h) => h.id);
-        saveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass);
-        supabaseSaveStudentProgress(userProfile.studentName, completedCwIds, completedHwIds, currentClass).catch(console.warn);
-      }
-      return next;
-    });
-
-    await supabaseDeleteHomework(id);
-    showToast('تم حذف الواجب من قاعدة البيانات بنجاح.');
-  };
-
-  const handleSaveTomorrowNote = async (note: TomorrowSpecialNote, originalIndex?: number) => {
-    setCustomTomorrowNotes((prev) => {
-      let next: TomorrowSpecialNote[];
-      if (originalIndex !== undefined && originalIndex >= 0 && originalIndex < prev.length) {
-        next = prev.map((n, i) => (i === originalIndex ? note : n));
+        const currentProgress = getStudentProgress(userProfile.studentName);
+        const hwSet = new Set(currentProgress.completedHomeworkIds);
+        hwSet.delete(id);
+        const cwIds = classworkList.filter((c) => c.completed).map((c) => c.id);
+        saveStudentProgress(userProfile.studentName, cwIds, Array.from(hwSet), currentClass);
       } else {
-        next = [note, ...prev];
+        const guestProgress = getGuestProgress();
+        const hwSet = new Set(guestProgress.completedHomeworkIds);
+        hwSet.delete(id);
+        saveGuestProgress(guestProgress.completedClassworkIds, Array.from(hwSet));
       }
-      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
-      supabaseSaveTomorrowNotes(next).catch(console.warn);
       return next;
     });
-    showToast('تم حفظ ملاحظة الغد بنجاح!');
-  };
 
-  const handleDeleteTomorrowNote = async (index: number) => {
-    setCustomTomorrowNotes((prev) => {
-      const next = prev.filter((_, i) => i !== index);
-      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
-      supabaseSaveTomorrowNotes(next).catch(console.warn);
-      return next;
-    });
-    showToast('تم حذف الملاحظة بنجاح.');
+    try {
+      await deleteHomework(id);
+      await fetch('/api/planner-data/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type: 'homework' }),
+      });
+    } catch (e) {
+      console.error('Error deleting homework:', e);
+    }
+    showToast('تم حذف الواجب بنجاح.');
   };
 
   const handleApplyWeeklyPlan = async (
     newClasswork: ClassworkEntry[],
     newHomework: HomeworkEntry[],
-    newTomorrowNotes?: TomorrowSpecialNote[],
-    replaceExisting: boolean = false,
-    options?: {
-      targetBlock?: number;
-      targetWeek?: number;
-      targetClasses?: ClassId[];
-      subjectFilter?: string;
-      saveMode?: 'replace_week' | 'replace_subject' | 'replace_all' | 'append';
-    }
+    mode: 'merge' | 'replace' = 'replace'
   ) => {
-    const targetBlock = options?.targetBlock ?? (newClasswork[0]?.block || 1);
-    const targetWeek = options?.targetWeek ?? (newClasswork[0]?.week || 1);
-    const targetClasses: ClassId[] =
-      options?.targetClasses && options.targetClasses.length > 0
-        ? options.targetClasses
-        : Array.from(new Set([...newClasswork.map((c) => c.classId), ...newHomework.map((h) => h.classId)]));
-    const subjectFilter =
-      options?.subjectFilter && options.subjectFilter !== 'ALL' ? options.subjectFilter : undefined;
-    const mode = options?.saveMode || (replaceExisting ? 'replace_week' : 'append');
+    if (mode === 'replace') {
+      const cwKeys = new Set(newClasswork.map((c) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`));
+      const hwKeys = new Set(newHomework.map((h) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`));
 
-    // Scoped filtering logic for local state
-    const filterOutItems = <T extends { block?: number; week?: number; classId: ClassId; subject?: string }>(
-      list: T[]
-    ): T[] => {
-      if (mode === 'append') return list;
-      if (mode === 'replace_all') return [];
-      return list.filter((item) => {
-        const itemBlock = item.block || 1;
-        const itemWeek = item.week || 1;
-        const isSameScope =
-          itemBlock === targetBlock &&
-          itemWeek === targetWeek &&
-          (targetClasses.length === 0 || targetClasses.includes(item.classId));
-
-        if (!isSameScope) return true; // keep items of other weeks/blocks/classes
-
-        if (mode === 'replace_subject' && subjectFilter) {
-          // only remove items of this specific subject
-          const itemSubject = (item.subject || '').toLowerCase();
-          return itemSubject !== subjectFilter.toLowerCase();
-        }
-
-        // replace_week removes all items for that week
-        return false;
+      setClassworkList((prev) => {
+        const updated = [
+          ...newClasswork,
+          ...prev.filter((c) => !cwKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)),
+        ];
+        saveLocalCustomClasswork(updated, 'replace');
+        return updated;
       });
-    };
-
-    setClassworkList((prev) => {
-      const filtered = filterOutItems(prev);
-      const next = [...newClasswork, ...filtered];
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(next));
-      return next;
-    });
-
-    setHomeworkList((prev) => {
-      const filtered = filterOutItems(prev);
-      const next = [...newHomework, ...filtered];
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(next));
-      return next;
-    });
-
-    setCustomTomorrowNotes((prev) => {
-      const filtered =
-        mode === 'append'
-          ? prev
-          : prev.filter((n) => {
-              const nBlock = n.block || 1;
-              const nWeek = n.week || 1;
-              const isSame =
-                nBlock === targetBlock &&
-                nWeek === targetWeek &&
-                (targetClasses.includes(n.classId as ClassId) || n.classId === 'ALL');
-              if (!isSame) return true;
-              if (mode === 'replace_subject' && subjectFilter) {
-                return (n.subject || '').toLowerCase() !== subjectFilter.toLowerCase();
-              }
-              return false;
-            });
-      const next = newTomorrowNotes && newTomorrowNotes.length > 0 ? [...newTomorrowNotes, ...filtered] : filtered;
-      localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(next));
-      return next;
-    });
-
-    // Supabase scoped cleanup & insert
-    if (mode === 'replace_week' || mode === 'replace_subject') {
-      await Promise.all([
-        supabaseDeleteClassworkForScope(
-          targetClasses,
-          targetBlock,
-          targetWeek,
-          mode === 'replace_subject' ? subjectFilter : undefined
-        ),
-        supabaseDeleteHomeworkForScope(
-          targetClasses,
-          targetBlock,
-          targetWeek,
-          mode === 'replace_subject' ? subjectFilter : undefined
-        ),
-        supabaseDeleteTomorrowNotesForScope(
-          targetClasses,
-          targetBlock,
-          targetWeek,
-          mode === 'replace_subject' ? subjectFilter : undefined
-        ),
-      ]).catch(console.warn);
+      setHomeworkList((prev) => {
+        const updated = [
+          ...newHomework,
+          ...prev.filter((h) => !hwKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)),
+        ];
+        saveLocalCustomHomework(updated, 'replace');
+        return updated;
+      });
+    } else {
+      setClassworkList((prev) => {
+        const updated = [...newClasswork, ...prev];
+        saveLocalCustomClasswork(updated, 'merge');
+        return updated;
+      });
+      setHomeworkList((prev) => {
+        const updated = [...newHomework, ...prev];
+        saveLocalCustomHomework(updated, 'merge');
+        return updated;
+      });
     }
-
-    // Batch insert new items to Supabase
-    if (newClasswork.length > 0) await supabaseBatchInsertClasswork(newClasswork);
-    if (newHomework.length > 0) await supabaseBatchInsertHomework(newHomework);
-    if (newTomorrowNotes && newTomorrowNotes.length > 0) await supabaseSaveTomorrowNotes(newTomorrowNotes);
-
-    showToast(`تم تنزيل وحفظ الخطة بنجاح في Topic ${targetBlock} - Week ${targetWeek}!`);
-  };
-
-  const handleUpdateTimetable = async (updated: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>) => {
-    setTimetables(updated);
-    saveAllStoredTimetables(updated);
-    await supabaseSaveAllTimetables(updated);
-    showToast('تم تحديث جدول الحصص وحفظه في Supabase!');
-  };
-
-  // Complete data reset / Clean slate
-  const handleClearAllData = async () => {
-    const confirmed = window.confirm(
-      'هل أنتِ متأكدة من تفريغ كافة البيانات؟\n' +
-      'سيتم مسح جدول الحصص، والواجبات، والدروس، وكافة ملفات الماتيريال من Supabase والتخزين المحلي للبدء ببيانات جديدة تماماً.'
-    );
-    if (!confirmed) return;
-
-    // 1. Clear classwork and homework in Supabase & local
-    await supabaseClearAllClasswork();
-    await supabaseClearAllHomework();
-    localStorage.removeItem(STORAGE_KEYS.CUSTOM_CLASSWORK);
-    localStorage.removeItem(STORAGE_KEYS.CUSTOM_HOMEWORK);
-    localStorage.removeItem('nile_planner_tasks_v2');
-    localStorage.removeItem('nile_custom_tomorrow_notes');
-    setClassworkList([]);
-    setHomeworkList([]);
-    setCustomTomorrowNotes([]);
-
-    // 2. Clear timetables in Supabase & local
-    await supabaseClearAllTimetables();
-    const emptyTimetables = clearAllStoredTimetables();
-    setTimetables(emptyTimetables);
-
-    // 3. Clear all materials from IndexedDB and storage
-    await clearAllMaterialsStorage();
-
-    // 4. Clear student progress
-    if (userProfile?.mode === 'student' && userProfile.studentName) {
-      saveStudentProgress(userProfile.studentName, [], [], currentClass);
-      await supabaseSaveStudentProgress(userProfile.studentName, [], [], currentClass);
-    }
-
-    showToast('تم تفريغ كافة البيانات والملفات بنجاح! الأبليكيشن جاهز لبياناتك الجديدة بالكامل.');
-  };
-
-  // Restore original Arabic & English weekly plans (Week 1 & Week 2) with YouTube links & lessons
-  const handleRestoreArabicWeeklyPlan = async () => {
-    const fullCw = [...INITIAL_CLASSWORK.filter((c) => (c.week || 1) !== 2), ...WEEK2_CLASSWORK];
-    const fullHw = [...INITIAL_HOMEWORK.filter((h) => (h.week || 1) !== 2), ...ALL_LINK_AND_WEEK2_HOMEWORK];
-    const fullTomorrow = WEEK2_SPECIAL_NOTES;
-
-    setClassworkList(fullCw);
-    setHomeworkList(fullHw);
-    setCustomTomorrowNotes(fullTomorrow);
-
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_CLASSWORK, JSON.stringify(fullCw));
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_HOMEWORK, JSON.stringify(fullHw));
-    localStorage.setItem('nile_custom_tomorrow_notes', JSON.stringify(fullTomorrow));
 
     if (isSupabaseConfigured) {
       try {
-        await supabaseBatchInsertClasswork(fullCw);
-        await supabaseBatchInsertHomework(fullHw);
-        await supabaseSaveTomorrowNotes(fullTomorrow);
-        await supabaseSavePlannerSettings({ currentBlock: 1, currentWeek: 2 });
+        await Promise.all([
+          bulkInsertClasswork(newClasswork, mode),
+          bulkInsertHomework(newHomework, mode),
+        ]);
       } catch (e) {
-        console.warn('Failed to push restored weekly plan to Supabase:', e);
+        console.error('Error saving weekly plan to Supabase:', e);
       }
     }
-    showToast('تمت استعادة خطة الأسبوع الأول والثاني كاملة بالعربي والإنجليزي بنجاح!');
+    showToast(
+      mode === 'replace'
+        ? 'تم استبدال الخطة السابقة بالخطة الجديدة وتحديث البيانات بنجاح!'
+        : 'تم استيراد الخطة الأسبوعية ودمجها بنجاح!'
+    );
+  };
+
+  // Reset to sample plan
+  const handleResetToDefaults = async () => {
+    if (confirm('هل تريد استعادة الخطة الأصلية ومزامنتها مباشرة مع Supabase؟')) {
+      setClassworkList(INITIAL_CLASSWORK.map((c) => ({ ...c, completed: false })));
+      setHomeworkList(INITIAL_HOMEWORK.map((h) => ({ ...h, completed: false })));
+
+      if (userProfile?.mode === 'student' && userProfile.studentName) {
+        saveStudentProgress(userProfile.studentName, [], [], currentClass);
+      }
+
+      if (isSupabaseConfigured) {
+        try {
+          await Promise.all([
+            bulkInsertClasswork(INITIAL_CLASSWORK),
+            bulkInsertHomework(INITIAL_HOMEWORK),
+          ]);
+        } catch (e) {
+          console.error('Failed to sync default data to Supabase:', e);
+        }
+      }
+      showToast('تمت استعادة الخطة الأولية وتحديث Supabase.');
+    }
+  };
+
+  const handleDeleteClasswork = async (id: string) => {
+    setClassworkList((prev) => prev.filter((c) => c.id !== id));
+    try {
+      await deleteClasswork(id);
+      await fetch('/api/planner-data/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type: 'classwork' }),
+      });
+    } catch (e) {
+      console.error('Error deleting classwork:', e);
+    }
+    showToast('تم حذف الحصة بنجاح.');
+  };
+
+  const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
+    if (data.classId && (data.classId as any) !== 'ALL') {
+      setCurrentClass(data.classId as ClassId);
+    }
+    if (data.block) {
+      setCurrentBlock(Number(data.block));
+    }
+    if (data.week) {
+      setCurrentWeek(Number(data.week));
+    }
+
+    if (type === 'classwork') {
+      setActiveTab('classwork');
+      await handleSaveClasswork(data);
+    } else if (type === 'homework') {
+      setActiveTab('homework');
+      await handleAddHomework(data);
+    } else if (type === 'tomorrow') {
+      setActiveTab('tomorrow');
+
+      const block = data.block || currentBlock;
+      const week = data.week || currentWeek;
+
+      const classesToAdd: ClassId[] =
+        (data.classId as any) === 'ALL'
+          ? ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E']
+          : [data.classId || currentClass];
+
+      const entriesToSave: TomorrowSpecialNote[] = classesToAdd.map((cls) => ({
+        ...data,
+        id:
+          (data.classId as any) === 'ALL'
+            ? `${data.id || `tomorrow-note-${Date.now()}`}-${cls}`
+            : data.id || `tomorrow-note-${Date.now()}`,
+        classId: cls,
+        isCustom: true,
+      }));
+
+      await saveTomorrowNotes(block, week, entriesToSave, 'merge');
+
+      // If note is a quiz, dictation, test, exam, or evaluation -> automatically add to Homework as urgent item for studying
+      const fullText = `${data.note || ''} ${data.arabicNote || ''} ${data.subject || ''} ${data.bagItem || ''}`;
+      const isQuizOrDictation =
+        data.isQuiz ||
+        data.categoryType === 'quiz' ||
+        /quiz|test|dictation|إملاء|تسميع|اختبار|امتحان|كويز|تقييم|exam|assessment/i.test(fullText);
+
+      if (isQuizOrDictation) {
+        for (const cls of classesToAdd) {
+          const hwEntry: HomeworkEntry = {
+            id: (data.classId as any) === 'ALL' ? `tn-hw-${data.id || Date.now()}-${cls}` : `tn-hw-${data.id || Date.now()}`,
+            classId: cls,
+            assignedDay: data.targetDay || selectedDay,
+            dueDay: data.targetDay || selectedDay,
+            subject: data.subject || 'General',
+            task: data.arabicNote || data.note || 'اختبار / إملاء',
+            details: data.bagItem ? `مذاكرة للاختبار/الإملاء (المطلوب: ${data.bagItem})` : 'تنبيه مذاكرة وتجهيز للاختبار أو الإملاء',
+            completed: false,
+            priority: 'urgent',
+            block,
+            week,
+            linkUrl: data.linkUrl || undefined,
+          };
+          await handleAddHomework(hwEntry);
+        }
+      }
+
+      notifyTomorrowNotesListeners();
+      showToast('تم حفظ التنبيه بنجاح!');
+    }
+    setIsEditorModalOpen(false);
+  };
+
+  const handleDeleteInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', id: string) => {
+    if (type === 'classwork') {
+      await handleDeleteClasswork(id);
+    } else if (type === 'homework') {
+      await handleDeleteHomework(id);
+    } else if (type === 'tomorrow') {
+      try {
+        await saveDeletedTomorrowNoteId(id);
+
+        let linkedHwId: string | null = null;
+        if (id.startsWith('linked-hw-due-')) {
+          linkedHwId = id.replace('linked-hw-due-', '');
+        } else if (id.startsWith('linked-hw-')) {
+          linkedHwId = id.replace('linked-hw-', '');
+        }
+        if (linkedHwId) {
+          await saveDeletedTomorrowNoteId(linkedHwId);
+        }
+
+        // Only delete from tomorrowNotes persistence, never delete the underlying homework or classwork
+        await fetch('/api/planner-data/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, ids: linkedHwId ? [id, linkedHwId] : [id], type: 'tomorrowNotes' }),
+        }).catch(() => {});
+      } catch (e) {
+        console.error('Error deleting tomorrow note:', e);
+      }
+
+      notifyTomorrowNotesListeners();
+      showToast('تم حذف التنبيه بنجاح.');
+    }
+  };
+
+  const handleOpenAddModal = (type: 'classwork' | 'homework' | 'tomorrow', prefilledData?: any) => {
+    setEditorItemType(type);
+    setEditorModalMode('add');
+    setSelectedEditorItem(prefilledData || null);
+    setIsEditorModalOpen(true);
+  };
+
+  const handleOpenEditModal = (type: 'classwork' | 'homework' | 'tomorrow', item: any) => {
+    setEditorItemType(type);
+    setEditorModalMode('edit');
+    setSelectedEditorItem(item);
+    setIsEditorModalOpen(true);
   };
 
   const handlePrint = () => {
     window.print();
-  };
-
-  const handleSelectBlock = (block: number) => {
-    setCurrentBlock(block);
-    localStorage.setItem('nile_planner_current_block_v3', String(block));
-    supabaseSavePlannerSettings({ currentBlock: block, currentWeek }).catch(console.warn);
-  };
-
-  const handleSelectWeek = (week: number) => {
-    setCurrentWeek(week);
-    localStorage.setItem(STORAGE_KEYS.WEEK, String(week));
-    supabaseSavePlannerSettings({ currentBlock, currentWeek: week }).catch(console.warn);
   };
 
   // Calculate pending homework count for current class
@@ -897,94 +934,59 @@ export default function App() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col antialiased text-slate-900 font-sans">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+      {/* Interactive Navigation Bar */}
       <Navbar
         currentClass={currentClass}
-        selectedDay={selectedDay}
-        activeTab={activeTab}
-        pendingHomeworkCount={pendingHomeworkCount}
+        onSelectClass={(c) => {
+          setCurrentClass(c);
+          appStorage.setItem(STORAGE_KEYS.CLASS, c);
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_class', c).catch(() => {});
+          }
+        }}
         currentBlock={currentBlock}
+        onSelectBlock={(b) => {
+          setCurrentBlock(b);
+          appStorage.setItem('nile_planner_block', String(b));
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_block', String(b)).catch(() => {});
+          }
+          showToast(`تم الانتقال إلى توبيك ${b}`);
+        }}
         currentWeek={currentWeek}
-        userProfile={userProfile}
-        onSelectClass={setCurrentClass}
-        onSelectDay={setSelectedDay}
+        onSelectWeek={(w) => {
+          setCurrentWeek(w);
+          appStorage.setItem(STORAGE_KEYS.WEEK, String(w));
+          if (isSupabaseConfigured) {
+            savePlannerSetting('current_week', String(w)).catch(() => {});
+          }
+          showToast(`تم الانتقال إلى الأسبوع ${w}`);
+        }}
+        activeTab={activeTab}
         onSelectTab={setActiveTab}
-        onSelectBlock={handleSelectBlock}
-        onSelectWeek={handleSelectWeek}
-        isAdmin={isAdmin}
-        onOpenProfileModal={() => setIsAuthModalOpen(true)}
-        onOpenAdminAuth={() => {
-          setAdminDashboardInitialTab('materials');
-          const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
-          if (isAuthed) {
-            setIsAdmin(true);
-            setIsAdminDashboardOpen(true);
-          } else {
-            setIsAdminAuthOpen(true);
+        selectedDay={selectedDay}
+        onSelectDay={(d) => {
+          setSelectedDay(d);
+          if (isSupabaseConfigured) {
+            savePlannerSetting('selected_day', d).catch(() => {});
           }
         }}
-        onOpenWeeklyPlan={() => {
-          setAdminDashboardInitialTab('weekly_plan');
-          const isAuthed = sessionStorage.getItem('nile_admin_authenticated') === 'true';
-          if (isAuthed) {
-            setIsAdmin(true);
-            setIsAdminDashboardOpen(true);
-          } else {
-            setIsAdminAuthOpen(true);
-          }
-        }}
-        onOpenMaterials={() => setIsMaterialsModalOpen(true)}
         onPrint={handlePrint}
+        pendingHomeworkCount={pendingHomeworkCount}
+        userProfile={userProfile}
+        onOpenProfileModal={() => setIsAuthModalOpen(true)}
+        onOpenAdminAuth={() => setIsAdminAuthOpen(true)}
+        onOpenMaterials={() => setIsMaterialsModalOpen(true)}
+        onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
+        supabaseStatus={supabaseStatus}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {/* Live Edit Active Sticky Banner */}
-        {isAdminLiveEdit && (
-          <div className="mb-4 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 p-3.5 sm:p-4 rounded-2xl shadow-sm border border-amber-400/90 flex flex-wrap items-center justify-between gap-2.5 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2.5 font-black text-xs sm:text-sm">
-              <div className="w-7 h-7 rounded-lg bg-slate-950 text-amber-300 flex items-center justify-center shrink-0 shadow-2xs">
-                <Pencil className="w-3.5 h-3.5" />
-              </div>
-              <span>
-                وضع التعديل المباشر نشط (Live Edit Mode): اضغط على أيقونة القلم ✏️ لتعديل أي عنصر، أو سلة المهملات 🗑️ للحذف، أو زر الإضافة ➕.
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (activeTab === 'classwork') {
-                    setLiveEditModalConfig({ isOpen: true, type: 'classwork', item: null });
-                  } else if (activeTab === 'homework') {
-                    setLiveEditModalConfig({ isOpen: true, type: 'homework', item: null });
-                  } else {
-                    setLiveEditModalConfig({ isOpen: true, type: 'tomorrow_note', item: null });
-                  }
-                }}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-2xs cursor-pointer active:scale-95"
-              >
-                + إضافة عنصر جديد
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdminLiveEdit(false);
-                  localStorage.setItem('nile_admin_live_edit', 'false');
-                  showToast('تم إيقاف وضع التعديل المباشر.');
-                }}
-                className="bg-slate-950 hover:bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-2xs cursor-pointer active:scale-95"
-              >
-                إنهاء التعديل
-              </button>
-            </div>
-          </div>
-        )}
-
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print:p-0">
         {/* Toast Notification */}
         {toastMsg && (
-          <div className="mb-4 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-md text-xs sm:text-sm font-semibold flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="mb-4 p-3.5 bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-md flex items-center justify-between gap-3 animate-fade-in print:hidden">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-200" />
               <span>{toastMsg}</span>
@@ -993,7 +995,7 @@ export default function App() {
               onClick={() => setToastMsg(null)}
               className="text-emerald-200 hover:text-white text-xs font-bold"
             >
-              إغلاق
+              Dismiss
             </button>
           </div>
         )}
@@ -1007,25 +1009,12 @@ export default function App() {
               classworkList={classworkList}
               currentBlock={currentBlock}
               currentWeek={currentWeek}
-              timetables={timetables}
               onToggleClasswork={handleToggleClasswork}
               onSaveClasswork={handleSaveClasswork}
-              onDeleteClasswork={handleDeleteClasswork}
-              isAdminLiveEdit={isAdminLiveEdit}
-              onEditClasswork={(cw) => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'classwork',
-                  item: cw,
-                });
-              }}
-              onAddClasswork={() => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'classwork',
-                  item: null,
-                });
-              }}
+              isAdminEditMode={isAdminEditMode}
+              onAddClasswork={(prefilledData) => handleOpenAddModal('classwork', prefilledData)}
+              onEditClasswork={(entry) => handleOpenEditModal('classwork', entry)}
+              onDeleteClasswork={(id) => handleDeleteInteractiveItem('classwork', id)}
             />
           )}
 
@@ -1038,23 +1027,10 @@ export default function App() {
               currentBlock={currentBlock}
               currentWeek={currentWeek}
               onToggleHomework={handleToggleHomework}
-              onAddHomework={handleAddHomework}
-              onDeleteHomework={handleDeleteHomework}
-              isAdminLiveEdit={isAdminLiveEdit}
-              onEditHomework={(hw) => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'homework',
-                  item: hw,
-                });
-              }}
-              onAddNewHomework={() => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'homework',
-                  item: null,
-                });
-              }}
+              isAdminEditMode={isAdminEditMode}
+              onAddHomework={() => handleOpenAddModal('homework')}
+              onEditHomework={(entry) => handleOpenEditModal('homework', entry)}
+              onDeleteHomework={(id) => handleDeleteInteractiveItem('homework', id)}
             />
           )}
 
@@ -1064,25 +1040,12 @@ export default function App() {
               selectedDay={selectedDay}
               currentBlock={currentBlock}
               currentWeek={currentWeek}
-              timetables={timetables}
-              customTomorrowNotes={customTomorrowNotes}
-              isAdminLiveEdit={isAdminLiveEdit}
-              onEditTomorrowNote={(note, idx) => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'tomorrow_note',
-                  item: note,
-                  originalIndex: idx,
-                });
-              }}
-              onDeleteTomorrowNote={handleDeleteTomorrowNote}
-              onAddTomorrowNote={() => {
-                setLiveEditModalConfig({
-                  isOpen: true,
-                  type: 'tomorrow_note',
-                  item: null,
-                });
-              }}
+              homeworkList={homeworkList}
+              classworkList={classworkList}
+              isAdminEditMode={isAdminEditMode}
+              onAddTomorrowNote={(prefilled) => handleOpenAddModal('tomorrow', prefilled || { targetDay: NEXT_SCHOOL_DAY[selectedDay] || 'Sunday' })}
+              onEditTomorrowNote={(entry) => handleOpenEditModal('tomorrow', entry)}
+              onDeleteTomorrowNote={(id) => handleDeleteInteractiveItem('tomorrow', id)}
             />
           )}
 
@@ -1090,10 +1053,11 @@ export default function App() {
             <TimetableGrid
               currentClass={currentClass}
               selectedDay={selectedDay}
-              timetables={timetables}
-              onUpdateTimetable={handleUpdateTimetable}
               onSelectDay={(d) => {
                 setSelectedDay(d);
+                if (isSupabaseConfigured) {
+                  savePlannerSetting('selected_day', d).catch(() => {});
+                }
                 setActiveTab('classwork');
               }}
             />
@@ -1106,43 +1070,81 @@ export default function App() {
           selectedDay={selectedDay}
           classworkList={classworkList}
           homeworkList={homeworkList}
-          timetables={timetables}
         />
       </main>
 
-      {/* Bottom Footer with quick actions and clean slate */}
+      {/* Bottom Footer with quick stats and reset */}
       <footer className="bg-white border-t border-slate-200 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 print:hidden mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-700">{SCHOOL_NAME}</span>
             <span>•</span>
-            <span>{SCHOOL_BRANCH} Campus</span>
+            <span>{SCHOOL_BRANCH} Branch</span>
             <span>•</span>
-            {isSupabaseConfigured ? (
-              <span
-                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-medium ${
-                  supabaseStatus === 'connected'
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-amber-50 text-amber-700 border border-amber-200'
-                }`}
-                title="مربوط بقاعدة بيانات Supabase السحابية"
-              >
-                <Cloud className="w-3 h-3" />
-                {supabaseStatus === 'connected' ? 'Supabase متصل' : 'جاري الاتصال بـ Supabase...'}
-                {isSupabaseSyncing && <span className="animate-spin text-xs">↻</span>}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                <Database className="w-3 h-3" />
-                تخزين محلي (Offline)
-              </span>
-            )}
+            <span>Classes: A, B, C, D, E (KG 1)</span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-slate-400 font-normal">
-              لوحة التحكم والإدارة مخصصة لإدارة المدرسة عبر زر الأدمن
-            </span>
+          <div className="flex items-center gap-4">
+            {/* Supabase connection indicator */}
+            {supabaseStatus === 'connected' && (
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                title="قاعدة بيانات Supabase السحابية متصلة - انقر لتعديل الإعدادات"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <Database className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Supabase متصل</span>
+              </button>
+            )}
+            {supabaseStatus === 'connecting' && (
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>جاري الاتصال بـ Supabase...</span>
+              </button>
+            )}
+            {supabaseStatus === 'unconfigured' && (
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer shadow-2xs"
+                title="انقر لإدخال وحفظ رابط ومفتاح Supabase بسهولة"
+              >
+                <Database className="w-3.5 h-3.5 text-slate-600" />
+                <span>إعداد وحفظ Supabase</span>
+              </button>
+            )}
+            {supabaseStatus === 'error' && (
+              <button
+                type="button"
+                onClick={() => setIsSupabaseConfigOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
+                title="انقر لتصحيح إعدادات ومفاتيح الربط"
+              >
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                <span>خطأ في اتصال Supabase (تعديل)</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsPlanModalOpen(true)}
+              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Smart Plan Classifier
+            </button>
+            <button
+              onClick={handleResetToDefaults}
+              className="text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset Defaults
+            </button>
           </div>
         </div>
       </footer>
@@ -1152,6 +1154,8 @@ export default function App() {
         isOpen={isPlanModalOpen}
         onClose={() => setIsPlanModalOpen(false)}
         currentClass={currentClass}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
         onApplyPlan={handleApplyWeeklyPlan}
       />
 
@@ -1170,62 +1174,106 @@ export default function App() {
         onClose={() => setIsAdminAuthOpen(false)}
         onSuccess={() => {
           setIsAdminAuthOpen(false);
-          setIsAdmin(true);
-          sessionStorage.setItem('nile_admin_authenticated', 'true');
           setIsAdminDashboardOpen(true);
         }}
       />
 
-      {/* Admin Dashboard / Settings Panel */}
+      {/* Admin Dashboard / Settings Panel (Placeholder for custom settings) */}
       <AdminDashboardModal
         isOpen={isAdminDashboardOpen}
         onClose={() => setIsAdminDashboardOpen(false)}
-        onClearAllAppData={handleClearAllData}
-        onRestoreArabicWeeklyPlan={handleRestoreArabicWeeklyPlan}
-        onApplyWeeklyPlan={handleApplyWeeklyPlan}
-        currentClass={currentClass}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-        initialTab={adminDashboardInitialTab}
-        isAdminLiveEdit={isAdminLiveEdit}
-        supabaseStatus={supabaseStatus}
-        onToggleAdminLiveEdit={() => {
-          setIsAdminLiveEdit((prev) => {
-            const next = !prev;
-            localStorage.setItem('nile_admin_live_edit', String(next));
-            if (next) {
-              showToast('تم تفعيل وضع التعديل المباشر ✏️');
-            } else {
-              showToast('تم إيقاف وضع التعديل المباشر.');
+        isAdminEditMode={isAdminEditMode}
+        onToggleAdminEditMode={setIsAdminEditMode}
+        onPlanUpdated={async (updatedBlock?: number, updatedWeek?: number) => {
+          try {
+            if (updatedBlock) {
+              setCurrentBlock(updatedBlock);
+              appStorage.setItem('nile_planner_block', String(updatedBlock));
             }
-            return next;
-          });
+            if (updatedWeek) {
+              setCurrentWeek(updatedWeek);
+              appStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
+            }
+            const [cwData, hwData] = await Promise.all([
+              fetchAllClasswork(),
+              fetchAllHomework(),
+            ]);
+            if (cwData && cwData.length > 0) {
+              setClassworkList(cwData);
+            }
+            if (hwData && hwData.length > 0) {
+              setHomeworkList(hwData);
+            }
+            notifyTomorrowNotesListeners();
+            setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
+            setTimeout(() => setToastMsg(null), 4000);
+          } catch (err) {
+            console.error('Failed to reload after plan update:', err);
+          }
         }}
       />
 
-      {/* School Materials Modal */}
+      {/* Unified Direct Interactive Editor Modal */}
+      <InteractiveEditorModal
+        isOpen={isEditorModalOpen}
+        onClose={() => setIsEditorModalOpen(false)}
+        mode={editorModalMode}
+        itemType={editorItemType}
+        initialData={selectedEditorItem}
+        currentClass={currentClass}
+        currentBlock={currentBlock}
+        currentWeek={currentWeek}
+        selectedDay={selectedDay}
+        onSave={handleSaveInteractiveItem}
+      />
+
+      {/* Materials Modal */}
       <MaterialsModal
         isOpen={isMaterialsModalOpen}
         onClose={() => setIsMaterialsModalOpen(false)}
         currentClass={currentClass}
         currentBlock={currentBlock}
+        currentWeek={currentWeek}
       />
 
-      {/* Live Direct Edit Item Modal (Classwork / Homework / Tomorrow Note) */}
-      <LiveEditItemModal
-        isOpen={liveEditModalConfig.isOpen}
-        onClose={() => setLiveEditModalConfig((prev) => ({ ...prev, isOpen: false }))}
-        type={liveEditModalConfig.type}
-        item={liveEditModalConfig.item}
-        originalIndex={liveEditModalConfig.originalIndex}
-        currentClass={currentClass}
-        selectedDay={selectedDay}
-        currentBlock={currentBlock}
-        currentWeek={currentWeek}
-        onSaveClasswork={handleSaveClasswork}
-        onSaveHomework={handleAddHomework}
-        onSaveTomorrowNote={handleSaveTomorrowNote}
+      {/* Guaranteed In-App PDF Viewer Modal */}
+      <PdfViewerModal />
+
+      {/* Supabase Cloud Connection & Persistent Credentials Modal */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseConfigOpen}
+        onClose={() => setIsSupabaseConfigOpen(false)}
+        onSaved={async () => {
+          setSupabaseStatus('connecting');
+          try {
+            const [cwData, hwData] = await Promise.all([
+              fetchAllClasswork(),
+              fetchAllHomework(),
+            ]);
+            if (cwData && cwData.length > 0) setClassworkList(cwData);
+            if (hwData && hwData.length > 0) setHomeworkList(hwData);
+            setSupabaseStatus('connected');
+            showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
+          } catch {
+            setSupabaseStatus('error');
+          }
+        }}
       />
+      {isAdminEditMode && (
+        <div className="fixed bottom-6 right-6 z-50 print:hidden">
+          <button
+            onClick={() => {
+              setIsAdminEditMode(false);
+              showToast('تم الخروج من وضع التعديل المباشر والعودة كزائر 📋');
+            }}
+            className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white px-5 py-3 rounded-full font-black text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-rose-500 transition-all cursor-pointer animate-bounce hover:animate-none"
+            title="الخروج من التفعيل المباشر والعودة لوضع الزائر"
+          >
+            <Shield className="w-4 h-4 text-white animate-pulse" />
+            <span>الخروج من وضع التعديل المباشر ❌</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

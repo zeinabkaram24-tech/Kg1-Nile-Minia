@@ -11,9 +11,10 @@ import {
   Shield,
   GraduationCap,
   FolderOpen,
+  Database,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
-import { SCHOOL_DAYS, TOPIC_WEEK_DATES, ALL_CLASSES } from '../data/timetables';
+import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
 
 interface NavbarProps {
   currentClass: ClassId;
@@ -32,8 +33,8 @@ interface NavbarProps {
   onOpenProfileModal?: () => void;
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
-  onOpenWeeklyPlan?: () => void;
-  isAdmin?: boolean;
+  onOpenSupabaseConfig?: () => void;
+  supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -52,8 +53,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfileModal,
   onOpenAdminAuth,
   onOpenMaterials,
-  onOpenWeeklyPlan,
-  isAdmin = false,
+  onOpenSupabaseConfig,
+  supabaseStatus = 'unconfigured',
 }) => {
   const tabs = [
     {
@@ -101,15 +102,41 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Nile Egyptian International School</span>
                 </h1>
                 <p className="text-[10px] sm:text-[11px] text-blue-200 font-bold mt-1 leading-none flex items-center gap-1.5">
-                  <span className="font-extrabold text-white bg-indigo-800/80 px-1.5 py-0.5 rounded text-[10px]">KG 1</span>
+                  <span>KG 1</span>
                   <span className="text-indigo-300">•</span>
-                  <span className="text-amber-300 font-black">خطة المذاكرة والأنشطة الأسبوعية</span>
+                  <span className="text-amber-300 font-black">خطة المذاكرة الأسبوعية</span>
                 </p>
               </div>
             </div>
 
-            {/* Admin and Live Edit Buttons */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Supabase Cloud Connection & Settings */}
+              <button
+                type="button"
+                onClick={onOpenSupabaseConfig}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border active:scale-95 shrink-0 ${
+                  supabaseStatus === 'connected'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 hover:bg-emerald-500/30'
+                    : supabaseStatus === 'connecting'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400/40 hover:bg-amber-500/30'
+                    : 'bg-white/10 hover:bg-white/20 text-white hover:text-emerald-300 border-white/25'
+                }`}
+                title="إعدادات وحفظ ربط Supabase السحابي الدائم"
+              >
+                <Database className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">السحابة</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    supabaseStatus === 'connected'
+                      ? 'bg-emerald-400 animate-pulse'
+                      : supabaseStatus === 'connecting'
+                      ? 'bg-amber-400 animate-pulse'
+                      : 'bg-slate-400'
+                  }`}
+                />
+              </button>
+
+              {/* Admin Button directly inside the top blue bar without any separation */}
               <button
                 type="button"
                 onClick={onOpenAdminAuth}
@@ -124,12 +151,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Classes (KG 1 A, B, C, D, E), Student Profile, and Topic & Week */}
+      {/* Row 2: Classes (2A, 2B, 2C), Student Profile, and Block & Week */}
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-2 gap-2 flex-wrap sm:flex-nowrap">
           {/* Left: Student Profile & Classes */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Student Name / Profile Badge */}
+            {/* Student Name / Profile Badge directly next to 2A, 2B, 2C */}
             {userProfile?.mode === 'student' && userProfile.studentName ? (
               <button
                 type="button"
@@ -161,32 +188,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            {/* Class Buttons Side-by-Side (KG 1 A, B, C, D, E) */}
+            {/* Class Buttons Side-by-Side (A, B, C, D, E) */}
             <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 shadow-2xs shrink-0">
-              {ALL_CLASSES.map((cls) => {
-                const isSelected = currentClass === cls.id;
+              {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
+                const isSelected = currentClass === cls || currentClass === cls.replace('KG1', '') || currentClass === `G2${cls.slice(-1)}`;
+                const label = cls.slice(-1); // 'A', 'B', 'C', 'D', 'E'
                 return (
                   <button
-                    key={cls.id}
-                    onClick={() => onSelectClass(cls.id)}
-                    className={`px-2.5 py-1 text-xs font-black rounded-lg transition-all ${
+                    key={cls}
+                    type="button"
+                    onClick={() => onSelectClass(cls)}
+                    className={`px-2.5 sm:px-3 py-1 text-xs font-black rounded-lg transition-all ${
                       isSelected
                         ? 'bg-slate-900 text-white shadow-2xs'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                     }`}
-                    title={cls.label}
                   >
-                    <span className="hidden sm:inline">{cls.label}</span>
-                    <span className="sm:hidden">{cls.letter}</span>
+                    {label}
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Right: Topic & Week Dropdowns Group */}
+          {/* Right: Block & Week Dropdowns Group */}
           <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/60 shrink-0">
-            {/* Compact Topic Dropdown */}
+            {/* Compact Block Dropdown */}
             <div className="relative">
               <select
                 id="block-select"
@@ -213,7 +240,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 title="Week"
               >
                 {[1, 2, 3, 4].map((w) => {
-                  const range = TOPIC_WEEK_DATES[currentBlock]?.[w];
+                  const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
                   return (
                     <option key={w} value={w}>
                       Week {w} {range ? `(${range})` : ''}

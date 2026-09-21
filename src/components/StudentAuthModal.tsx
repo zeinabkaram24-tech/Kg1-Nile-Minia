@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { User, GraduationCap, Eye, Sparkles, CheckCircle2, ArrowRight, X, Trash2 } from 'lucide-react';
 import { ClassId, UserProfile } from '../types';
 import { getKnownStudents, removeKnownStudent } from '../utils/studentStorage';
-import { ALL_CLASSES } from '../data/timetables';
 
 interface StudentAuthModalProps {
   isOpen: boolean;
@@ -181,23 +180,23 @@ export const StudentAuthModal: React.FC<StudentAuthModalProps> = ({
               {/* Class Selection Pills */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  اختر الفصل الدراسي (KG 1):
+                  اختر الفصل الدراسي:
                 </label>
                 <div className="grid grid-cols-5 gap-1.5">
-                  {ALL_CLASSES.map((cls) => {
-                    const isSelected = selectedClass === cls.id;
+                  {(['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'] as const).map((cls) => {
+                    const isSelected = selectedClass === cls;
                     return (
                       <button
-                        key={cls.id}
+                        key={cls}
                         type="button"
-                        onClick={() => setSelectedClass(cls.id)}
-                        className={`py-1.5 px-2 rounded-xl font-black text-xs border transition-all text-center ${
+                        onClick={() => setSelectedClass(cls as any)}
+                        className={`py-1.5 px-2 rounded-xl font-black text-xs border transition-all ${
                           isSelected
                             ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        {cls.label}
+                        Class {cls.slice(-1)}
                       </button>
                     );
                   })}

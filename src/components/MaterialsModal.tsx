@@ -9,19 +9,18 @@ import {
   Eye,
   Printer,
   Download,
-  RefreshCw,
+  ExternalLink,
+  Link2,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
   getAllMaterials,
-  syncMaterialsFromCloud,
   subscribeToMaterials,
   formatBytes,
   openPdfItem,
   printPdfItem,
   downloadPdfItem,
 } from '../utils/materialsStorage';
-import { PdfViewerModal } from './PdfViewerModal';
 
 interface MaterialsModalProps {
   isOpen: boolean;
@@ -39,38 +38,11 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
-  const [previewItem, setPreviewItem] = useState<MaterialItem | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  // Normalize section strings (handles 'Main sheet' vs 'Main sheets' and casing)
-  const normalizeSection = (sec?: string | null) => {
-    if (!sec) return '';
-    const s = sec.trim().toLowerCase();
-    if (s === 'main sheet' || s === 'main sheets') return 'main sheet';
-    return s;
-  };
-
-  // Load materials from storage (with immediate local render + cloud sync)
+  // Load materials from storage
   const loadMaterials = async () => {
-    // 1. Immediate local load
-    const local = await getAllMaterials();
-    setMaterials(local);
-
-    // 2. Background sync with cloud/server
-    setIsSyncing(true);
-    try {
-      const synced = await syncMaterialsFromCloud();
-      if (Array.isArray(synced) && synced.length > 0) {
-        setMaterials(synced);
-      } else {
-        const refreshed = await getAllMaterials();
-        setMaterials(refreshed);
-      }
-    } catch (e) {
-      console.warn('Sync materials notice:', e);
-    } finally {
-      setIsSyncing(false);
-    }
+    const all = await getAllMaterials();
+    setMaterials(all);
   };
 
   useEffect(() => {
@@ -81,7 +53,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
   useEffect(() => {
     const unsub = subscribeToMaterials(() => {
-      getAllMaterials().then(setMaterials);
+      loadMaterials();
     });
     return () => unsub();
   }, []);
@@ -91,13 +63,12 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const handleClose = () => {
     setSelectedBlock(null);
     setSelectedSection(null);
-    setPreviewItem(null);
     onClose();
   };
 
-  // Helper to open in-app PDF preview modal
+  // Helper to open PDF directly in new tab (no extra steps/modals)
   const handlePreview = (item: MaterialItem) => {
-    setPreviewItem(item);
+    openPdfItem(item);
   };
 
   // Helper to trigger Print
@@ -113,32 +84,13 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const blocks = [1, 2, 3, 4];
   const weeks = [1, 2, 3, 4];
 
-  // Filter items for current selection (handles string/number blocks & section normalization)
-  const currentSectionMaterials = materials.filter((item) => {
-    const blockMatch = Number(item.block) === Number(selectedBlock);
-    const secMatch = normalizeSection(item.section) === normalizeSection(selectedSection);
-    const classMatch = !item.classId || item.classId === 'ALL' || item.classId === currentClass;
-    return blockMatch && secMatch && classMatch;
-  });
-
-  // Count files per topic
-  const getTopicFileCount = (blockNum: number) => {
-    return materials.filter((m) => {
-      const blockMatch = Number(m.block) === Number(blockNum);
-      const classMatch = !m.classId || m.classId === 'ALL' || m.classId === currentClass;
-      return blockMatch && classMatch;
-    }).length;
-  };
-
-  // Count files per section in selected topic
-  const getSectionFileCount = (secName: string) => {
-    return materials.filter((m) => {
-      const blockMatch = Number(m.block) === Number(selectedBlock);
-      const secMatch = normalizeSection(m.section) === normalizeSection(secName);
-      const classMatch = !m.classId || m.classId === 'ALL' || m.classId === currentClass;
-      return blockMatch && secMatch && classMatch;
-    }).length;
-  };
+  // Filter items for current selection
+  const currentSectionMaterials = materials.filter(
+    (item) =>
+      item.block === selectedBlock &&
+      item.section === selectedSection &&
+      (!item.classId || item.classId === 'ALL' || item.classId === currentClass)
+  );
 
   return (
     <>
@@ -155,19 +107,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                  <span className="text-amber-700 font-extrabold">
-                    {currentClass === 'KG1A'
-                      ? 'KG 1 A'
-                      : currentClass === 'KG1B'
-                      ? 'KG 1 B'
-                      : currentClass === 'KG1C'
-                      ? 'KG 1 C'
-                      : currentClass === 'KG1D'
-                      ? 'KG 1 D'
-                      : currentClass === 'KG1E'
-                      ? 'KG 1 E'
-                      : currentClass}
-                  </span>
+                  <span className="text-amber-700 font-extrabold">{currentClass}</span>
                   {selectedBlock && (
                     <>
                       <span>/</span>
@@ -186,32 +126,14 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                 </h3>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                id="materials-sync-btn"
-                onClick={loadMaterials}
-                disabled={isSyncing}
-                title="مزامنة سحابية وتحديث الملفات بين الموبايل واللاب توب"
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                  isSyncing
-                    ? 'bg-amber-100 text-amber-900 border-amber-300'
-                    : 'bg-slate-50 hover:bg-amber-50 text-slate-600 hover:text-amber-800 border-slate-200'
-                }`}
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-amber-600 ${isSyncing ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{isSyncing ? 'جاري المزامنة...' : 'مزامنة سحابية'}</span>
-              </button>
-
-              <button
-                id="close-materials-btn"
-                onClick={handleClose}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
-                title="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              id="close-materials-btn"
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Modal Body */}
@@ -220,7 +142,7 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
             {selectedBlock === null && (
               <div className="space-y-2.5">
                 <p className="text-xs font-bold text-slate-500 mb-2" dir="rtl">
-                  اختر الـ Topic المطلوب لعرض ملفاته:
+                  اختر التوبيك المطلوب لعرض ملفاته:
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {blocks.map((b) => (
@@ -238,16 +160,9 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                           {b}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
-                              Topic {b}
-                            </h4>
-                            {getTopicFileCount(b) > 0 && (
-                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                {getTopicFileCount(b)} ملف
-                              </span>
-                            )}
-                          </div>
+                          <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
+                            Topic {b}
+                          </h4>
                           <span className="text-[11px] font-semibold text-slate-400">
                             Main sheet & Weeks
                           </span>
@@ -291,16 +206,9 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         <FileText className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-black text-indigo-950">
-                            Main sheet
-                          </h4>
-                          {getSectionFileCount('Main sheet') > 0 && (
-                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                              {getSectionFileCount('Main sheet')} ملف
-                            </span>
-                          )}
-                        </div>
+                        <h4 className="text-sm font-black text-indigo-950">
+                          Main sheet
+                        </h4>
                         <span className="text-[11px] font-bold text-indigo-700">
                           Topic {selectedBlock} Overview & Schedule
                         </span>
@@ -311,39 +219,29 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 
                   {/* Weeks Cards */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    {weeks.map((w) => {
-                      const count = getSectionFileCount(`Week ${w}`);
-                      return (
-                        <button
-                          key={w}
-                          id={`select-week-${w}-btn`}
-                          onClick={() => setSelectedSection(`Week ${w}`)}
-                          className="p-3.5 rounded-2xl border border-slate-200 hover:border-amber-400 bg-white hover:bg-amber-50/40 text-left transition-all flex items-center justify-between group cursor-pointer shadow-2xs"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 font-black text-xs flex items-center justify-center border border-amber-200 group-hover:scale-105 transition-transform">
-                              <Calendar className="w-3.5 h-3.5 text-amber-700" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
-                                  Week {w}
-                                </h4>
-                                {count > 0 && (
-                                  <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    {count}
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[10px] font-semibold text-slate-400">
-                                Materials & Worksheets
-                              </span>
-                            </div>
+                    {weeks.map((w) => (
+                      <button
+                        key={w}
+                        id={`select-week-${w}-btn`}
+                        onClick={() => setSelectedSection(`Week ${w}`)}
+                        className="p-3.5 rounded-2xl border border-slate-200 hover:border-amber-400 bg-white hover:bg-amber-50/40 text-left transition-all flex items-center justify-between group cursor-pointer shadow-2xs"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 font-black text-xs flex items-center justify-center border border-amber-200 group-hover:scale-105 transition-transform">
+                            <Calendar className="w-3.5 h-3.5 text-amber-700" />
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
-                        </button>
-                      );
-                    })}
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900 group-hover:text-amber-950">
+                              Week {w}
+                            </h4>
+                            <span className="text-[10px] font-semibold text-slate-400">
+                              Materials & Worksheets
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-amber-600 transition-colors" />
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -367,78 +265,132 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                   </span>
                 </div>
 
-                {/* If files exist, render them with the 3 buttons underneath */}
+                {/* If files exist, render them with the appropriate buttons underneath */}
                 {currentSectionMaterials.length > 0 ? (
                   <div className="space-y-3 pt-1">
-                    {currentSectionMaterials.map((file) => (
-                      <div
-                        key={file.id}
-                        className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
-                      >
-                        {/* File Details (Clickable to open PDF directly) */}
-                        <div
-                          className="flex items-center gap-3 cursor-pointer group/file"
-                          onClick={() => handlePreview(file)}
-                          title="انقر لفتح ومعاينة الـ PDF"
-                        >
-                          <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 group-hover/file:scale-105 transition-transform">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-black text-slate-900 group-hover/file:text-indigo-600 truncate transition-colors">
-                              {file.fileName}
-                            </h4>
-                            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
-                              <span>{formatBytes(file.fileSize)}</span>
-                              <span>•</span>
-                              <span>PDF</span>
-                              {file.classId && file.classId !== 'ALL' && (
-                                <>
-                                  <span>•</span>
-                                  <span className="text-indigo-600 font-bold">{file.classId}</span>
-                                </>
-                              )}
+                    {currentSectionMaterials.map((file) => {
+                      const isLink = file.type === 'link' || Boolean(file.linkUrl);
+                      const targetLink = file.linkUrl || file.storageUrl || '';
+
+                      if (isLink) {
+                        return (
+                          <div
+                            key={file.id}
+                            className="bg-white border-2 border-indigo-100 hover:border-indigo-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
+                          >
+                            {/* Link Details */}
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                                <ExternalLink className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-sm font-black text-slate-900 truncate">
+                                  {file.fileName}
+                                </h4>
+                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                  <span className="text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-200">
+                                    رابط إلكتروني / فيديو 🔗
+                                  </span>
+                                  {file.classId && file.classId !== 'ALL' && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Link Action Button */}
+                            <div className="pt-2 border-t border-slate-100">
+                              <button
+                                type="button"
+                                id={`open-link-btn-${file.id}`}
+                                onClick={() => handlePreview(file)}
+                                className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>فتح الرابط / مشاهدة المحتوى ↗</span>
+                              </button>
                             </div>
                           </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={file.id}
+                          className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
+                        >
+                          {/* File Details */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-sm font-black text-slate-900 truncate">
+                                {file.fileName}
+                              </h4>
+                              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                <span>{formatBytes(file.fileSize)}</span>
+                                <span>•</span>
+                                <span>PDF</span>
+                                {file.storageUrl && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                                      سحابي Cloud ☁️
+                                    </span>
+                                  </>
+                                )}
+                                {file.classId && file.classId !== 'ALL' && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* The 3 requested buttons underneath the file */}
+                          <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
+                            {/* 1. زرار معاينة */}
+                            <button
+                              type="button"
+                              id={`preview-btn-${file.id}`}
+                              onClick={() => handlePreview(file)}
+                              className="py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100/90 text-indigo-900 font-black text-xs border border-indigo-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                              <span>معاينة</span>
+                            </button>
+
+                            {/* 2. زرار طباعة */}
+                            <button
+                              type="button"
+                              id={`print-btn-${file.id}`}
+                              onClick={() => handlePrint(file)}
+                              className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Printer className="w-3.5 h-3.5 text-slate-600" />
+                              <span>طباعة</span>
+                            </button>
+
+                            {/* 3. زرار تحميل */}
+                            <button
+                              type="button"
+                              id={`download-btn-${file.id}`}
+                              onClick={() => handleDownload(file)}
+                              className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-black text-xs border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>تحميل</span>
+                            </button>
+                          </div>
                         </div>
-
-                        {/* The 3 requested buttons underneath the file */}
-                        <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-2">
-                          {/* 1. زرار معاينة */}
-                          <button
-                            type="button"
-                            id={`preview-btn-${file.id}`}
-                            onClick={() => handlePreview(file)}
-                            className="py-2 px-3 rounded-xl bg-indigo-50 hover:bg-indigo-100/90 text-indigo-900 font-black text-xs border border-indigo-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Eye className="w-3.5 h-3.5 text-indigo-600" />
-                            <span>معاينة</span>
-                          </button>
-
-                          {/* 2. زرار طباعة */}
-                          <button
-                            type="button"
-                            id={`print-btn-${file.id}`}
-                            onClick={() => handlePrint(file)}
-                            className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs border border-slate-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Printer className="w-3.5 h-3.5 text-slate-600" />
-                            <span>طباعة</span>
-                          </button>
-
-                          {/* 3. زرار تحميل */}
-                          <button
-                            type="button"
-                            id={`download-btn-${file.id}`}
-                            onClick={() => handleDownload(file)}
-                            className="py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-black text-xs border border-emerald-200 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Download className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>تحميل</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   /* Empty state placeholder when no PDF uploaded yet */
@@ -448,16 +400,11 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                     </div>
                     <div>
                       <h4 className="text-sm font-black text-slate-800">
-                        Topic {selectedBlock} • {selectedSection}
+                        Block {selectedBlock} • {selectedSection}
                       </h4>
                       <p className="text-xs text-slate-500 font-semibold mt-1" dir="rtl">
                         لا يوجد ملف PDF مضاف في هذا القسم حتى الآن. يمكن للآدمن رفع الملف عبر لوحة الأدمن (Admin Panel).
                       </p>
-                      {materials.length > 0 && (
-                        <div className="mt-2.5 text-[11px] font-bold text-amber-900 bg-amber-50/90 rounded-xl p-2.5 border border-amber-200" dir="rtl">
-                          ملاحظة: توجد ملفات متوفرة في أقسام أخرى ({materials.length} ملف متزامن). يمكنك النقر على زر "Back to Topics" بالأعلى لاختيار الـ Topic الخاص بملفك.
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -477,13 +424,6 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
           </div>
         </div>
       </div>
-
-      {/* In-App Interactive PDF Preview Modal */}
-      <PdfViewerModal
-        isOpen={!!previewItem}
-        onClose={() => setPreviewItem(null)}
-        item={previewItem}
-      />
     </>
   );
 };

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
-import { ClassId, SchoolDay, PeriodSlot } from '../types';
+import { CalendarDays } from 'lucide-react';
+import { ClassId, SchoolDay } from '../types';
 import {
+  CLASS_TIMETABLES,
   SCHOOL_DAYS,
   PERIOD_TIMES,
   SUBJECT_METADATA,
@@ -14,87 +15,57 @@ interface TimetableGridProps {
   currentClass: ClassId;
   onSelectDay: (day: SchoolDay) => void;
   selectedDay: SchoolDay;
-  timetables: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
-  onUpdateTimetable?: (updated: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>) => void;
 }
-
-const ARABIC_DAYS: Record<SchoolDay, string> = {
-  Saturday: 'السبت',
-  Sunday: 'الأحد',
-  Monday: 'الإثنين',
-  Tuesday: 'الثلاثاء',
-  Wednesday: 'الأربعاء',
-  Thursday: 'الخميس',
-};
 
 export const TimetableGrid: React.FC<TimetableGridProps> = ({
   currentClass,
   onSelectDay,
   selectedDay,
-  timetables,
 }) => {
-  const schedule: Partial<Record<SchoolDay, PeriodSlot[]>> = timetables[currentClass] || {};
-
-  // Check if current class has any periods entered at all
-  const totalPeriodsEntered = Object.values(schedule).reduce(
-    (acc: number, slots?: PeriodSlot[]) => acc + (slots ? slots.length : 0),
-    0
-  );
-
-  // Always show Sunday to Thursday, and show Saturday if it has periods
-  const visibleDays = SCHOOL_DAYS.filter(
-    (d) => d !== 'Saturday' || (schedule.Saturday && schedule.Saturday.length > 0)
-  );
+  const schedule = CLASS_TIMETABLES[currentClass] || {};
 
   return (
     <div className="space-y-3">
       {/* Header Info Banner */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="px-2 py-0.5 rounded-md text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
               {currentClass} Timetable
             </span>
             <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-              جدول الحصص الأسبوعي (6 حصص يومياً)
+              جدول الحصص الأسبوعي (6 حصص)
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            {SCHOOL_NAME} • {SCHOOL_BRANCH} Campus • ({currentClass})
+            {SCHOOL_NAME} • {SCHOOL_BRANCH} Campus • KG 1 ({currentClass})
           </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 self-start sm:self-auto">
+          <CalendarDays className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+          <span>اضغطي على أي يوم للانتقال إليه</span>
         </div>
       </div>
 
-      {/* Notice when timetable is completely empty */}
-      {totalPeriodsEntered === 0 && (
-        <div className="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-4 flex items-center justify-between gap-3 text-xs text-indigo-950">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-indigo-600 shrink-0" />
-            <span className="font-bold leading-relaxed">
-              لا توجد حصص مسجلة لهذا الفصل حالياً. سيتم عرض جدول الحصص فور اعتماده من إدارة المدرسة.
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Full-width Responsive Timetable Table */}
+      {/* Full-width Responsive Timetable Table (No horizontal scrolling, no lunch column) */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
         <table className="w-full table-fixed border-collapse text-xs text-left">
-          {/* Table Header with Periods & Times */}
+          {/* Table Header with Periods & Times (Without Lunch) */}
           <thead>
             <tr className="bg-slate-100 text-slate-800 border-b-2 border-slate-300">
-              <th className="p-1.5 sm:p-2.5 font-black text-center border-r border-slate-300 w-[13%] sm:w-[13%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
+              <th className="p-1 sm:p-2 font-black text-center border-r border-slate-300 w-[10%] bg-slate-200/80 text-slate-900 text-[11px] sm:text-xs">
                 اليوم
               </th>
               {[1, 2, 3, 4, 5, 6].map((pNum) => (
                 <th
                   key={pNum}
-                  className={`p-1 sm:p-2 font-extrabold text-center w-[14.5%] ${
+                  className={`p-1 sm:p-1.5 font-extrabold text-center w-[15%] ${
                     pNum === 6 ? '' : 'border-r border-slate-300'
                   }`}
                 >
-                  <div className="text-slate-900 font-black text-xs sm:text-sm">P{pNum}</div>
-                  <div className="text-[9px] sm:text-[11px] text-slate-500 font-semibold hidden md:block">
+                  <div className="text-slate-900 font-black text-[10px] sm:text-xs">P{pNum}</div>
+                  <div className="text-[8.5px] sm:text-[10px] text-slate-500 font-semibold hidden md:block">
                     {PERIOD_TIMES[pNum]}
                   </div>
                 </th>
@@ -104,48 +75,59 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
 
           {/* Table Body */}
           <tbody>
-            {visibleDays.map((day) => {
-              const daySlots = schedule[day] || [];
-              const isSelected = selectedDay === day;
-              const getPeriod = (num: number) => daySlots.find((p) => p.period === num);
+            {SCHOOL_DAYS.filter((d) => (schedule?.[d] || []).length > 0).length === 0 ? (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-slate-500 font-semibold bg-slate-50/50">
+                  <div className="flex flex-col items-center justify-center gap-1.5 py-4">
+                    <span className="text-sm font-bold text-slate-700">
+                      لم يتم إدخال جدول الحصص لفصل {currentClass} حتى الآن
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      سيتم تفعيل وعرض الجدول بمجرد إدخال حصص هذا الفصل
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              SCHOOL_DAYS.filter((d) => (schedule?.[d] || []).length > 0).map((day) => {
+                const daySlots = schedule?.[day] || [];
+                const isSelected = selectedDay === day;
+                const getPeriod = (num: number) => daySlots.find((p) => p.period === num);
 
-              return (
-                <tr
-                  key={day}
-                  className={`transition-colors border-b border-slate-200 ${
-                    isSelected ? 'bg-indigo-50/50' : 'hover:bg-slate-50/60'
-                  }`}
-                >
-                  {/* Day Column */}
-                  <td
+                return (
+                  <tr
+                    key={day}
                     onClick={() => onSelectDay(day)}
-                    className="p-1 sm:p-1.5 font-black border-r border-slate-300 text-center bg-slate-100/70 cursor-pointer hover:bg-indigo-100/70 transition-colors"
-                    title={`اختيار يوم ${ARABIC_DAYS[day]}`}
+                    className={`cursor-pointer transition-colors border-b border-slate-200 ${
+                      isSelected
+                        ? 'bg-indigo-50/70 hover:bg-indigo-50/90'
+                        : 'hover:bg-slate-50/80'
+                    }`}
                   >
-                    <div className="text-[10px] sm:text-xs font-black text-slate-950 truncate">
-                      {ARABIC_DAYS[day]}
-                    </div>
-                    <div className="text-[9px] text-slate-500 font-medium truncate">
-                      {day}
-                    </div>
-                    {isSelected && (
-                      <span className="text-[8px] sm:text-[9px] font-black text-indigo-800 bg-indigo-100 border border-indigo-200 px-1 py-0.2 rounded-full mt-0.5 inline-block">
-                        Active
-                      </span>
-                    )}
-                  </td>
+                    {/* Day Column */}
+                    <td className="p-1 sm:p-1.5 font-black border-r border-slate-300 text-center bg-slate-100/70">
+                      <div className="text-[10px] sm:text-xs font-black text-slate-950 truncate">
+                        {day}
+                      </div>
+                      {isSelected && (
+                        <span className="text-[8px] sm:text-[9px] font-black text-indigo-800 bg-indigo-100 border border-indigo-200 px-1 py-0.2 rounded-full mt-0.5 inline-block">
+                          Active
+                        </span>
+                      )}
+                    </td>
 
-                  {/* 6 Periods */}
-                  {[1, 2, 3, 4, 5, 6].map((pNum) => (
-                    <SlotCell
-                      key={pNum}
-                      slot={getPeriod(pNum)}
-                      isLast={pNum === 6}
-                    />
-                  ))}
-                </tr>
-              );
-            })}
+                    {/* 6 Periods directly side-by-side without lunch column */}
+                    {[1, 2, 3, 4, 5, 6].map((pNum) => (
+                      <SlotCell
+                        key={pNum}
+                        slot={getPeriod(pNum)}
+                        isLast={pNum === 6}
+                      />
+                    ))}
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -167,13 +149,11 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
   if (!slot) {
     return (
       <td
-        className={`p-0.5 sm:p-1 text-center ${
+        className={`p-0.5 sm:p-1 text-center text-slate-300 font-bold ${
           isLast ? '' : 'border-r border-slate-300'
         }`}
       >
-        <div className="min-h-[50px] sm:min-h-[58px] flex items-center justify-center text-slate-300">
-          <span className="text-slate-300 font-mono text-xs">—</span>
-        </div>
+        -
       </td>
     );
   }
@@ -184,8 +164,7 @@ const SlotCell: React.FC<SlotCellProps> = ({ slot, isLast }) => {
     <td
       className={`p-0.5 sm:p-1 text-center align-top ${
         isLast ? '' : 'border-r border-slate-300'
-      }`}
-      title={`${slot.subject} - ${slot.teacher}`}
+      } transition-all`}
     >
       <div
         className={`rounded-lg p-1 sm:p-1.5 border shadow-2xs ${
