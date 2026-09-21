@@ -164,32 +164,37 @@ export async function seedInitialDataIfNeeded(force = false): Promise<{
     const json = await res.json();
     
     if (json.success && json.data && json.data.length === 0) {
+      const dataObj = initialData as any;
+      const classworkList = dataObj.classwork || dataObj.nile_planner_classwork_b1_w1_w2_v9 || [];
+      const homeworkList = dataObj.homework || dataObj.nile_planner_homework_b1_w1_w2_v9 || [];
+      const timetablesObj = dataObj.timetables || {};
+
       // Seed classwork
       await fetch('/api/db/classwork/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify((initialData.classwork as any[]).map((c: any) => mapEntryToClassworkRow(c))),
+        body: JSON.stringify(classworkList.map((c: any) => mapEntryToClassworkRow(c))),
       });
 
       // Seed homework
       await fetch('/api/db/homework/batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify((initialData.homework as any[]).map((h: any) => mapEntryToHomeworkRow(h))),
+        body: JSON.stringify(homeworkList.map((h: any) => mapEntryToHomeworkRow(h))),
       });
 
       // Seed timetables
       await fetch('/api/db/timetables/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(initialData.timetables),
+        body: JSON.stringify(timetablesObj),
       });
 
       return {
         seeded: true,
-        classworkCount: initialData.classwork.length,
-        homeworkCount: initialData.homework.length,
-        timetablesCount: Object.keys(initialData.timetables).length,
+        classworkCount: classworkList.length,
+        homeworkCount: homeworkList.length,
+        timetablesCount: Object.keys(timetablesObj).length,
       };
     }
     return { seeded: false, classworkCount: 0, homeworkCount: 0, timetablesCount: 0 };

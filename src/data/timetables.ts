@@ -278,14 +278,18 @@ const BASE_SCHEDULE_KG1C: Record<SchoolDay, PeriodSlot[]> = {
   ],
 };
 
-const EMPTY_SCHEDULE: Record<SchoolDay, PeriodSlot[]> = {
-  Saturday: [],
-  Sunday: [],
-  Monday: [],
-  Tuesday: [],
-  Wednesday: [],
-  Thursday: [],
-};
+export function createEmptyWeekSchedule(): Record<SchoolDay, PeriodSlot[]> {
+  return {
+    Saturday: [],
+    Sunday: [],
+    Monday: [],
+    Tuesday: [],
+    Wednesday: [],
+    Thursday: [],
+  };
+}
+
+const EMPTY_SCHEDULE: Record<SchoolDay, PeriodSlot[]> = createEmptyWeekSchedule();
 
 const RAW_CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = {
   KG1A: BASE_SCHEDULE_KG1A,

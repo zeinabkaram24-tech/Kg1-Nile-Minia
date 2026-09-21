@@ -1,6 +1,6 @@
 export type ClassId = 'KG1A' | 'KG1B' | 'KG1C' | 'KG1D' | 'KG1E' | 'A' | 'B' | 'C' | 'D' | 'E' | 'all' | 'ALL' | string;
 export type SchoolClass = ClassId;
-export type UserRole = 'admin' | 'teacher' | 'student' | 'guest';
+export type UserRole = 'admin' | 'teacher' | 'student' | 'guest' | 'visitor' | string;
 
 export type SchoolDay = 'Saturday' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | string;
 
@@ -153,6 +153,7 @@ export interface MaterialItem {
   fileSize?: number | string; // bytes or string
   fileData?: string; // Base64 data URL
   fileDataUrl?: string;
+  fileUrl?: string;
   storageUrl?: string; // Public Supabase cloud storage URL or direct link URL
   linkUrl?: string; // External web link or video link
   type?: 'pdf' | 'link' | string; // 'pdf' by default, or 'link'
@@ -160,15 +161,59 @@ export interface MaterialItem {
   materialKind?: string;
   description?: string;
   previewSummary?: string;
+  contentPreview?: any;
   block?: number | string; // 1, 2, 3, 4
+  blockNumber?: number | string;
   blockId?: string;
   weekId?: string;
+  categoryLabel?: string;
+  category?: string;
+  unitTitle?: string;
+  pageCount?: number | string;
+  notes?: string;
   section?: string; // 'Main sheet' | 'Week 1' | 'Week 2' | 'Week 3' | 'Week 4'
   classId?: ClassId | 'ALL' | string;
   subjectId?: string;
   uploadedAt?: string;
   uploadDate?: string;
   uploadedBy?: string;
+}
+
+export type DayOfWeek = SchoolDay;
+export type GradeSection = ClassId;
+export type Subject = SubjectInfo;
+export type TaskType = 'classwork' | 'homework' | 'tomorrow' | string;
+export type PlanTask = ClassworkEntry | HomeworkEntry | any;
+export type GlobalPlanData = any;
+export type Timetable = ClassTimetable;
+export type WeeklyPlanArchiveEntry = any;
+export type UploadedPlanFile = any;
+export type UserTaskProgressItem = any;
+export type VisitorItem = any;
+export type VisitorStatsSummary = any;
+export type PlanLink = { title: string; url: string; label?: string; [key: string]: any; };
+export interface DayInfo {
+  id?: SchoolDay;
+  key?: string;
+  nameEn: string;
+  nameAr: string;
+  shortEn?: string;
+  shortAr?: string;
+  isSchoolDay?: boolean;
+  [key: string]: any;
+}
+export interface GradeSectionOption {
+  id: GradeSection;
+  name?: string;
+  grade?: string;
+  section?: string;
+  nameAr?: string;
+  nameEn?: string;
+  badgeColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  lightBg?: string;
+  [key: string]: any;
 }
 
 export interface UserProfile {
@@ -227,10 +272,12 @@ export interface SubjectInfo {
   nameEn?: string;
   nameAr?: string;
   arabicName?: string;
+  code?: string;
   icon?: string;
-  color?: string;
+  color?: any;
   textColor?: string;
   borderColor?: string;
+  lightBg?: string;
   iconName?: string;
   [key: string]: any;
 }

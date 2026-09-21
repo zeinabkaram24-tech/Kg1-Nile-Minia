@@ -379,18 +379,26 @@ export default function App() {
           const dedupedHw = Array.from(uniqueHwMap.values());
 
           const normalizedHw = dedupedHw.map((h) => {
+            const has46 =
+              Boolean(h.task && typeof h.task === 'string' && h.task.includes('46')) ||
+              Boolean(h.pages && typeof h.pages === 'string' && h.pages.includes('46')) ||
+              Boolean(h.details && typeof h.details === 'string' && h.details.includes('46'));
+
             if (
               (h.id === 'hw-w2-ar-tue-g2a-wb' ||
                 h.id === 'hw-w2-ar-tue-g2b-wb' ||
                 h.id === 'hw-w2-ar-tue-g2c-wb' ||
+                h.id === 'hw-w2-ar-tue-kg1a-wb' ||
+                h.id === 'hw-w2-ar-tue-kg1b-wb' ||
+                h.id === 'hw-w2-ar-tue-kg1c-wb' ||
                 (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
-              (h.task.includes('46') || h.pages.includes('46') || h.details.includes('46'))
+              has46
             ) {
               return {
                 ...h,
-                task: h.task.replace(/46/g, '47'),
-                pages: h.pages.replace(/46/g, '47'),
-                details: h.details.replace(/46/g, '47'),
+                task: h.task ? h.task.replace(/46/g, '47') : h.task,
+                pages: h.pages ? h.pages.replace(/46/g, '47') : h.pages,
+                details: h.details ? h.details.replace(/46/g, '47') : h.details,
               };
             }
             return h;
@@ -407,28 +415,30 @@ export default function App() {
         }
 
         // Apply settings if found in DB only if user has no local choice saved
-        const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
-        if (
-          !localClass &&
-          settings.current_class &&
-          (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
-        ) {
-          setCurrentClass(settings.current_class as ClassId);
-        }
-        const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
-        if (!localWeek && settings.current_week) {
-          setCurrentWeek(Number(settings.current_week) || 3);
-        }
-        const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
-        if (!localDay && settings.selected_day) {
-          const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-          if (validDays.includes(settings.selected_day as SchoolDay)) {
-            setSelectedDay(settings.selected_day as SchoolDay);
+        if (settings) {
+          const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
+          if (
+            !localClass &&
+            settings.current_class &&
+            (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
+          ) {
+            setCurrentClass(settings.current_class as ClassId);
           }
-        }
-        const localBlock = appStorage.getItem('nile_planner_block');
-        if (!localBlock && settings.current_block) {
-          setCurrentBlock(Number(settings.current_block) || 1);
+          const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
+          if (!localWeek && settings.current_week) {
+            setCurrentWeek(Number(settings.current_week) || 3);
+          }
+          const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
+          if (!localDay && settings.selected_day) {
+            const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+            if (validDays.includes(settings.selected_day as SchoolDay)) {
+              setSelectedDay(settings.selected_day as SchoolDay);
+            }
+          }
+          const localBlock = appStorage.getItem('nile_planner_block');
+          if (!localBlock && settings.current_block) {
+            setCurrentBlock(Number(settings.current_block) || 1);
+          }
         }
 
         if (isSupabaseConfigured) {

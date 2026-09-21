@@ -415,3 +415,24 @@ export async function clearAllMaterials(): Promise<void> {
   }
 }
 
+export const getSavedMaterials = getAllMaterials;
+export function addMaterialItem(item: any): any {
+  saveMaterial(item).catch(() => {});
+  return item;
+}
+export function updateMaterialItem(idOrItem: any, maybeItem?: any): any {
+  const item = maybeItem ? { ...maybeItem, id: idOrItem } : idOrItem;
+  saveMaterial(item).catch(() => {});
+  return item;
+}
+export const deleteMaterialItem = deleteMaterial;
+export async function deleteMultipleMaterialItems(ids: string[]): Promise<void> {
+  for (const id of ids) {
+    await deleteMaterial(id);
+  }
+}
+export async function resetToDefaultMaterials(): Promise<void> {
+  await clearAllMaterials();
+}
+
+

@@ -791,12 +791,13 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
             item.id === 'hw-w2-ar-tue-kg1c-wb' ||
             (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
 
-          if (
-            isTargetArabicHw &&
-            item.task &&
-            (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
-          ) {
-            item.task = item.task.replace(/46/g, '47');
+          const has46 =
+            Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
+            Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
+            Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
+
+          if (isTargetArabicHw && has46) {
+            if (item.task) item.task = item.task.replace(/46/g, '47');
             if (item.pages) item.pages = item.pages.replace(/46/g, '47');
             if (item.details) item.details = item.details.replace(/46/g, '47');
           }
@@ -864,13 +865,15 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       item.id === 'hw-w2-ar-tue-kg1c-wb' ||
       (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
 
-    if (
-      isTargetArabicHw &&
-      (item.task.includes('46') || (item.pages && item.pages.includes('46')) || (item.details && item.details.includes('46')))
-    ) {
+    const has46 =
+      Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
+      Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
+      Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
+
+    if (isTargetArabicHw && has46) {
       const corrected: HomeworkEntry = {
         ...item,
-        task: item.task.replace(/46/g, '47'),
+        task: item.task ? item.task.replace(/46/g, '47') : item.task,
         pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
         details: item.details ? item.details.replace(/46/g, '47') : item.details,
       };
