@@ -459,82 +459,84 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds);
 
-  // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
-  if (isSupabaseConfigured) {
+  // 1. Fetch in parallel from both Central Server (/api/planner-data) and Supabase
+  const serverPromise = (async (): Promise<ClassworkEntry[]> => {
+    try {
+      const res = await withTimeout(fetch('/api/planner-data'), 3500, null as any);
+      if (res && res.ok) {
+        const srvData = await res.json();
+        if (srvData && Array.isArray(srvData.classwork)) {
+          return srvData.classwork as ClassworkEntry[];
+        }
+      }
+    } catch {}
+    return [];
+  })();
+
+  const supabasePromise = (async (): Promise<ClassworkEntry[]> => {
+    if (!isSupabaseConfigured) return [];
     try {
       const res = await withTimeout<any>(
         supabase.from('classwork').select('*').order('period', { ascending: true }),
         3500,
         { data: null, error: { message: 'Supabase classwork query timeout' } }
       );
-      const { data, error } = res;
-
-      if (!error && data && Array.isArray(data)) {
-        const dbItems = (data as ClassworkRow[]).map(rowToClasswork);
-
-        if (dbItems.length > 0) {
-          // Cloud database is active: start with INITIAL_CLASSWORK baseline so new weeks (like Week 1) are never missed
-          const map = new Map<string, ClassworkEntry>();
-          INITIAL_CLASSWORK.forEach((c) => {
-            if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-          });
-          dbItems.forEach((c) => {
-            if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-          });
-          const localCustom = getLocalCustomClasswork();
-          localCustom.forEach((c) => {
-            if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-          });
-          return Array.from(map.values());
-        } else {
-          // Fresh unseeded database
-          const map = new Map<string, ClassworkEntry>();
-          INITIAL_CLASSWORK.forEach((c) => {
-            if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-          });
-          return Array.from(map.values());
-        }
+      if (!res.error && res.data && Array.isArray(res.data)) {
+        return (res.data as ClassworkRow[]).map(rowToClasswork);
       }
     } catch (err) {
-      console.warn('Network exception fetching classwork from Supabase (falling back):', err);
+      console.warn('Network exception fetching classwork from Supabase:', err);
     }
-  }
+    return [];
+  })();
 
-  // Fallback ONLY if Supabase is unconfigured or returns offline/empty
+  const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
   const localCustom = getLocalCustomClasswork();
-  let baseItems = [...INITIAL_CLASSWORK];
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
-  try {
-    const res = await fetch('/api/planner-data');
-    if (res.ok) {
-      const srvData = await res.json();
-      if (srvData && Array.isArray(srvData.classwork) && srvData.classwork.length > 0) {
-        const srvKeys = new Set(
-          srvData.classwork.map((c: ClassworkEntry) => `${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (c) => !srvKeys.has(`${c.block || 1}-${c.week || 1}-${c.classId}-${c.subject}`)
-        );
-        const srvMap = new Map<string, ClassworkEntry>();
-        baseItems.forEach((c) => srvMap.set(c.id, c));
-        srvData.classwork.forEach((c: ClassworkEntry) => srvMap.set(c.id, c));
-        baseItems = Array.from(srvMap.values());
-      }
-    }
-  } catch (err) {
-    // Server fetch fallback
-  }
-
-  // Merge srvData and localCustom over baseItems
+  // Merge order: INITIAL_CLASSWORK baseline -> Server Items -> Supabase DB Items -> Local Custom Items
   const map = new Map<string, ClassworkEntry>();
-  baseItems.forEach((c) => {
+  INITIAL_CLASSWORK.forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  serverItems.forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  dbItems.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
   localCustom.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
-  return Array.from(map.values());
+
+  const consolidated = Array.from(map.values());
+
+  // Background replication:
+  // 1. If Supabase is active, push any item from server/local that is not in Supabase yet
+  if (isSupabaseConfigured && dbItems.length >= 0) {
+    const dbItemIds = new Set(dbItems.map((c) => c.id));
+    const missingInDb = consolidated.filter((c) => !dbItemIds.has(c.id));
+    if (missingInDb.length > 0) {
+      const rows = missingInDb.map(classworkToRow);
+      for (let i = 0; i < rows.length; i += 50) {
+        Promise.resolve(supabase.from('classwork').upsert(rows.slice(i, i + 50), { onConflict: 'id' })).catch(() => {});
+      }
+    }
+  }
+
+  // 2. If server database is missing any Supabase/local item, update central server
+  if (serverItems.length >= 0) {
+    const serverItemIds = new Set(serverItems.map((c) => c.id));
+    const missingOnServer = consolidated.filter((c) => !serverItemIds.has(c.id));
+    if (missingOnServer.length > 0) {
+      fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classwork: missingOnServer, mode: 'merge' }),
+      }).catch(() => {});
+    }
+  }
+
+  return consolidated;
 }
 
 export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkEntry> {
@@ -770,95 +772,56 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const deletedIds = await getDeletedPlannerItemIds();
   const deletedSet = new Set(deletedIds);
 
-  // If Supabase is configured, fetch directly from cloud database with a 3.5s timeout
-  if (isSupabaseConfigured) {
+  // 1. Fetch in parallel from both Central Server (/api/planner-data) and Supabase
+  const serverPromise = (async (): Promise<HomeworkEntry[]> => {
+    try {
+      const res = await withTimeout(fetch('/api/planner-data'), 3500, null as any);
+      if (res && res.ok) {
+        const srvData = await res.json();
+        if (srvData && Array.isArray(srvData.homework)) {
+          return srvData.homework as HomeworkEntry[];
+        }
+      }
+    } catch {}
+    return [];
+  })();
+
+  const supabasePromise = (async (): Promise<HomeworkEntry[]> => {
+    if (!isSupabaseConfigured) return [];
     try {
       const res = await withTimeout<any>(
         supabase.from('homework').select('*').order('created_at', { ascending: false }),
         3500,
         { data: null, error: { message: 'Supabase homework query timeout' } }
       );
-      const { data, error } = res;
-
-      if (!error && data && Array.isArray(data)) {
-        const dbItems = (data as HomeworkRow[]).map(rowToHomework);
-        
-        // Ensure Tuesday Week 2 Arabic homework is page 47 (if any exist)
-        dbItems.forEach(item => {
-          const isTargetArabicHw =
-            item.id === 'hw-w2-ar-tue-kg1a-wb' ||
-            item.id === 'hw-w2-ar-tue-kg1b-wb' ||
-            item.id === 'hw-w2-ar-tue-kg1c-wb' ||
-            (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
-
-          const has46 =
-            Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
-            Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
-            Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
-
-          if (isTargetArabicHw && has46) {
-            if (item.task) item.task = item.task.replace(/46/g, '47');
-            if (item.pages) item.pages = item.pages.replace(/46/g, '47');
-            if (item.details) item.details = item.details.replace(/46/g, '47');
-          }
-        });
-
-        if (dbItems.length > 0) {
-          // Cloud database is active: start with INITIAL_HOMEWORK baseline so new weeks (like Week 1) are never missed
-          const map = new Map<string, HomeworkEntry>();
-          INITIAL_HOMEWORK.forEach((h) => {
-            if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-          });
-          dbItems.forEach((h) => {
-            if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-          });
-          const localCustom = getLocalCustomHomework();
-          localCustom.forEach((h) => {
-            if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-          });
-          return Array.from(map.values());
-        } else {
-          // Fresh unseeded database
-          const map = new Map<string, HomeworkEntry>();
-          INITIAL_HOMEWORK.forEach((h) => {
-            if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-          });
-          return Array.from(map.values());
-        }
+      if (!res.error && res.data && Array.isArray(res.data)) {
+        return (res.data as HomeworkRow[]).map(rowToHomework);
       }
     } catch (err) {
-      console.warn('Network exception fetching homework from Supabase (falling back):', err);
+      console.warn('Network exception fetching homework from Supabase:', err);
     }
-  }
+    return [];
+  })();
 
-  // Fallback ONLY if Supabase is unconfigured or returns offline/empty
+  const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
   const localCustom = getLocalCustomHomework();
-  let baseItems = [...INITIAL_HOMEWORK];
 
-  // 1. Fetch from server-side centralized storage for cross-device sync (Laptop, Mobile, Desktop)
-  try {
-    const res = await fetch('/api/planner-data');
-    if (res.ok) {
-      const srvData = await res.json();
-      if (srvData && Array.isArray(srvData.homework) && srvData.homework.length > 0) {
-        const srvKeys = new Set(
-          srvData.homework.map((h: HomeworkEntry) => `${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
-        baseItems = baseItems.filter(
-          (h) => !srvKeys.has(`${h.block || 1}-${h.week || 1}-${h.classId}-${h.subject}`)
-        );
-        const srvMap = new Map<string, HomeworkEntry>();
-        baseItems.forEach((h) => srvMap.set(h.id, h));
-        srvData.homework.forEach((h: HomeworkEntry) => srvMap.set(h.id, h));
-        baseItems = Array.from(srvMap.values());
-      }
-    }
-  } catch (err) {
-    // Server fetch fallback
-  }
+  // Merge order: INITIAL_HOMEWORK baseline -> Server Items -> Supabase DB Items -> Local Custom Items
+  const map = new Map<string, HomeworkEntry>();
+  INITIAL_HOMEWORK.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  serverItems.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  dbItems.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  localCustom.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
 
-  // Ensure Tuesday Week 2 Arabic homework is page 47
-  const normalizedBase = baseItems.map((item) => {
+  const consolidated = Array.from(map.values()).map((item) => {
     const isTargetArabicHw =
       item.id === 'hw-w2-ar-tue-kg1a-wb' ||
       item.id === 'hw-w2-ar-tue-kg1b-wb' ||
@@ -883,16 +846,33 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     return item;
   });
 
-  // Merge normalizedBase and localCustom
-  const map = new Map<string, HomeworkEntry>();
-  normalizedBase.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  localCustom.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  
-  return Array.from(map.values());
+  // Background replication:
+  // 1. If Supabase is active, push missing items to Supabase
+  if (isSupabaseConfigured && dbItems.length >= 0) {
+    const dbItemIds = new Set(dbItems.map((h) => h.id));
+    const missingInDb = consolidated.filter((h) => !dbItemIds.has(h.id));
+    if (missingInDb.length > 0) {
+      const rows = missingInDb.map(homeworkToRow);
+      for (let i = 0; i < rows.length; i += 50) {
+        Promise.resolve(supabase.from('homework').upsert(rows.slice(i, i + 50), { onConflict: 'id' })).catch(() => {});
+      }
+    }
+  }
+
+  // 2. If server is missing any Supabase/local items, update central server
+  if (serverItems.length >= 0) {
+    const serverItemIds = new Set(serverItems.map((h) => h.id));
+    const missingOnServer = consolidated.filter((h) => !serverItemIds.has(h.id));
+    if (missingOnServer.length > 0) {
+      fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ homework: missingOnServer, mode: 'merge' }),
+      }).catch(() => {});
+    }
+  }
+
+  return consolidated;
 }
 
 export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntry> {

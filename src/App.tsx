@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, TomorrowSpecialNote } from './types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH, NEXT_SCHOOL_DAY } from './data/timetables';
@@ -274,186 +274,119 @@ export default function App() {
     }
   }, [selectedDay]);
 
-  // Initial Server and Supabase Data Initialization & Realtime Subscriptions
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+
+  // Core Data Fetch & Synchronization Function (Mobile, Laptop, Cloud)
+  const refreshAllData = useCallback(async (showNotification = false) => {
+    try {
+      setIsSyncing(true);
+
+      if (isSupabaseConfigured) {
+        setSupabaseStatus('connecting');
+      }
+
+      // Fetch classwork, homework, and planner settings in parallel
+      const [cwData, hwData, settings] = await Promise.all([
+        fetchAllClasswork(),
+        fetchAllHomework(),
+        fetchPlannerSettings(),
+      ]);
+
+      const profile = getActiveUserProfile();
+      let progress: any = null;
+      if (profile?.mode === 'student' && profile.studentName) {
+        if (isSupabaseConfigured) {
+          try {
+            progress = await syncStudentProgressFromDb(profile.studentName);
+          } catch {
+            progress = getStudentProgress(profile.studentName);
+          }
+        } else {
+          progress = getStudentProgress(profile.studentName);
+        }
+      }
+
+      // Apply classwork
+      if (cwData && cwData.length > 0) {
+        const uniqueCwMap = new Map<string, ClassworkEntry>();
+        cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+        const dedupedCw = Array.from(uniqueCwMap.values());
+
+        if (profile?.mode === 'student' && profile.studentName) {
+          const cwSet = new Set(progress ? progress.completedClassworkIds : []);
+          setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+        } else {
+          const guestProgress = getGuestProgress();
+          const cwSet = new Set(guestProgress.completedClassworkIds);
+          setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+        }
+      }
+
+      // Apply homework
+      if (hwData && hwData.length > 0) {
+        const uniqueHwMap = new Map<string, HomeworkEntry>();
+        hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+        const dedupedHw = Array.from(uniqueHwMap.values());
+
+        if (profile?.mode === 'student' && profile.studentName) {
+          const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
+          setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+        } else {
+          const guestProgress = getGuestProgress();
+          const hwSet = new Set(guestProgress.completedHomeworkIds);
+          setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+        }
+      }
+
+      if (isSupabaseConfigured) {
+        setSupabaseStatus('connected');
+      }
+
+      if (showNotification) {
+        setToastMsg('✨ تم مزامنة وتحديث جميع البيانات بين الأجهزة والسحابة بنجاح!');
+        setTimeout(() => setToastMsg(null), 4000);
+      }
+    } catch (err) {
+      console.error('Data synchronization error:', err);
+      if (isSupabaseConfigured) setSupabaseStatus('connected');
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  // Initial Data Initialization & Realtime Subscriptions & Focus auto-sync
   useEffect(() => {
     let isMounted = true;
 
-    async function initializeFromSupabase() {
-      try {
-        // Enforce hard wipe of stale client-side caches so all classes (A, B, C, D, E) and materials are clean
-        const WIPE_VERSION = 'nile_data_wipe_clean_v10_topic_week2_all_links_today';
-        if (typeof window !== 'undefined' && localStorage.getItem(WIPE_VERSION) !== 'done') {
-          const keysToClean = [
-            'classwork_planner_custom_entries_v3',
-            'homework_planner_custom_entries_v3',
-            'tomorrow_special_notes_custom_v3',
-            'nile_planner_custom_classwork_v2',
-            'nile_planner_custom_homework_v2',
-            'nile_planner_classwork_b1_w1_w2_v9',
-            'nile_planner_homework_b1_w1_w2_v9',
-            'school_materials_fallback',
-            'nile_deleted_tomorrow_note_ids_v3',
-            'nile_deleted_planner_item_ids_v3',
-          ];
-          keysToClean.forEach((k) => {
-            try { localStorage.removeItem(k); } catch {}
-            try { sessionStorage.removeItem(k); } catch {}
-          });
-          clearAllMaterials().catch(() => {});
-          fetch('/api/materials/clear', { method: 'POST' }).catch(() => {});
-          fetch('/api/planner-data/clear', { method: 'POST' }).catch(() => {});
-          if (isSupabaseConfigured) {
-            Promise.resolve(supabase.from('classwork').delete().neq('id', '___')).catch(() => {});
-            Promise.resolve(supabase.from('homework').delete().neq('id', '___')).catch(() => {});
-            Promise.resolve(supabase.from('materials').delete().neq('id', '___')).catch(() => {});
-            Promise.resolve(supabase.from('tomorrow_notes').delete().neq('id', '___')).catch(() => {});
-          }
-          try { localStorage.setItem(WIPE_VERSION, 'done'); } catch {}
-          try { localStorage.setItem(STORAGE_KEYS.WEEK, String(autoDetected.week)); } catch {}
-          try { localStorage.setItem(STORAGE_KEYS.DAY, autoDetected.day); } catch {}
-          try { localStorage.setItem('nile_planner_block', String(autoDetected.topic)); } catch {}
-        }
+    refreshAllData(false);
 
-        if (isSupabaseConfigured) {
-          setSupabaseStatus('connecting');
-          // Force-sync updated local codebase baseline data to Supabase first
-          await forceSyncBaselineToSupabase().catch(() => {});
-        } else {
-          setSupabaseStatus('unconfigured');
-        }
-
-        // Fetch classwork, homework, and planner settings IMMEDIATELY in parallel
-        const [cwData, hwData, settings] = await Promise.all([
-          fetchAllClasswork(),
-          fetchAllHomework(),
-          fetchPlannerSettings(),
-        ]);
-
-        // Background non-blocking tasks: credentials sync, local data sync, and lazy seeding
-        Promise.allSettled([
-          syncLocalDataToServer(),
-          syncSupabaseConfigWithServer(),
-        ]).then(() => {
-          if (isSupabaseConfigured && (!cwData || cwData.length === 0) && (!hwData || hwData.length === 0)) {
-            seedInitialDataIfEmpty().catch(() => {});
-          }
-        }).catch(() => {});
-
-        if (!isMounted) return;
-
-        const profile = getActiveUserProfile();
-        let progress: any = null;
-        if (profile?.mode === 'student' && profile.studentName) {
-          if (isSupabaseConfigured) {
-            try {
-              progress = await syncStudentProgressFromDb(profile.studentName);
-            } catch (err) {
-              console.warn('Error fetching student progress from Supabase:', err);
-              progress = getStudentProgress(profile.studentName);
-            }
-          } else {
-            progress = getStudentProgress(profile.studentName);
-          }
-        }
-
-        // Apply classwork with student or guest completion checks
-        if (cwData && cwData.length > 0) {
-          const uniqueCwMap = new Map<string, ClassworkEntry>();
-          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
-          const dedupedCw = Array.from(uniqueCwMap.values());
-
-          if (profile?.mode === 'student' && profile.studentName) {
-            const cwSet = new Set(progress ? progress.completedClassworkIds : []);
-            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
-          } else {
-            const guestProgress = getGuestProgress();
-            const cwSet = new Set(guestProgress.completedClassworkIds);
-            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
-          }
-        }
-
-        // Apply homework with student or guest completion checks
-        if (hwData && hwData.length > 0) {
-          const uniqueHwMap = new Map<string, HomeworkEntry>();
-          hwData.forEach((h) => uniqueHwMap.set(h.id, h));
-          const dedupedHw = Array.from(uniqueHwMap.values());
-
-          const normalizedHw = dedupedHw.map((h) => {
-            const has46 =
-              Boolean(h.task && typeof h.task === 'string' && h.task.includes('46')) ||
-              Boolean(h.pages && typeof h.pages === 'string' && h.pages.includes('46')) ||
-              Boolean(h.details && typeof h.details === 'string' && h.details.includes('46'));
-
-            if (
-              (h.id === 'hw-w2-ar-tue-g2a-wb' ||
-                h.id === 'hw-w2-ar-tue-g2b-wb' ||
-                h.id === 'hw-w2-ar-tue-g2c-wb' ||
-                h.id === 'hw-w2-ar-tue-kg1a-wb' ||
-                h.id === 'hw-w2-ar-tue-kg1b-wb' ||
-                h.id === 'hw-w2-ar-tue-kg1c-wb' ||
-                (h.subject === 'Arabic' && h.assignedDay === 'Tuesday' && h.week === 2)) &&
-              has46
-            ) {
-              return {
-                ...h,
-                task: h.task ? h.task.replace(/46/g, '47') : h.task,
-                pages: h.pages ? h.pages.replace(/46/g, '47') : h.pages,
-                details: h.details ? h.details.replace(/46/g, '47') : h.details,
-              };
-            }
-            return h;
-          });
-
-          if (profile?.mode === 'student' && profile.studentName) {
-            const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
-            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
-          } else {
-            const guestProgress = getGuestProgress();
-            const hwSet = new Set(guestProgress.completedHomeworkIds);
-            setHomeworkList(normalizedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
-          }
-        }
-
-        // Apply settings if found in DB only if user has no local choice saved
-        if (settings) {
-          const localClass = appStorage.getItem(STORAGE_KEYS.CLASS);
-          if (
-            !localClass &&
-            settings.current_class &&
-            (settings.current_class === 'G2A' || settings.current_class === 'G2B' || settings.current_class === 'G2C')
-          ) {
-            setCurrentClass(settings.current_class as ClassId);
-          }
-          const localWeek = appStorage.getItem(STORAGE_KEYS.WEEK);
-          if (!localWeek && settings.current_week) {
-            setCurrentWeek(Number(settings.current_week) || 3);
-          }
-          const localDay = appStorage.getItem(STORAGE_KEYS.DAY);
-          if (!localDay && settings.selected_day) {
-            const validDays: SchoolDay[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
-            if (validDays.includes(settings.selected_day as SchoolDay)) {
-              setSelectedDay(settings.selected_day as SchoolDay);
-            }
-          }
-          const localBlock = appStorage.getItem('nile_planner_block');
-          if (!localBlock && settings.current_block) {
-            setCurrentBlock(Number(settings.current_block) || 1);
-          }
-        }
-
-        if (isSupabaseConfigured) {
-          setSupabaseStatus('connected');
-        }
-      } catch (err) {
-        console.error('Failed to initialize data from server/Supabase:', err);
-        if (isMounted && isSupabaseConfigured) setSupabaseStatus('error');
+    // Re-sync whenever window gets focus or tab becomes active
+    const handleFocusSync = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAllData(false);
       }
-    }
+    };
 
-    initializeFromSupabase();
+    window.addEventListener('focus', handleFocusSync);
+    document.addEventListener('visibilitychange', handleFocusSync);
+
+    // Auto periodic sync every 10 seconds to catch edits made on mobile or laptop in background
+    const syncInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshAllData(false);
+      }
+    }, 10000);
 
     // Setup Supabase Realtime Channels only if configured
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      return () => {
+        isMounted = false;
+        window.removeEventListener('focus', handleFocusSync);
+        document.removeEventListener('visibilitychange', handleFocusSync);
+        clearInterval(syncInterval);
+      };
+    }
+
     const channel = supabase
       .channel('planner-realtime-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
@@ -488,9 +421,12 @@ export default function App() {
 
     return () => {
       isMounted = false;
+      window.removeEventListener('focus', handleFocusSync);
+      document.removeEventListener('visibilitychange', handleFocusSync);
+      clearInterval(syncInterval);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refreshAllData]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -990,6 +926,8 @@ export default function App() {
         onOpenMaterials={() => setIsMaterialsModalOpen(true)}
         onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
         supabaseStatus={supabaseStatus}
+        onSyncNow={() => refreshAllData(true)}
+        isSyncing={isSyncing}
       />
 
       {/* Main Container */}

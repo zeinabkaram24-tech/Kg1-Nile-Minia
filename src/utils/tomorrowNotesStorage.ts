@@ -264,20 +264,15 @@ export async function getTomorrowNotesForDay(
       return true;
     });
 
-    return filtered.filter((n) => n.subject === 'Arabic' || n.subject === 'English' || n.subject === 'arabic' || n.subject === 'english');
+    return filtered;
   } catch (err) {
     console.error('Error loading dynamic tomorrow notes from database tables:', err);
-    return baseNotes.filter((n) => n.subject === 'Arabic' || n.subject === 'English' || n.subject === 'arabic' || n.subject === 'english');
+    return baseNotes;
   }
 }
 
 export function getDeletedTomorrowNoteIdsSync(): string[] {
-  let localList: string[] = [
-    'tn-b1-w3-G2C-Mon-science-hw-submit',
-    'science-booklet-submission-Monday',
-    'tn-b1-w3-G2C-Mon-science-collection',
-    'science-booklet-submission-Sunday'
-  ];
+  let localList: string[] = [];
   try {
     const raw = appStorage.getItem('nile_deleted_tomorrow_note_ids_v3');
     if (raw) {

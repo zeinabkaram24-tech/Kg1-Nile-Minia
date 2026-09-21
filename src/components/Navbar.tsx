@@ -12,6 +12,7 @@ import {
   GraduationCap,
   FolderOpen,
   Database,
+  RefreshCw,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -35,6 +36,8 @@ interface NavbarProps {
   onOpenMaterials?: () => void;
   onOpenSupabaseConfig?: () => void;
   supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
+  onSyncNow?: () => void;
+  isSyncing?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -55,6 +58,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenMaterials,
   onOpenSupabaseConfig,
   supabaseStatus = 'unconfigured',
+  onSyncNow,
+  isSyncing = false,
 }) => {
   const tabs = [
     {
@@ -110,6 +115,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Instant Cross-Device Sync Button */}
+              <button
+                type="button"
+                onClick={onSyncNow}
+                disabled={isSyncing}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 bg-white/10 hover:bg-white/20 active:scale-95 text-white hover:text-cyan-300 shrink-0"
+                title="مزامنة فورية وتحديث البيانات بين السحابة واللاب توب والموبايل"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-cyan-300' : 'text-cyan-400'}`} />
+                <span className="hidden sm:inline">{isSyncing ? 'تحديث...' : 'مزامنة'}</span>
+              </button>
+
               {/* Supabase Cloud Connection & Settings */}
               <button
                 type="button"
