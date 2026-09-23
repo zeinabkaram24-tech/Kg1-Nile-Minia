@@ -3,7 +3,7 @@ import { PlanTask, Subject } from '../types';
 import { SubjectIcon } from './SubjectIcon';
 import { TaskTypeBadge } from './SubjectBadge';
 import { playChimeSound, triggerTaskDoneConfetti } from '../utils/celebration';
-import { extractFirstUrl, getLinkActionLabel, getFriendlyDomain, isVideoUrl } from '../utils/urlHelper';
+import { extractFirstUrl, extractAllUrls, getLinkActionLabel, getFriendlyDomain, isVideoUrl } from '../utils/urlHelper';
 import { Edit3, Trash2, BookOpen, Clock, Check, Circle, StickyNote, CheckCircle2, X, ExternalLink, PlayCircle, Headphones } from 'lucide-react';
 
 interface TaskCardProps {
@@ -32,14 +32,49 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteText, setNoteText] = useState(task.personalNotes || '');
 
-  // Detect any direct or embedded URL
-  const activeLinkUrl = task.linkUrl || extractFirstUrl(task.details) || extractFirstUrl(task.notes) || extractFirstUrl(task.title);
-  const linkLabel = activeLinkUrl ? getLinkActionLabel(activeLinkUrl, task.linkTitle) : '';
-  const domain = activeLinkUrl ? getFriendlyDomain(activeLinkUrl) : '';
-  const isVideo = activeLinkUrl ? isVideoUrl(activeLinkUrl) : false;
   const isListeningWatchingTask =
     task.title.includes('استماع / مشاهدة الرابط التالي') ||
     task.title.startsWith('استماع / مشاهدة');
+
+  // Gather all unique links to display
+  const linksToDisplay: { title: string; url: string; domain: string; isVideo: boolean }[] = [];
+  const seenUrls = new Set<string>();
+
+  const addLinkToDisplay = (url: string | undefined, customTitle?: string) => {
+    if (!url) return;
+    let cleanUrl = url.trim();
+    if (!cleanUrl) return;
+    if (cleanUrl.startsWith('www.')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
+    const lowerUrl = cleanUrl.toLowerCase();
+    if (!seenUrls.has(lowerUrl)) {
+      seenUrls.add(lowerUrl);
+      linksToDisplay.push({
+        url: cleanUrl,
+        title: customTitle || getLinkActionLabel(cleanUrl, task.linkTitle),
+        domain: getFriendlyDomain(cleanUrl),
+        isVideo: isVideoUrl(cleanUrl)
+      });
+    }
+  };
+
+  if (Array.isArray(task.links) && task.links.length > 0) {
+    task.links.forEach((l: any) => {
+      if (l && l.url) {
+        addLinkToDisplay(l.url, l.title);
+      }
+    });
+  }
+
+  if (task.linkUrl) {
+    addLinkToDisplay(task.linkUrl, task.linkTitle);
+  }
+
+  // Extract other URLs present in details, notes, title
+  extractAllUrls(task.details).forEach(url => addLinkToDisplay(url));
+  extractAllUrls(task.notes).forEach(url => addLinkToDisplay(url));
+  extractAllUrls(task.title).forEach(url => addLinkToDisplay(url));
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -134,38 +169,41 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
 
           {/* Prominent Clickable Link / Video / Platform Button */}
-          {activeLinkUrl && (
-            <div className="mt-2.5">
-              <a
-                href={activeLinkUrl.startsWith('http') ? activeLinkUrl : `https://${activeLinkUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 group/link active:scale-98 cursor-pointer shadow-2xs hover:shadow-xs ${
-                  isListeningWatchingTask
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'
-                    : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/90'
-                }`}
-                title={`فتح الرابط في تبويب جديد (${activeLinkUrl})`}
-              >
-                {isVideo ? (
-                  <PlayCircle className={`w-4 h-4 shrink-0 group-hover/link:scale-110 transition-transform ${
-                    isListeningWatchingTask ? 'text-white fill-white/20' : 'text-rose-600 fill-rose-100'
-                  }`} />
-                ) : isListeningWatchingTask ? (
-                  <Headphones className="w-3.5 h-3.5 text-white shrink-0 group-hover/link:scale-110 transition-transform" />
-                ) : (
-                  <ExternalLink className="w-3.5 h-3.5 text-indigo-600 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
-                )}
-                <span>{isListeningWatchingTask ? 'فتح واستماع / مشاهدة الرابط في تبويب جديد ↗' : linkLabel}</span>
-                {domain && (
-                  <span className={`text-[10px] font-mono font-medium dir-ltr px-1.5 py-0.5 rounded ${
-                    isListeningWatchingTask ? 'bg-rose-800/80 text-rose-100' : 'bg-white text-indigo-600/80 border border-indigo-200/60'
-                  }`}>
-                    {domain}
-                  </span>
-                )}
-              </a>
+          {linksToDisplay.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {linksToDisplay.map((link, lIdx) => (
+                <a
+                  key={lIdx}
+                  href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 group/link active:scale-98 cursor-pointer shadow-2xs hover:shadow-xs ${
+                    isListeningWatchingTask
+                      ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/90'
+                  }`}
+                  title={`فتح الرابط في تبويب جديد (${link.url})`}
+                >
+                  {link.isVideo ? (
+                    <PlayCircle className={`w-4 h-4 shrink-0 group-hover/link:scale-110 transition-transform ${
+                      isListeningWatchingTask ? 'text-white fill-white/20' : 'text-rose-600 fill-rose-100'
+                    }`} />
+                  ) : isListeningWatchingTask ? (
+                    <Headphones className="w-3.5 h-3.5 text-white shrink-0 group-hover/link:scale-110 transition-transform" />
+                  ) : (
+                    <ExternalLink className="w-3.5 h-3.5 text-indigo-600 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
+                  )}
+                  <span>{link.title}</span>
+                  {link.domain && (
+                    <span className={`text-[10px] font-mono font-medium dir-ltr px-1.5 py-0.5 rounded ${
+                      isListeningWatchingTask ? 'bg-rose-800/80 text-rose-100' : 'bg-white text-indigo-600/80 border border-indigo-200/60'
+                    }`}>
+                      {link.domain}
+                    </span>
+                  )}
+                </a>
+              ))}
             </div>
           )}
 
