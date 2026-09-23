@@ -234,12 +234,12 @@ export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
   );
 
   let links = (row as any).links;
-  if (!links && (row as any).link_urls_json) {
+  if ((!links || (Array.isArray(links) && links.length === 0)) && (row as any).link_urls_json) {
     try {
       links = JSON.parse((row as any).link_urls_json);
     } catch {}
   }
-  if (!links && baseline?.links && baseline.links.length > 0) {
+  if ((!links || (Array.isArray(links) && links.length === 0)) && baseline?.links && baseline.links.length > 0) {
     links = baseline.links;
   }
 
@@ -311,7 +311,7 @@ export function rowToHomework(row: HomeworkRow): HomeworkEntry {
   );
 
   let links = (row as any).links;
-  if (!links && baseline?.links && baseline.links.length > 0) {
+  if ((!links || (Array.isArray(links) && links.length === 0)) && baseline?.links && baseline.links.length > 0) {
     links = baseline.links;
   }
 

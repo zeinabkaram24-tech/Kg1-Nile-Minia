@@ -101,7 +101,15 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
   const map = new Map<string, ClassworkEntry>();
   INITIAL_CLASSWORK.forEach((c) => { if (c && c.id) map.set(c.id, c); });
   if (cached && cached.length > 0) {
-    cached.forEach((c) => { if (c && c.id) map.set(c.id, c); });
+    cached.forEach((c) => {
+      if (c && c.id) {
+        const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
+        const mergedLinks = (!c.links || c.links.length === 0) && baseline?.links && baseline.links.length > 0
+          ? baseline.links
+          : c.links;
+        map.set(c.id, { ...c, links: mergedLinks });
+      }
+    });
   }
   const source = Array.from(map.values()).filter((c) => !deletedSet.has(c.id));
   if (profile?.mode === 'student' && profile.studentName) {
@@ -134,7 +142,15 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
   const map = new Map<string, HomeworkEntry>();
   INITIAL_HOMEWORK.forEach((h) => { if (h && h.id) map.set(h.id, h); });
   if (cached && cached.length > 0) {
-    cached.forEach((h) => { if (h && h.id) map.set(h.id, h); });
+    cached.forEach((h) => {
+      if (h && h.id) {
+        const baseline = INITIAL_HOMEWORK.find((b) => b.id === h.id);
+        const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
+          ? baseline.links
+          : h.links;
+        map.set(h.id, { ...h, links: mergedLinks });
+      }
+    });
   }
   const source = Array.from(map.values()).filter((h) => !deletedSet.has(h.id));
   if (profile?.mode === 'student' && profile.studentName) {
