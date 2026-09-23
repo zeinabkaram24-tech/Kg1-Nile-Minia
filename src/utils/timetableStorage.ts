@@ -1,6 +1,6 @@
 import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, createEmptyWeekSchedule } from '../data/timetables';
-import { supabaseSaveAllTimetables, supabaseClearAllTimetables } from '../services/supabaseService';
+import { supabaseSaveAllTimetables, supabaseClearAllTimetables, supabaseFetchTimetables } from '../services/supabaseService';
 
 const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v1';
 
@@ -68,6 +68,20 @@ export function saveAllStoredTimetables(timetables: Record<ClassId, Record<Schoo
   } catch (e) {
     console.error('Failed to save timetables to localStorage:', e);
   }
+}
+
+export async function syncTimetablesFromCloud(): Promise<Record<ClassId, Record<SchoolDay, PeriodSlot[]>> | null> {
+  try {
+    const cloudTimetables = await supabaseFetchTimetables();
+    if (cloudTimetables && Object.keys(cloudTimetables).length > 0) {
+      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(cloudTimetables));
+      window.dispatchEvent(new Event('timetableUpdated'));
+      return cloudTimetables;
+    }
+  } catch (err) {
+    console.warn('Failed to sync timetables from cloud:', err);
+  }
+  return null;
 }
 
 export function saveClassTimetable(

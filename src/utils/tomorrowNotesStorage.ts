@@ -224,6 +224,34 @@ export async function getTomorrowNotesForDay(
       }
     } catch {}
 
+    // 4. Fetch directly from Supabase planner_settings as reliable backup
+    if (isSupabaseConfigured) {
+      try {
+        const { data: psData } = await supabase
+          .from('planner_settings')
+          .select('value')
+          .eq('key', 'tomorrow_special_notes')
+          .maybeSingle();
+        if (psData && psData.value) {
+          const cloudNotes = JSON.parse(psData.value);
+          if (Array.isArray(cloudNotes)) {
+            cloudNotes.forEach((n: any) => {
+              if (
+                (n.classId === classId || n.classId === 'ALL') &&
+                n.targetDay === targetDay &&
+                (n.block || 1) === block &&
+                (n.week || 1) === week
+              ) {
+                dynamicNotes.push(n);
+              }
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch cloud tomorrow special notes:', err);
+      }
+    }
+
     // Merge base notes, local custom notes, and dynamic notes
     const map = new Map<string, TomorrowSpecialNote>();
     baseNotes.forEach((n) => {
@@ -423,12 +451,24 @@ export async function saveTomorrowNotes(
 
   if (isSupabaseConfigured) {
     try {
+      // 1. Save all custom tomorrow notes to planner_settings for reliable cloud persistence
+      const currentSaved = getLocalCustomTomorrowNotes();
+      await supabase.from('planner_settings').upsert({
+        key: 'tomorrow_special_notes',
+        value: JSON.stringify(currentSaved),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+    } catch (sbSettingErr) {
+      console.warn('Supabase planner_settings tomorrow notes sync error:', sbSettingErr);
+    }
+
+    try {
       for (const note of notes) {
         const isQuiz = note.isQuiz || note.categoryType === 'quiz' || /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((note.note + ' ' + (note.arabicNote || '')).toLowerCase());
         const targetId = note.id || `tomorrow-${isQuiz ? 'hw' : 'cw'}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         const targetClasses: ClassId[] =
           (note.classId as any) === 'ALL'
-            ? ['G2A', 'G2B', 'G2C']
+            ? ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E', 'G2A', 'G2B', 'G2C']
             : [note.classId as ClassId];
 
         for (const classId of targetClasses) {

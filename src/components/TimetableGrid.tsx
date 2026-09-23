@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { ClassId, SchoolDay } from '../types';
 import {
@@ -9,6 +9,7 @@ import {
   SCHOOL_NAME,
   SCHOOL_BRANCH,
 } from '../data/timetables';
+import { getStoredTimetables } from '../utils/timetableStorage';
 import { SubjectIcon } from './SubjectIcon';
 
 interface TimetableGridProps {
@@ -22,7 +23,17 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
   onSelectDay,
   selectedDay,
 }) => {
-  const schedule = CLASS_TIMETABLES[currentClass] || {};
+  const [storedMap, setStoredMap] = useState(() => getStoredTimetables());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setStoredMap(getStoredTimetables());
+    };
+    window.addEventListener('timetableUpdated', handleUpdate);
+    return () => window.removeEventListener('timetableUpdated', handleUpdate);
+  }, []);
+
+  const schedule = storedMap[currentClass] || CLASS_TIMETABLES[currentClass] || {};
 
   return (
     <div className="space-y-3">

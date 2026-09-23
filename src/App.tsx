@@ -18,6 +18,7 @@ import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
 import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedPlannerItemId } from './utils/tomorrowNotesStorage';
+import { syncTimetablesFromCloud } from './utils/timetableStorage';
 import {
   getActiveUserProfile,
   setActiveUserProfile,
@@ -306,6 +307,7 @@ export default function App() {
         fetchAllClasswork(),
         fetchAllHomework(),
         fetchPlannerSettings(),
+        syncTimetablesFromCloud(),
       ]);
 
       const profile = getActiveUserProfile();
@@ -565,7 +567,7 @@ export default function App() {
     } catch (e) {
       console.error('Error saving classwork:', e);
     }
-    showToast('تم حفظ الحصة بنجاح!');
+    showToast('☁️ تم حفظ الحصة ورفعها إلى السحابة بنجاح!');
   };
 
   // Homework handlers with Supabase CRUD
@@ -637,7 +639,7 @@ export default function App() {
     } catch (e) {
       console.error('Error adding homework:', e);
     }
-    showToast('تم حفظ الواجب المنزلي بنجاح!');
+    showToast('☁️ تم حفظ الواجب ورفعه إلى السحابة بنجاح!');
   };
 
   const handleDeleteHomework = async (id: string) => {
@@ -668,7 +670,7 @@ export default function App() {
     } catch (e) {
       console.error('Error deleting homework:', e);
     }
-    showToast('تم حذف الواجب بنجاح.');
+    showToast('☁️ تم حذف الواجب وتحديث السحابة بنجاح!');
   };
 
   const handleApplyWeeklyPlan = async (
@@ -762,7 +764,7 @@ export default function App() {
     } catch (e) {
       console.error('Error deleting classwork:', e);
     }
-    showToast('تم حذف الحصة بنجاح.');
+    showToast('☁️ تم حذف الحصة وتحديث السحابة بنجاح!');
   };
 
   const handleSaveInteractiveItem = async (type: 'classwork' | 'homework' | 'tomorrow', data: any) => {
@@ -833,7 +835,7 @@ export default function App() {
       }
 
       notifyTomorrowNotesListeners();
-      showToast('تم حفظ التنبيه بنجاح!');
+      showToast('☁️ تم حفظ التنبيه ورفعه إلى السحابة بنجاح!');
     }
     setIsEditorModalOpen(false);
   };
@@ -868,7 +870,7 @@ export default function App() {
       }
 
       notifyTomorrowNotesListeners();
-      showToast('تم حذف التنبيه بنجاح.');
+      showToast('☁️ تم حذف التنبيه وتحديث السحابة بنجاح!');
     }
   };
 

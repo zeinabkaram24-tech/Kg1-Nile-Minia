@@ -278,6 +278,50 @@ const BASE_SCHEDULE_KG1C: Record<SchoolDay, PeriodSlot[]> = {
   ],
 };
 
+const BASE_SCHEDULE_KG1E: Record<SchoolDay, PeriodSlot[]> = {
+  Saturday: [],
+  Sunday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Music', teacher: 'Sara Khalifa' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 5, time: '12:05 - 12:55', subject: 'Music', teacher: 'Sara Khalifa' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+  ],
+  Monday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Art', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 4, time: '10:45 - 11:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 5, time: '12:05 - 12:55', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 6, time: '12:55 - 1:45', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+  ],
+  Tuesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 3, time: '9:55 - 10:45', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 4, time: '10:45 - 11:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 6, time: '12:55 - 1:45', subject: 'PE', teacher: 'Shreen Emad' },
+  ],
+  Wednesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 2, time: '8:35 - 9:25', subject: 'PE', teacher: 'Shreen Emad' },
+    { period: 3, time: '9:55 - 10:45', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+  ],
+  Thursday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Art', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Eman Fady / Hager Gamal' },
+  ],
+};
+
 export function createEmptyWeekSchedule(): Record<SchoolDay, PeriodSlot[]> {
   return {
     Saturday: [],
@@ -296,14 +340,14 @@ const RAW_CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = {
   KG1B: EMPTY_SCHEDULE,
   KG1C: BASE_SCHEDULE_KG1C,
   KG1D: EMPTY_SCHEDULE,
-  KG1E: EMPTY_SCHEDULE,
+  KG1E: BASE_SCHEDULE_KG1E,
 
   // Aliases for compatibility
   'A': BASE_SCHEDULE_KG1A,
   'B': EMPTY_SCHEDULE,
   'C': BASE_SCHEDULE_KG1C,
   'D': EMPTY_SCHEDULE,
-  'E': EMPTY_SCHEDULE,
+  'E': BASE_SCHEDULE_KG1E,
 };
 
 export const CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = new Proxy(
@@ -318,6 +362,9 @@ export const CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> =
       }
       if (prop === 'KG1C' || prop === 'C') {
         return BASE_SCHEDULE_KG1C;
+      }
+      if (prop === 'KG1E' || prop === 'E') {
+        return BASE_SCHEDULE_KG1E;
       }
       return EMPTY_SCHEDULE;
     },

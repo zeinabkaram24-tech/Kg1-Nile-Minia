@@ -8,6 +8,7 @@ const pdf = requireFn('pdf-parse');
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { CLASS_TIMETABLES } from './src/data/timetables';
+import dbRouter from './server_db';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(dbRouter);
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
 
 // Directories for server-side persistence

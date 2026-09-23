@@ -426,25 +426,47 @@ export async function supabaseClearAllHomework(): Promise<boolean> {
 // Timetables CRUD operations
 // ----------------------------------------------------------------------
 export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<SchoolDay, PeriodSlot[]>> | null> {
+  // 1. Direct Supabase Cloud check
+  if (isSupabaseConfigured) {
+    try {
+      const { data: settingData } = await supabase
+        .from('planner_settings')
+        .select('value')
+        .eq('key', 'custom_timetables')
+        .maybeSingle();
+
+      if (settingData && settingData.value) {
+        const parsed = JSON.parse(settingData.value);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase direct timetable fetch warning:', e);
+    }
+  }
+
+  // 2. Server backend endpoint
   try {
     const res = await fetch('/api/db/timetables');
-    if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
-    }
-    const json = await res.json();
-    return json.success ? json.data : null;
-  } catch (e) {
-    console.warn('Timetable database load status: Using local cache fallback', e);
-    try {
-      const raw = localStorage.getItem('nile_planner_custom_timetables_v1');
-      if (raw) {
-        return JSON.parse(raw);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data && Object.keys(json.data).length > 0) {
+        return json.data;
       }
-    } catch (fallbackErr) {
-      console.error('Local timetable fallback failed:', fallbackErr);
     }
-    return null;
+  } catch {}
+
+  // 3. Local fallback
+  try {
+    const raw = localStorage.getItem('nile_planner_custom_timetables_v1');
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (fallbackErr) {
+    console.error('Local timetable fallback failed:', fallbackErr);
   }
+  return null;
 }
 
 export async function supabaseSaveClassTimetable(
@@ -452,15 +474,11 @@ export async function supabaseSaveClassTimetable(
   schedule: Record<SchoolDay, PeriodSlot[]>
 ): Promise<boolean> {
   try {
-    const res = await fetch('/api/db/timetables/save-class', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ classId, schedule }),
-    });
-    const json = await res.json();
-    return json.success;
+    const current = (await supabaseFetchTimetables()) || ({} as any);
+    current[classId] = schedule;
+    return await supabaseSaveAllTimetables(current);
   } catch (e) {
-    console.error('Save class timetable backend error:', e);
+    console.error('Save class timetable error:', e);
     return false;
   }
 }
@@ -468,6 +486,20 @@ export async function supabaseSaveClassTimetable(
 export async function supabaseSaveAllTimetables(
   timetables: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>
 ): Promise<boolean> {
+  // 1. Direct Supabase Cloud Save
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('planner_settings').upsert({
+        key: 'custom_timetables',
+        value: JSON.stringify(timetables),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+    } catch (sbErr) {
+      console.warn('Supabase direct save timetable error:', sbErr);
+    }
+  }
+
+  // 2. Server Backend Save
   try {
     const res = await fetch('/api/db/timetables/save', {
       method: 'POST',
@@ -483,6 +515,11 @@ export async function supabaseSaveAllTimetables(
 }
 
 export async function supabaseClearAllTimetables(): Promise<boolean> {
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('planner_settings').delete().eq('key', 'custom_timetables');
+    } catch {}
+  }
   try {
     const res = await fetch('/api/db/timetables/clear', {
       method: 'POST',

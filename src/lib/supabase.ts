@@ -493,18 +493,18 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
   const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
   const localCustom = getLocalCustomClasswork();
 
-  // Merge order: INITIAL_CLASSWORK baseline -> Server Items -> Supabase DB Items -> Local Custom Items
+  // Merge order: INITIAL_CLASSWORK baseline -> Local Custom Items -> Server Items -> Supabase DB Items
   const map = new Map<string, ClassworkEntry>();
   INITIAL_CLASSWORK.forEach((c) => {
+    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
+  });
+  localCustom.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
   serverItems.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
   dbItems.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
-  localCustom.forEach((c) => {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
 
@@ -806,18 +806,18 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
   const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
   const localCustom = getLocalCustomHomework();
 
-  // Merge order: INITIAL_HOMEWORK baseline -> Server Items -> Supabase DB Items -> Local Custom Items
+  // Merge order: INITIAL_HOMEWORK baseline -> Local Custom Items -> Server Items -> Supabase DB Items
   const map = new Map<string, HomeworkEntry>();
   INITIAL_HOMEWORK.forEach((h) => {
+    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
+  });
+  localCustom.forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   serverItems.forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
   dbItems.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  localCustom.forEach((h) => {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
 

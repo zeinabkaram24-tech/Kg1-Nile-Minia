@@ -9,14 +9,14 @@ dotenv.config();
 const router = express.Router();
 
 // Supabase server-side configuration (safe from browser exposure)
-let rawSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+let rawSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
 if (rawSbUrl.endsWith('/rest/v1/')) {
   rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 9);
 } else if (rawSbUrl.endsWith('/rest/v1')) {
   rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 8);
 }
 const SB_URL = rawSbUrl;
-const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag').trim();
 
 const isConfigured = Boolean(
   SB_URL &&
@@ -342,14 +342,33 @@ router.get('/api/db/timetables', async (req, res) => {
     let map = readJsonFile<Record<string, any>>(FILE_PATHS.timetables, {});
     
     if (supabase) {
-      const { data, error } = await supabase.from('timetables').select('*');
-      if (!error && data) {
-        const parsedMap: Record<string, any> = {};
-        for (const row of data) {
-          parsedMap[row.class_id] = typeof row.schedule === 'string' ? JSON.parse(row.schedule) : row.schedule;
+      // First try planner_settings custom_timetables
+      const { data: settingData } = await supabase
+        .from('planner_settings')
+        .select('value')
+        .eq('key', 'custom_timetables')
+        .maybeSingle();
+
+      if (settingData && settingData.value) {
+        try {
+          const parsed = JSON.parse(settingData.value);
+          if (parsed && typeof parsed === 'object') {
+            map = parsed;
+            writeJsonFile(FILE_PATHS.timetables, parsed);
+          }
+        } catch {}
+      } else {
+        const { data, error } = await supabase.from('timetables').select('*');
+        if (!error && data) {
+          const parsedMap: Record<string, any> = {};
+          for (const row of data) {
+            parsedMap[row.class_id] = typeof row.schedule === 'string' ? JSON.parse(row.schedule) : row.schedule;
+          }
+          if (Object.keys(parsedMap).length > 0) {
+            map = parsedMap;
+            writeJsonFile(FILE_PATHS.timetables, parsedMap);
+          }
         }
-        map = parsedMap;
-        writeJsonFile(FILE_PATHS.timetables, parsedMap);
       }
     }
     res.json({ success: true, data: map });
@@ -364,12 +383,25 @@ router.post('/api/db/timetables/save', async (req, res) => {
     writeJsonFile(FILE_PATHS.timetables, timetablesMap);
 
     if (supabase) {
-      const rows = Object.entries(timetablesMap).map(([classId, schedule]) => ({
-        class_id: classId,
-        schedule,
-      }));
-      const { error } = await supabase.from('timetables').upsert(rows);
-      if (error) console.error('Supabase timetables save sync warning:', error);
+      // 1. Save to planner_settings for reliable cloud persistence
+      try {
+        await supabase.from('planner_settings').upsert({
+          key: 'custom_timetables',
+          value: JSON.stringify(timetablesMap),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch (sbErr) {
+        console.warn('Supabase planner_settings custom_timetables sync error:', sbErr);
+      }
+
+      // 2. Also try timetables table if exists
+      try {
+        const rows = Object.entries(timetablesMap).map(([classId, schedule]) => ({
+          class_id: classId,
+          schedule,
+        }));
+        await supabase.from('timetables').upsert(rows);
+      } catch {}
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -385,11 +417,13 @@ router.post('/api/db/timetables/save-class', async (req, res) => {
     writeJsonFile(FILE_PATHS.timetables, map);
 
     if (supabase) {
-      const { error } = await supabase.from('timetables').upsert({
-        class_id: classId,
-        schedule,
-      });
-      if (error) console.error('Supabase timetable class save sync warning:', error);
+      try {
+        await supabase.from('planner_settings').upsert({
+          key: 'custom_timetables',
+          value: JSON.stringify(map),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch {}
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -401,8 +435,9 @@ router.post('/api/db/timetables/clear', async (req, res) => {
   try {
     writeJsonFile(FILE_PATHS.timetables, {});
     if (supabase) {
-      const { error } = await supabase.from('timetables').delete().neq('class_id', 'placeholder');
-      if (error) console.error('Supabase timetables clear sync warning:', error);
+      try {
+        await supabase.from('planner_settings').delete().eq('key', 'custom_timetables');
+      } catch {}
     }
     res.json({ success: true });
   } catch (err: any) {

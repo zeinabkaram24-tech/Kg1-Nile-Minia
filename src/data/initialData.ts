@@ -205,12 +205,80 @@ const DEFAULT_DAYS_1C = [
   }
 ];
 
+const DEFAULT_DAYS_1E = [
+  {
+    day: 'Sunday',
+    dayNameAr: 'الأحد',
+    dayNameEn: 'Sunday',
+    periods: [
+      { period: 1, periodNum: 1, time: '07:45 - 08:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 2, periodNum: 2, time: '08:35 - 09:25', subject: 'Music', subjectId: 'music', teacher: 'Sara Khalifa' },
+      { period: 3, periodNum: 3, time: '09:55 - 10:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 4, periodNum: 4, time: '10:45 - 11:35', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 5, periodNum: 5, time: '12:05 - 12:55', subject: 'Music', subjectId: 'music', teacher: 'Sara Khalifa' },
+      { period: 6, periodNum: 6, time: '12:55 - 13:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+    ]
+  },
+  {
+    day: 'Monday',
+    dayNameAr: 'الإثنين',
+    dayNameEn: 'Monday',
+    periods: [
+      { period: 1, periodNum: 1, time: '07:45 - 08:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 2, periodNum: 2, time: '08:35 - 09:25', subject: 'Art', subjectId: 'art', teacher: 'Nourhan Mahmoud Sary' },
+      { period: 3, periodNum: 3, time: '09:55 - 10:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 4, periodNum: 4, time: '10:45 - 11:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 5, periodNum: 5, time: '12:05 - 12:55', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 6, periodNum: 6, time: '12:55 - 13:45', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+    ]
+  },
+  {
+    day: 'Tuesday',
+    dayNameAr: 'الثلاثاء',
+    dayNameEn: 'Tuesday',
+    periods: [
+      { period: 1, periodNum: 1, time: '07:45 - 08:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 2, periodNum: 2, time: '08:35 - 09:25', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 3, periodNum: 3, time: '09:55 - 10:45', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 4, periodNum: 4, time: '10:45 - 11:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 5, periodNum: 5, time: '12:05 - 12:55', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 6, periodNum: 6, time: '12:55 - 13:45', subject: 'PE', subjectId: 'pe', teacher: 'Shreen Emad' },
+    ]
+  },
+  {
+    day: 'Wednesday',
+    dayNameAr: 'الأربعاء',
+    dayNameEn: 'Wednesday',
+    periods: [
+      { period: 1, periodNum: 1, time: '07:45 - 08:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 2, periodNum: 2, time: '08:35 - 09:25', subject: 'PE', subjectId: 'pe', teacher: 'Shreen Emad' },
+      { period: 3, periodNum: 3, time: '09:55 - 10:45', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 4, periodNum: 4, time: '10:45 - 11:35', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 5, periodNum: 5, time: '12:05 - 12:55', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 6, periodNum: 6, time: '12:55 - 13:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+    ]
+  },
+  {
+    day: 'Thursday',
+    dayNameAr: 'الخميس',
+    dayNameEn: 'Thursday',
+    periods: [
+      { period: 1, periodNum: 1, time: '07:45 - 08:35', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 2, periodNum: 2, time: '08:35 - 09:25', subject: 'Arabic', subjectId: 'arabic', teacher: 'Maram El Saed / Alaa Ali Sadek' },
+      { period: 3, periodNum: 3, time: '09:55 - 10:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 4, periodNum: 4, time: '10:45 - 11:35', subject: 'Art', subjectId: 'art', teacher: 'Nourhan Mahmoud Sary' },
+      { period: 5, periodNum: 5, time: '12:05 - 12:55', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+      { period: 6, periodNum: 6, time: '12:55 - 13:45', subject: 'English', subjectId: 'english', teacher: 'Eman Fady / Hager Gamal' },
+    ]
+  }
+];
+
 export const INITIAL_TIMETABLES: ClassTimetable[] = [
   { classId: 'KG1A', days: DEFAULT_DAYS },
   { classId: 'KG1B', days: [] },
   { classId: 'KG1C', days: DEFAULT_DAYS_1C },
   { classId: 'KG1D', days: [] },
-  { classId: 'KG1E', days: [] },
+  { classId: 'KG1E', days: DEFAULT_DAYS_1E },
 ];
 
 
