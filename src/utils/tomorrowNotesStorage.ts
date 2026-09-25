@@ -1,9 +1,10 @@
 import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
+import { WEEK3_SPECIAL_NOTES } from '../data/week3Plan';
 import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
 
-export const WEEK3_SPECIAL_NOTES: TomorrowSpecialNote[] = [];
+export { WEEK3_SPECIAL_NOTES };
 
 const LOCAL_CUSTOM_TOMORROW_KEY = 'tomorrow_special_notes_custom_v3';
 
