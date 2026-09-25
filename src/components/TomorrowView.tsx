@@ -117,8 +117,8 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true;
     }
 
-    // These rules ONLY apply when we are in Week 3
-    if (currentWeek === 3) {
+    // These rules ONLY apply when we are in Week 3 for Grade 2
+    if (currentWeek === 3 && (currentClass.startsWith('G2') || (n.classId && n.classId.startsWith('G2')))) {
       // Strict Mathematics/Math rule: Completely disallow Maths notes/alerts/submissions on any day
       if (n.subject === 'Mathematics' || n.subject === 'Math') {
         return true;

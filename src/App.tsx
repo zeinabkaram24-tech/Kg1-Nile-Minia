@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, UserProfile, TomorrowSpecialNote } from './types';
 import { INITIAL_CLASSWORK, INITIAL_HOMEWORK } from './data/defaultWeeklyPlan';
 import { SCHOOL_DAYS, SCHOOL_NAME, SCHOOL_BRANCH, NEXT_SCHOOL_DAY } from './data/timetables';
@@ -372,16 +372,27 @@ export default function App() {
     }
   }, []);
 
+  const lastDateRef = useRef(new Date().toDateString());
+
   // Initial Data Initialization & Realtime Subscriptions & Focus auto-sync
   useEffect(() => {
     let isMounted = true;
 
     refreshAllData(false);
 
-    // Re-sync whenever window gets focus or tab becomes active
+    // Re-sync whenever window gets focus or tab becomes active, and roll over date if changed
     const handleFocusSync = () => {
       if (document.visibilityState === 'visible') {
         refreshAllData(false);
+
+        const nowStr = new Date().toDateString();
+        if (nowStr !== lastDateRef.current) {
+          lastDateRef.current = nowStr;
+          const todayNow = getAutoDetectedToday();
+          setSelectedDay(todayNow.day);
+          setCurrentWeek(todayNow.week);
+          setCurrentBlock(todayNow.topic);
+        }
       }
     };
 
