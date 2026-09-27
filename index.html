@@ -15,6 +15,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('error', function(e) {
+        var root = document.getElementById('root');
+        if (root && (!root.innerHTML || root.innerHTML.trim() === '')) {
+          var msg = (e && (e.message || (e.error && e.error.message))) ? (e.message || e.error.message) : 'Script error or unsupported syntax';
+          root.innerHTML = '<div style="min-height:100vh;background:#0f172a;color:#f8fafc;padding:24px;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;"><div style="max-width:560px;width:100%;background:#1e293b;border:1px solid rgba(239,68,68,0.5);border-radius:16px;padding:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);"><h2 style="color:#f87171;margin:0 0 10px;font-size:18px;font-weight:700;">عذراً، حدث خطأ أثناء تشغيل الصفحة</h2><p style="color:#94a3b8;font-size:13px;margin:0 0 16px;">iOS / Safari Error Screen</p><pre style="background:#020617;color:#fca5a5;padding:12px;border-radius:8px;font-size:12px;text-align:left;overflow-x:auto;white-space:pre-wrap;word-break:break-all;border:1px solid #334155;">' + msg + '</pre><div style="margin-top:16px;display:flex;gap:8px;justify-content:center;"><button onclick="window.location.reload()" style="background:#2563eb;color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">إعادة تحميل الصفحة</button><button onclick="localStorage.clear();sessionStorage.clear();window.location.reload();" style="background:#334155;color:#e2e8f0;border:none;padding:10px 14px;border-radius:8px;font-size:12px;cursor:pointer;">مسح الذاكرة المؤقتة</button></div></div></div>';
+        }
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

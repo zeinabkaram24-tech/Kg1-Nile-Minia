@@ -602,11 +602,11 @@ ${file.previewSummary || file.description || 'محتوى الشيت الدراس
     setFormBlock(file.blockId || activeBlock);
     setFormWeek(file.weekId || '');
     setFormClass(file.classId);
-    setFormType(file.fileType);
+    setFormType(file.fileType as any);
     setFormDescription(file.description || '');
     setFormPreviewSummary(file.previewSummary || '');
     setFormFileName(file.fileName);
-    setFormFileSize(file.fileSize);
+    setFormFileSize(String(file.fileSize || ''));
     setFormFileDataUrl(file.fileDataUrl);
     setIsModalOpen(true);
   };

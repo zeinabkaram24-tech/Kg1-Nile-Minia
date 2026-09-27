@@ -23,12 +23,14 @@ interface SupabaseConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfigSaved?: () => void;
+  onSaved?: () => void | Promise<void>;
 }
 
 export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
   isOpen,
   onClose,
   onConfigSaved,
+  onSaved,
 }) => {
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
@@ -119,6 +121,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
 
     setSavedSuccess(true);
     if (onConfigSaved) onConfigSaved();
+    if (onSaved) onSaved();
 
     setTimeout(() => {
       setSavedSuccess(false);
@@ -137,6 +140,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
       localStorage.removeItem('nile_planner_guest_progress_v2');
       alert('تم مسح البيانات المحلية المؤقتة بنجاح! سيتم الآن الاعتماد بالكامل على بيانات Supabase السحابية.');
       if (onConfigSaved) onConfigSaved();
+      if (onSaved) onSaved();
     }
   };
 

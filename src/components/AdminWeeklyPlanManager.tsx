@@ -474,7 +474,7 @@ export const AdminWeeklyPlanManager: React.FC<AdminWeeklyPlanManagerProps> = ({
       setProcessingStep('2. جاري التحليل الذكي وتصنيف الحصص والواجبات والملاحظات...');
 
       const classForParsing = targetClass === 'ALL' ? 'KG1A' : targetClass;
-      const result = await parseWeeklyPlanWithAI(extracted, classForParsing, activeSubj);
+      const result = await parseWeeklyPlanWithAI(extracted, classForParsing, activeBlock, activeWeek, file);
 
       const hasItems =
         (result.classwork && result.classwork.length > 0) ||
@@ -556,7 +556,7 @@ export const AdminWeeklyPlanManager: React.FC<AdminWeeklyPlanManagerProps> = ({
 
     try {
       const classForParsing = targetClass === 'ALL' ? 'KG1A' : targetClass;
-      const result = await parseWeeklyPlanWithAI(planText, classForParsing, subjectFilter);
+      const result = await parseWeeklyPlanWithAI(planText, classForParsing, blockNumber, weekNumber);
 
       const hasItems =
         (result.classwork && result.classwork.length > 0) ||

@@ -378,9 +378,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setMaterialTitle(item.title);
     setMaterialSubject(item.subjectId);
     setMaterialClass(item.classId);
-    setMaterialType(item.fileType);
+    setMaterialType(item.fileType as any);
     setMaterialFileName(item.fileName);
-    setMaterialFileSize(item.fileSize);
+    setMaterialFileSize(String(item.fileSize || ''));
     setMaterialDesc(item.description || '');
     setMaterialPreview(item.previewSummary || '');
     setIsMaterialModalOpen(true);
@@ -949,8 +949,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     return matchesSearch && matchesSubject && matchesClass && matchesBlock && matchesWeek;
   });
 
-  const totalPeriodsCount = timetables.reduce(
-    (acc, tt) => acc + tt.days.reduce((dAcc, d) => dAcc + d.periods.length, 0),
+  const totalPeriodsCount = (timetables as any[]).reduce(
+    (acc: number, tt: any) => acc + (tt.days || []).reduce((dAcc: number, d: any) => dAcc + (d.periods || []).length, 0),
     0
   );
 

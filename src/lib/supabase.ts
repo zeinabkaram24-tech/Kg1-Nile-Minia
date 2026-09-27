@@ -1045,12 +1045,16 @@ export async function fetchPlannerSettings(): Promise<Record<string, string>> {
 export async function savePlannerSetting(key: string, value: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const { error } = await supabase
-    .from('planner_settings')
-    .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  try {
+    const { error } = await supabase
+      .from('planner_settings')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
 
-  if (error) {
-    console.warn(`Could not save planner setting ${key} to Supabase:`, error.message);
+    if (error) {
+      console.warn(`Could not save planner setting ${key} to Supabase:`, error.message);
+    }
+  } catch (e) {
+    console.warn(`Could not save planner setting ${key} to Supabase:`, e);
   }
 }
 
@@ -1067,22 +1071,27 @@ export async function fetchStudentProgressFromDb(studentName: string): Promise<{
 } | null> {
   if (!isSupabaseConfigured) return null;
 
-  const clean = studentName.trim().toLowerCase();
-  const { data, error } = await supabase
-    .from('student_progress')
-    .select('*')
-    .eq('student_name', clean)
-    .maybeSingle();
+  try {
+    const clean = studentName.trim().toLowerCase();
+    const { data, error } = await supabase
+      .from('student_progress')
+      .select('*')
+      .eq('student_name', clean)
+      .maybeSingle();
 
-  if (error || !data) return null;
+    if (error || !data) return null;
 
-  return {
-    studentName: data.student_name,
-    classId: (data.class_id as ClassId) || undefined,
-    completedClassworkIds: Array.isArray(data.completed_classwork_ids) ? data.completed_classwork_ids : [],
-    completedHomeworkIds: Array.isArray(data.completed_homework_ids) ? data.completed_homework_ids : [],
-    lastActive: data.last_active || Date.now(),
-  };
+    return {
+      studentName: data.student_name,
+      classId: (data.class_id as ClassId) || undefined,
+      completedClassworkIds: Array.isArray(data.completed_classwork_ids) ? data.completed_classwork_ids : [],
+      completedHomeworkIds: Array.isArray(data.completed_homework_ids) ? data.completed_homework_ids : [],
+      lastActive: data.last_active || Date.now(),
+    };
+  } catch (e) {
+    console.warn(`Error fetching student progress for ${studentName}:`, e);
+    return null;
+  }
 }
 
 export async function saveStudentProgressToDb(
@@ -1093,39 +1102,48 @@ export async function saveStudentProgressToDb(
 ): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  const clean = studentName.trim().toLowerCase();
-  const { error } = await supabase.from('student_progress').upsert(
-    {
-      student_name: clean,
-      class_id: classId || null,
-      completed_classwork_ids: completedClassworkIds,
-      completed_homework_ids: completedHomeworkIds,
-      last_active: Date.now(),
-    },
-    { onConflict: 'student_name' }
-  );
+  try {
+    const clean = studentName.trim().toLowerCase();
+    const { error } = await supabase.from('student_progress').upsert(
+      {
+        student_name: clean,
+        class_id: classId || null,
+        completed_classwork_ids: completedClassworkIds,
+        completed_homework_ids: completedHomeworkIds,
+        last_active: Date.now(),
+      },
+      { onConflict: 'student_name' }
+    );
 
-  if (error) {
-    console.warn(`Could not save progress for ${studentName} to Supabase:`, error.message);
+    if (error) {
+      console.warn(`Could not save progress for ${studentName} to Supabase:`, error.message);
+    }
+  } catch (e) {
+    console.warn(`Could not save progress for ${studentName} to Supabase:`, e);
   }
 }
 
 export async function fetchKnownStudentsFromDb(): Promise<{ name: string; classId?: ClassId; lastActive: number }[]> {
   if (!isSupabaseConfigured) return [];
 
-  const { data, error } = await supabase
-    .from('student_progress')
-    .select('student_name, class_id, last_active')
-    .order('last_active', { ascending: false })
-    .limit(20);
+  try {
+    const { data, error } = await supabase
+      .from('student_progress')
+      .select('student_name, class_id, last_active')
+      .order('last_active', { ascending: false })
+      .limit(20);
 
-  if (error || !data) return [];
+    if (error || !data) return [];
 
-  return data.map((d) => ({
-    name: d.student_name,
-    classId: (d.class_id as ClassId) || undefined,
-    lastActive: d.last_active || Date.now(),
-  }));
+    return data.map((d) => ({
+      name: d.student_name,
+      classId: (d.class_id as ClassId) || undefined,
+      lastActive: d.last_active || Date.now(),
+    }));
+  } catch (e) {
+    console.warn('Error fetching known students from Supabase:', e);
+    return [];
+  }
 }
 
 // =========================================================================

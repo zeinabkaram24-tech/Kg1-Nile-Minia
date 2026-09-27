@@ -177,6 +177,13 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
   // Confirmation state for reset
   const [isResetMaterialsConfirm, setIsResetMaterialsConfirm] = useState(false);
 
+  const refreshMaterialsList = async () => {
+    try {
+      const items = await getSavedMaterials();
+      setMaterialsList(items);
+    } catch {}
+  };
+
   // Admin lock inline auth
   const [adminPinInput, setAdminPinInput] = useState('');
   const [showAdminPin, setShowAdminPin] = useState(false);
@@ -196,7 +203,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
       setAdminPinInput('');
       setAdminPinError(null);
       setShowAdminPin(false);
-      setMaterialsList(getSavedMaterials());
+      refreshMaterialsList();
       setSelectedMaterialIds(new Set());
       setSelectedHistoryFileIds(new Set());
       setSelectedTaskIndices(new Set());
@@ -391,7 +398,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
       fileUrl: finalFileUrl || `/api/materials/pdf/${matId}`,
       fileType: file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined),
     });
-    setMaterialsList(getSavedMaterials());
+    refreshMaterialsList();
     setMatSuccessMsg(`تم بنجاح حفظ وإرفاق ملف PDF الأصلي للشيت: ${file.name}`);
     setTimeout(() => setMatSuccessMsg(null), 4000);
   };
@@ -471,8 +478,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
       await saveMaterialBlob(newMat.id, selectedMatFile);
     }
 
-    const updated = getSavedMaterials();
-    setMaterialsList(updated);
+    refreshMaterialsList();
     setLastAddedMat(newMat);
     setMatSuccessMsg(`تم بنجاح حفظ وإدراج الشيت "${newMat.title}" بنفس صيغته وتنسيقه وألوانه الأصلية 100%.`);
     setMatTitle('');
@@ -607,8 +613,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
   // Direct and Multi-select Material deletion
   const handleDeleteMaterialDirect = (id: string, title: string) => {
     deleteMaterialItem(id);
-    const updated = getSavedMaterials();
-    setMaterialsList(updated);
+    refreshMaterialsList();
     setSelectedMaterialIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
@@ -622,8 +627,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
     if (selectedMaterialIds.size === 0) return;
     const count = selectedMaterialIds.size;
     deleteMultipleMaterialItems(Array.from(selectedMaterialIds));
-    const updated = getSavedMaterials();
-    setMaterialsList(updated);
+    refreshMaterialsList();
     setSelectedMaterialIds(new Set());
     setMatSuccessMsg(`تم حذف (${count}) شيتات محددة بنجاح.`);
     setTimeout(() => setMatSuccessMsg(null), 4000);
@@ -651,8 +655,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
   };
 
   const confirmResetMaterials = () => {
-    const def = resetToDefaultMaterials();
-    setMaterialsList(def);
+    resetToDefaultMaterials().then(() => refreshMaterialsList());
     setIsResetMaterialsConfirm(false);
     setSelectedMaterialIds(new Set());
     setMatSuccessMsg('تم مسح وتفريغ كافة شيتات الماتيريال بنجاح.');
@@ -1778,7 +1781,7 @@ export const UploadPlanFilesModal: React.FC<UploadPlanFilesModalProps> = ({
 
                         <div className="flex items-center gap-1.5 shrink-0">
                           <span className="text-[10px] text-slate-400 hidden sm:inline font-sans ml-1">
-                            {new Date(mat.createdAt).toLocaleDateString('ar-EG')}
+                            {new Date(mat.uploadedAt || (mat as any).createdAt || Date.now()).toLocaleDateString('ar-EG')}
                           </span>
 
                           {/* Quick Attach / Update original PDF file */}

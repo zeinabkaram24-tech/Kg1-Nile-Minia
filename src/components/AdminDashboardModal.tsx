@@ -97,11 +97,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [importMode, setImportMode] = useState<'merge' | 'replace'>('replace');
   const [isParsingPlan, setIsParsingPlan] = useState(false);
   const [parsingStep, setParsingStep] = useState<string>('');
-  const [parsedResult, setParsedResult] = useState<{
-    classwork: ClassworkEntry[];
-    homework: HomeworkEntry[];
-    tomorrowNotes: TomorrowSpecialNote[];
-  } | null>(null);
+  const [parsedResult, setParsedResult] = useState<any | null>(null);
   const [isPublishingPlan, setIsPublishingPlan] = useState(false);
   const [previewTab, setPreviewTab] = useState<'classwork' | 'homework' | 'tomorrow'>('classwork');
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);

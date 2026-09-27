@@ -15,17 +15,20 @@ import {
 import { SubjectName } from '../types';
 
 interface SubjectIconProps {
-  subject: SubjectName;
+  subject?: SubjectName | string;
+  name?: string;
   className?: string;
   size?: number;
 }
 
 export const SubjectIcon: React.FC<SubjectIconProps> = ({
   subject,
+  name,
   className = 'w-5 h-5',
   size = 20,
 }) => {
-  switch (subject) {
+  const target = (subject || name || 'English') as string;
+  switch (target) {
     case 'Mathematics':
       return <Calculator className={`text-sky-600 ${className}`} size={size} />;
     case 'English':

@@ -273,21 +273,21 @@ export default function App() {
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.CLASS, currentClass);
     if (isSupabaseConfigured) {
-      savePlannerSetting('current_class', currentClass);
+      savePlannerSetting('current_class', currentClass).catch(() => {});
     }
   }, [currentClass]);
 
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.WEEK, String(currentWeek));
     if (isSupabaseConfigured) {
-      savePlannerSetting('current_week', String(currentWeek));
+      savePlannerSetting('current_week', String(currentWeek)).catch(() => {});
     }
   }, [currentWeek]);
 
   useEffect(() => {
     appStorage.setItem(STORAGE_KEYS.DAY, selectedDay);
     if (isSupabaseConfigured) {
-      savePlannerSetting('selected_day', selectedDay);
+      savePlannerSetting('selected_day', selectedDay).catch(() => {});
     }
   }, [selectedDay]);
 

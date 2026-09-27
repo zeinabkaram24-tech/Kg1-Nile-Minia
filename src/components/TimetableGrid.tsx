@@ -148,9 +148,9 @@ export const TimetableGrid: React.FC<TimetableGridProps> = ({
 
 interface SlotCellProps {
   slot?: {
-    period: number;
-    subject: any;
-    teacher: string;
+    period?: number;
+    subject?: any;
+    teacher?: string;
     notes?: string;
   };
   isLast?: boolean;
