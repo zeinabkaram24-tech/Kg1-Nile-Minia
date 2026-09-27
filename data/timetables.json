@@ -1,0 +1,227 @@
+{
+  "KG1B": {
+    "Monday": [],
+    "Sunday": [],
+    "Tuesday": [],
+    "Saturday": [],
+    "Thursday": [],
+    "Wednesday": []
+  },
+  "KG1C": {
+    "Monday": [],
+    "Sunday": [],
+    "Tuesday": [],
+    "Saturday": [],
+    "Thursday": [],
+    "Wednesday": []
+  },
+  "KG1D": {
+    "Monday": [],
+    "Sunday": [],
+    "Tuesday": [],
+    "Saturday": [],
+    "Thursday": [],
+    "Wednesday": []
+  },
+  "KG1E": {
+    "Monday": [],
+    "Sunday": [],
+    "Tuesday": [],
+    "Saturday": [],
+    "Thursday": [],
+    "Wednesday": []
+  },
+  "KG1A": {
+    "Monday": [
+      {
+        "time": "7:45 - 8:35",
+        "period": 1,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "8:35 - 9:25",
+        "period": 2,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "9:55 - 10:45",
+        "period": 3,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "10:45 - 11:35",
+        "period": 4,
+        "subject": "Music",
+        "teacher": "Sara Khalifa"
+      },
+      {
+        "time": "12:05 - 12:55",
+        "period": 5,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "12:55 - 1:45",
+        "period": 6,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      }
+    ],
+    "Sunday": [
+      {
+        "time": "7:45 - 8:35",
+        "period": 1,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "8:35 - 9:25",
+        "period": 2,
+        "subject": "Music",
+        "teacher": "Sara Khalifa"
+      },
+      {
+        "time": "9:55 - 10:45",
+        "period": 3,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "10:45 - 11:35",
+        "period": 4,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "12:05 - 12:55",
+        "period": 5,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "12:55 - 1:45",
+        "period": 6,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      }
+    ],
+    "Tuesday": [
+      {
+        "time": "7:45 - 8:35",
+        "period": 1,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "8:35 - 9:25",
+        "period": 2,
+        "subject": "Arabic",
+        "teacher": "Nourhan Mahmoud Sary"
+      },
+      {
+        "time": "9:55 - 10:45",
+        "period": 3,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "10:45 - 11:35",
+        "period": 4,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "12:05 - 12:55",
+        "period": 5,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "12:55 - 1:45",
+        "period": 6,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      }
+    ],
+    "Saturday": [],
+    "Thursday": [
+      {
+        "time": "7:45 - 8:35",
+        "period": 1,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "8:35 - 9:25",
+        "period": 2,
+        "subject": "Arabic",
+        "teacher": "Nourhan Mahmoud Sary"
+      },
+      {
+        "time": "9:55 - 10:45",
+        "period": 3,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "10:45 - 11:35",
+        "period": 4,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "12:05 - 12:55",
+        "period": 5,
+        "subject": "PE",
+        "teacher": "Shreen Emad"
+      },
+      {
+        "time": "12:55 - 1:45",
+        "period": 6,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      }
+    ],
+    "Wednesday": [
+      {
+        "time": "7:45 - 8:35",
+        "period": 1,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "8:35 - 9:25",
+        "period": 2,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "9:55 - 10:45",
+        "period": 3,
+        "subject": "PE",
+        "teacher": "Shreen Emad"
+      },
+      {
+        "time": "10:45 - 11:35",
+        "period": 4,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      },
+      {
+        "time": "12:05 - 12:55",
+        "period": 5,
+        "subject": "Arabic",
+        "teacher": "Mai Gamal / Hager M. Khalaf"
+      },
+      {
+        "time": "12:55 - 1:45",
+        "period": 6,
+        "subject": "English",
+        "teacher": "Naglaa Mohamed / Rawan Wael"
+      }
+    ]
+  }
+}

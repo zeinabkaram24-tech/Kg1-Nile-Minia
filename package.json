@@ -20,6 +20,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@vitejs/plugin-react": "^5.0.4",
     "canvas-confetti": "^1.9.4",
+    "core-js": "^3.50.0",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "lucide-react": "^0.546.0",

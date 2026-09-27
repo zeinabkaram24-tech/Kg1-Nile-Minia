@@ -12,6 +12,48 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // iOS / Safari Polyfill for global Iterator and modern ES features
+      (function() {
+        var g = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : this);
+        if (typeof g.Iterator === 'undefined') {
+          function Iterator() {}
+          try {
+            var proto = Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]()));
+            Iterator.prototype = proto || {};
+          } catch (e) {
+            Iterator.prototype = {};
+          }
+          if (typeof Iterator.from !== 'function') {
+            Iterator.from = function(iterable) {
+              return Array.from(iterable)[Symbol.iterator]();
+            };
+          }
+          g.Iterator = Iterator;
+          if (typeof window !== 'undefined') window.Iterator = Iterator;
+        }
+        if (g.Iterator && g.Iterator.prototype && typeof g.Iterator.prototype.join !== 'function') {
+          g.Iterator.prototype.join = function(separator) {
+            return Array.from(this).join(separator);
+          };
+        }
+        if (!Promise.withResolvers) {
+          Promise.withResolvers = function() {
+            var resolve, reject;
+            var promise = new Promise(function(res, rej) {
+              resolve = res;
+              reject = rej;
+            });
+            return { promise: promise, resolve: resolve, reject: reject };
+          };
+        }
+        if (!Object.hasOwn) {
+          Object.hasOwn = function(obj, prop) {
+            return Object.prototype.hasOwnProperty.call(obj, prop);
+          };
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
