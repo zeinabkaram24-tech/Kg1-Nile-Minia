@@ -13,7 +13,17 @@ import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
-const SB_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
+let cleanedSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
+if (cleanedSbUrl.endsWith('/rest/v1/')) {
+  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 9);
+} else if (cleanedSbUrl.endsWith('/rest/v1')) {
+  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 8);
+}
+if (cleanedSbUrl.endsWith('/')) {
+  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 1);
+}
+
+const SB_URL = cleanedSbUrl;
 const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag').trim();
 const serverSupabase = createClient(SB_URL, SB_KEY);
 
