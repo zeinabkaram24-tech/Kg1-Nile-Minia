@@ -574,10 +574,11 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         // 1. First, upload the raw file to the high-performance raw upload endpoint
         let storageUrl: string | undefined = undefined;
         try {
+          const fileBuffer = await selectedFile.arrayBuffer();
           const rawRes = await fetch(`/api/materials/${materialId}/upload-raw`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/octet-stream' },
-            body: selectedFile, // Streams raw binary directly to the server!
+            body: fileBuffer, // Sends computed binary ArrayBuffer to guarantee Content-Length header and prevent proxy blocking!
           });
           if (rawRes.ok) {
             const rawData = await rawRes.json();
@@ -601,17 +602,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           }
         }
 
-        // 3. Read base64 locally ONLY for local IndexedDB cache, NEVER send to metadata endpoint if we have storageUrl
-        const reader = new FileReader();
-        reader.onload = async () => {
+        // 3. Save metadata. Skip FileReader if storageUrl is already successfully retrieved!
+        const saveMetadata = async (fileData?: string) => {
           try {
-            const fileData = reader.result as string;
-
             const newItem: MaterialItem = {
               id: materialId,
               fileName: selectedFile.name,
               fileSize: selectedFile.size,
-              fileData: fileData, // Saved to local IndexedDB for instant offline access
+              fileData: fileData || '', // Only cached locally if available
               storageUrl: storageUrl, // Points to the persistent URL!
               type: 'pdf',
               block: targetBlock,
@@ -624,9 +622,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             await refreshMaterials();
 
             setSuccessMessage(
-              storageUrl && storageUrl.startsWith('http')
-                ? `تم رفع وتزامن الملف سحابياً بنجاح وتوفيره للموبايل والبريفيو وكل الأجهزة!`
-                : `تم حفظ الملف بنجاح وتزامن البيانات!`
+              `تم رفع وتزامن الملف سحابياً بنجاح وتوفيره للموبايل والبريفيو وكل الأجهزة!`
             );
             setSelectedFile(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -642,12 +638,19 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           }
         };
 
-        reader.onerror = () => {
-          setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
-          setIsUploading(false);
-        };
-
-        reader.readAsDataURL(selectedFile);
+        if (storageUrl) {
+          await saveMetadata();
+        } else {
+          const reader = new FileReader();
+          reader.onload = async () => {
+            await saveMetadata(reader.result as string);
+          };
+          reader.onerror = () => {
+            setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
+            setIsUploading(false);
+          };
+          reader.readAsDataURL(selectedFile);
+        }
       } catch (err) {
         console.error(err);
         setErrorMessage('حدث خطأ غير متوقع أثناء الرفع.');
