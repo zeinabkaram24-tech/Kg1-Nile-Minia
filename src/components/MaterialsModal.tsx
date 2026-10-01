@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Link2,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
@@ -142,14 +143,32 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                 </h3>
               </div>
             </div>
-            <button
-              id="close-materials-btn"
-              onClick={handleClose}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
-              title="Close"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                  if ('indexedDB' in window) {
+                    indexedDB.deleteDatabase('SchoolMaterialsDB');
+                  }
+                  alert('تم تحديث الصفحة ومزامنة السحابة بنجاح!');
+                  window.location.reload();
+                }}
+                className="w-8 h-8 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center transition-colors cursor-pointer"
+                title="Refresh App & Cache"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                id="close-materials-btn"
+                onClick={handleClose}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           {/* Modal Body */}

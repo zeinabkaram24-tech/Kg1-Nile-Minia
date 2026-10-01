@@ -2557,6 +2557,28 @@ Sunday:
 
             {/* List of Uploaded Materials with Delete Button */}
             <div className="space-y-3">
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 mb-2" dir="rtl">
+                <div className="text-right">
+                  <p className="text-xs font-black text-amber-800">💡 هل تواجهين مشكلة في مزامنة الملفات القديمة؟</p>
+                  <p className="text-[11px] font-bold text-amber-700 mt-0.5">اضغطي هنا لمسح الكاش وتفعيل التحديث السحابي المطور فوراً على جهازكِ:</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    if ('indexedDB' in window) {
+                      indexedDB.deleteDatabase('SchoolMaterialsDB');
+                    }
+                    alert('تم مسح الكاش بنجاح! جاري تحديث الصفحة...');
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  🧹 مسح الكاش وتحديث الصفحة الآن
+                </button>
+              </div>
+
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-slate-700" />
