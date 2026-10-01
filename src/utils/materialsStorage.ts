@@ -74,101 +74,53 @@ async function saveItemsToLocalDB(items: MaterialItem[]): Promise<void> {
   }
 }
 
-// Retrieve all materials (from Server API + Supabase Cloud + Local IndexedDB merged seamlessly)
+// Retrieve all materials (strictly server-authoritative when online to ensure all devices display identical content, offline fallback only)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
-  // 1. Fetch local items first
-  let localItems: MaterialItem[] = [];
-  try {
-    const db = await openDB();
-    localItems = await new Promise((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.getAll();
-
-      req.onsuccess = () => {
-        resolve(req.result || []);
-      };
-
-      req.onerror = () => {
-        resolve(getFallbackMaterials());
-      };
-    });
-  } catch (e) {
-    console.warn('IndexedDB read failed, using fallback', e);
-    localItems = getFallbackMaterials();
-  }
-
-  const itemsMap = new Map<string, MaterialItem>();
-  localItems.forEach((item) => itemsMap.set(item.id, item));
-
-  // 2. Fetch from centralized Server API (/api/materials) - Cross-device sync between Mobile, Laptop & Desktop!
+  // 1. Try to fetch from the central server API (authoritative!)
   try {
     const res = await fetch('/api/materials');
     if (res.ok) {
       const serverItems: MaterialItem[] = await res.json();
       if (Array.isArray(serverItems)) {
-        serverItems.forEach((serverItem) => {
-          const localMatch = itemsMap.get(serverItem.id);
-          // If local has fileData but server doesn't, keep local fileData
-          if (localMatch && localMatch.fileData && !serverItem.fileData) {
-            itemsMap.set(serverItem.id, { ...serverItem, fileData: localMatch.fileData });
-          } else {
-            itemsMap.set(serverItem.id, serverItem);
+        // Online Sync: Overwrite local IndexedDB with server items so they match 100% (clearing out stale local-only items)
+        try {
+          const db = await openDB();
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+          store.clear(); // Wipes old local cache completely to sync perfectly with other devices!
+          for (const item of serverItems) {
+            store.put(item);
           }
-        });
-
-        // Background Sync: If mobile has local files that were never uploaded to server, push them to server now!
-        const missingOnServer = localItems.filter(
-          (loc) => !serverItems.some((srv) => srv.id === loc.id)
-        );
-        if (missingOnServer.length > 0) {
-          console.log(`[MaterialsSync] Syncing ${missingOnServer.length} local items to server for cross-device access...`);
-          missingOnServer.forEach((item) => {
-            const itemToSync = { ...item };
-            // Strip fileData if we already have any storageUrl to prevent HTTP 413 Payload Too Large on serverless/proxies
-            if (itemToSync.storageUrl) {
-              delete itemToSync.fileData;
-            }
-            fetch('/api/materials', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(itemToSync),
-            }).catch((err) => console.warn('Background sync item to server failed:', err));
-          });
+        } catch (dbErr) {
+          console.warn('Failed to overwrite local IndexedDB cache with server items:', dbErr);
         }
+
+        saveFallbackMaterials(serverItems);
+        return serverItems;
       }
     }
-  } catch (serverErr) {
-    console.warn('Could not fetch server materials:', serverErr);
+  } catch (err) {
+    console.warn('Failed to load materials from server API, using offline fallback:', err);
   }
 
-  // 3. Fetch from Supabase Cloud if configured (Disabled direct client-side sync to prevent PGRST204 column mismatches, handled fully by backend APIs now!)
-  /*
-  if (isSupabaseConfigured) {
-    try {
-      const cloudItems = await fetchAllMaterialsFromSupabase();
-      if (cloudItems && cloudItems.length > 0) {
-        cloudItems.forEach((cloudItem) => {
-          const existing = itemsMap.get(cloudItem.id);
-          if (existing && existing.fileData && !cloudItem.fileData) {
-            itemsMap.set(cloudItem.id, { ...cloudItem, fileData: existing.fileData });
-          } else {
-            itemsMap.set(cloudItem.id, cloudItem);
-          }
-        });
-      }
-    } catch (err) {
-      console.warn('Could not fetch cloud materials:', err);
+  // 2. Offline Fallback: Load from local IndexedDB ONLY if the server/network is completely unreachable!
+  try {
+    const db = await openDB();
+    const localItems = await new Promise<MaterialItem[]>((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => resolve([]);
+    });
+    if (localItems.length > 0) {
+      return localItems;
     }
+  } catch (e) {
+    console.warn('IndexedDB offline read failed:', e);
   }
-  */
 
-  const finalItems = Array.from(itemsMap.values());
-
-  // Cache back to local DB so it's always accessible offline on laptop as well
-  saveItemsToLocalDB(finalItems).catch(() => {});
-
-  return finalItems;
+  return getFallbackMaterials();
 }
 
 // Save or add a material (saves locally AND to central server AND Supabase Cloud)
