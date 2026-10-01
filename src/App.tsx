@@ -1094,87 +1094,9 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Live Sync Indicator */}
-            {liveSyncStatus === 'connected' && (
-              <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"
-                title="مزامنة فورية مباشرة نشطة (مثل الواتس اب) - الشاشات متطابقة تلقائياً في نفس الوقت"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                <Wifi className="w-3.5 h-3.5 text-blue-600" />
-                <span>مزامنة مباشرة نشطة</span>
-              </div>
-            )}
-            {liveSyncStatus === 'connecting' && (
-              <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"
-                title="جاري الاتصال بقناة المزامنة الفورية..."
-              >
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                <span>جاري ربط المزامنة...</span>
-              </div>
-            )}
-            {liveSyncStatus === 'disconnected' && (
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
-                title="انقر لإعادة الاتصال الفوري بمخدم المزامنة"
-              >
-                <WifiOff className="w-3.5 h-3.5 text-slate-500" />
-                <span>المزامنة منفصلة (انقر للربط)</span>
-              </button>
-            )}
-
-            {/* Supabase connection indicator */}
-            {supabaseStatus === 'connected' && (
-              <button
-                type="button"
-                onClick={() => setIsSupabaseConfigOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
-                title="قاعدة بيانات Supabase السحابية متصلة - انقر لتعديل الإعدادات"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <Database className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Supabase متصل</span>
-              </button>
-            )}
-            {supabaseStatus === 'connecting' && (
-              <button
-                type="button"
-                onClick={() => setIsSupabaseConfigOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer"
-              >
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
-                <span>جاري الاتصال بـ Supabase...</span>
-              </button>
-            )}
-            {supabaseStatus === 'unconfigured' && (
-              <button
-                type="button"
-                onClick={() => setIsSupabaseConfigOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer shadow-2xs"
-                title="انقر لإدخال وحفظ رابط ومفتاح Supabase بسهولة"
-              >
-                <Database className="w-3.5 h-3.5 text-slate-600" />
-                <span>إعداد وحفظ Supabase</span>
-              </button>
-            )}
-            {supabaseStatus === 'error' && (
-              <button
-                type="button"
-                onClick={() => setIsSupabaseConfigOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-colors cursor-pointer"
-                title="انقر لتصحيح إعدادات ومفاتيح الربط"
-              >
-                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
-                <span>خطأ في اتصال Supabase (تعديل)</span>
-              </button>
-            )}
-
             <button
               onClick={() => setIsPlanModalOpen(true)}
-              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors"
+              className="text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               Smart Plan Classifier
