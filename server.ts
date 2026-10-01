@@ -9,8 +9,13 @@ import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { CLASS_TIMETABLES } from './src/data/timetables';
 import dbRouter from './server_db';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
+
+const SB_URL = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
+const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag').trim();
+const serverSupabase = createClient(SB_URL, SB_KEY);
 
 const app = express();
 const PORT = 3000;
@@ -249,20 +254,47 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Materials endpoints (Accessible across Mobile, Laptop & Desktop)
-app.get('/api/materials', (req, res) => {
-  const list = getStoredMaterials();
-  res.json(list);
+// Materials endpoints (Cloud-Persistent & Self-Healing across Mobile, Laptop & Desktop)
+app.get('/api/materials', async (req, res) => {
+  try {
+    const { data, error } = await serverSupabase
+      .from('materials')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.warn('[Server Supabase] Fetch materials warning, falling back to disk:', error.message);
+      return res.json(getStoredMaterials());
+    }
+
+    // Map database snake_case columns to camelCase expected by the client
+    const mapped = (data || []).map((row: any) => ({
+      id: row.id,
+      fileName: row.file_name,
+      fileSize: Number(row.file_size || 0),
+      block: Number(row.block || 1),
+      section: row.section || 'General',
+      classId: row.class_id || 'ALL',
+      storageUrl: row.storage_url || '',
+      type: row.file_data ? 'pdf' : (row.storage_url && row.storage_url.includes('http') ? 'link' : 'pdf'),
+      uploadedAt: row.uploaded_at,
+    }));
+
+    res.json(mapped);
+  } catch (err: any) {
+    console.error('[Server Supabase] Materials fetch error:', err);
+    res.json(getStoredMaterials());
+  }
 });
 
-app.post('/api/materials', (req, res) => {
+app.post('/api/materials', async (req, res) => {
   try {
     const item = req.body;
     if (!item || !item.id) {
       return res.status(400).json({ error: 'Valid material item with id is required' });
     }
 
-    // If fileData (base64) is provided, persist it to disk as well
+    // If fileData (base64) is provided, persist it to disk as well as a fast local fallback cache
     if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
       try {
         const base64Data = item.fileData.split(',')[1];
@@ -271,34 +303,56 @@ app.post('/api/materials', (req, res) => {
         fs.writeFileSync(filePath, buffer);
         item.storageUrl = `/api/materials/${item.id}/file`;
       } catch (fErr) {
-        console.warn('Failed to write material file to disk:', fErr);
+        console.warn('[Server Disk] Failed to write material file to disk:', fErr);
       }
     }
 
-    // ALWAYS delete the massive fileData base64 string from the list object
-    // stored in materials.json to keep it extremely lightweight (few KB instead of MB),
-    // ensuring lightning-fast loading on mobile and low memory devices.
-    if (item.fileData) {
-      delete item.fileData;
+    // Map client MaterialItem to database snake_case columns
+    const row = {
+      id: item.id,
+      file_name: item.fileName,
+      file_size: Number(item.fileSize || 0),
+      block: Number(item.block || 1),
+      section: item.section || 'General',
+      class_id: item.classId || 'ALL',
+      storage_url: item.storageUrl || '',
+      file_data: item.fileData || null, // Keep fileData in database so other container instances can retrieve and self-heal!
+      uploaded_at: item.uploadedAt || new Date().toISOString(),
+    };
+
+    const { error: dbError } = await serverSupabase
+      .from('materials')
+      .upsert(row, { onConflict: 'id' });
+
+    if (dbError) {
+      console.warn('[Server Supabase] Materials upsert warning:', dbError.message);
     }
+
+    // Write locally as fallback metadata (keep json lightweight, delete massive fileData)
+    const itemWithoutData = { ...item };
+    delete itemWithoutData.fileData;
 
     const current = getStoredMaterials();
     const existingIndex = current.findIndex((m: any) => m.id === item.id);
     if (existingIndex >= 0) {
-      current[existingIndex] = { ...current[existingIndex], ...item };
+      current[existingIndex] = { ...current[existingIndex], ...itemWithoutData };
     } else {
-      current.unshift(item);
+      current.unshift(itemWithoutData);
     }
     saveStoredMaterials(current);
-    res.json({ success: true, item });
+
+    res.json({ success: true, item: itemWithoutData });
   } catch (err: any) {
+    console.error('[Server Supabase] Error saving material:', err);
     res.status(500).json({ error: err.message || 'Error saving material' });
   }
 });
 
-app.get('/api/materials/:id/file', (req, res) => {
+app.get('/api/materials/:id/file', async (req, res) => {
   const { id } = req.params;
   const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
+
+  // 1. Try local disk first (extremely fast)
   if (fs.existsSync(filePath)) {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
@@ -306,7 +360,32 @@ app.get('/api/materials/:id/file', (req, res) => {
     return stream.pipe(res);
   }
 
-  // Check if fileData in materials.json
+  // 2. Self-Healing: If missing on disk (due to ephemeral cloud run scaling), retrieve from database!
+  try {
+    const { data, error } = await serverSupabase
+      .from('materials')
+      .select('file_data')
+      .eq('id', id)
+      .single();
+
+    if (!error && data && data.file_data && data.file_data.includes(',')) {
+      const base64Data = data.file_data.split(',')[1];
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Save it back to local disk for fast subsequent reads
+      try {
+        fs.writeFileSync(filePath, buffer);
+      } catch {}
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+      return res.send(buffer);
+    }
+  } catch (dbErr) {
+    console.warn('[Server Self-Healing] Could not retrieve file from Supabase database:', dbErr);
+  }
+
+  // 3. Fallback to materials.json list
   const list = getStoredMaterials();
   const found = list.find((m: any) => m.id === id);
   if (found && found.fileData && found.fileData.includes(',')) {
@@ -320,18 +399,30 @@ app.get('/api/materials/:id/file', (req, res) => {
   res.status(404).json({ error: 'File not found' });
 });
 
-app.delete('/api/materials/:id', (req, res) => {
+app.delete('/api/materials/:id', async (req, res) => {
   const { id } = req.params;
+
+  // 1. Delete from local list
   const current = getStoredMaterials().filter((m: any) => m.id !== id);
   saveStoredMaterials(current);
+
+  // 2. Delete from disk
   const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
   if (fs.existsSync(filePath)) {
     try { fs.unlinkSync(filePath); } catch {}
   }
+
+  // 3. Delete from Supabase
+  try {
+    await serverSupabase.from('materials').delete().eq('id', id);
+  } catch (err) {
+    console.warn('[Server Supabase] Error deleting material:', err);
+  }
+
   res.json({ success: true });
 });
 
-app.post('/api/materials/clear', (req, res) => {
+app.post('/api/materials/clear', async (req, res) => {
   try {
     saveStoredMaterials([]);
     if (fs.existsSync(MATERIALS_DIR)) {
@@ -347,6 +438,10 @@ app.post('/api/materials/clear', (req, res) => {
         try { fs.unlinkSync(path.join(publicMatDir, file)); } catch {}
       });
     }
+
+    // Clear from Supabase (delete rows where id is not empty)
+    await serverSupabase.from('materials').delete().neq('id', 'placeholder_force_all_delete');
+
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error clearing materials' });
