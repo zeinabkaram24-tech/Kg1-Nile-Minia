@@ -1275,6 +1275,7 @@ export default function App() {
         currentClass={currentClass}
         currentBlock={currentBlock}
         currentWeek={currentWeek}
+        isAdmin={isAdminEditMode}
       />
 
       {/* Guaranteed In-App PDF Viewer Modal */}

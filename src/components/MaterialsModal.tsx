@@ -11,6 +11,7 @@ import {
   Download,
   ExternalLink,
   Link2,
+  Trash2,
 } from 'lucide-react';
 import { ClassId, MaterialItem } from '../types';
 import {
@@ -20,6 +21,7 @@ import {
   openPdfItem,
   printPdfItem,
   downloadPdfItem,
+  deleteMaterial,
 } from '../utils/materialsStorage';
 
 interface MaterialsModalProps {
@@ -28,12 +30,14 @@ interface MaterialsModalProps {
   currentClass: ClassId;
   currentBlock: number;
   currentWeek: number;
+  isAdmin?: boolean;
 }
 
 export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   isOpen,
   onClose,
   currentClass,
+  isAdmin = false,
 }) => {
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -43,6 +47,18 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
   const loadMaterials = async () => {
     const all = await getAllMaterials();
     setMaterials(all);
+  };
+
+  const handleDelete = async (id: string, storageUrl?: string) => {
+    if (window.confirm('هل أنت متأكد من رغبتك في حذف هذه المادة التعليمية نهائياً؟')) {
+      try {
+        await deleteMaterial(id, storageUrl);
+        await loadMaterials();
+      } catch (err) {
+        console.error('Failed to delete material:', err);
+        alert('تعذر حذف الملف، يرجى المحاولة مرة أخرى.');
+      }
+    }
   };
 
   useEffect(() => {
@@ -279,26 +295,38 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                             className="bg-white border-2 border-indigo-100 hover:border-indigo-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
                           >
                             {/* Link Details */}
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
-                                <ExternalLink className="w-5 h-5" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className="text-sm font-black text-slate-900 truncate">
-                                  {file.fileName}
-                                </h4>
-                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
-                                  <span className="text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-200">
-                                    رابط إلكتروني / فيديو 🔗
-                                  </span>
-                                  {file.classId && file.classId !== 'ALL' && (
-                                    <>
-                                      <span>•</span>
-                                      <span className="text-indigo-600 font-bold">{file.classId}</span>
-                                    </>
-                                  )}
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center shrink-0">
+                                  <ExternalLink className="w-5 h-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="text-sm font-black text-slate-900 truncate">
+                                    {file.fileName}
+                                  </h4>
+                                  <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                    <span className="text-indigo-600 font-black bg-indigo-50 px-1.5 py-0.5 rounded text-[10px] border border-indigo-200">
+                                      رابط إلكتروني / فيديو 🔗
+                                    </span>
+                                    {file.classId && file.classId !== 'ALL' && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(file.id, file.storageUrl)}
+                                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 border border-rose-200 transition-colors cursor-pointer shrink-0"
+                                  title="حذف الرابط"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
 
                             {/* Link Action Button */}
@@ -323,34 +351,46 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                           className="bg-white border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-4 shadow-2xs space-y-3 transition-all"
                         >
                           {/* File Details */}
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
-                              <FileText className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-sm font-black text-slate-900 truncate">
-                                {file.fileName}
-                              </h4>
-                              <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
-                                <span>{formatBytes(file.fileSize)}</span>
-                                <span>•</span>
-                                <span>PDF</span>
-                                {file.storageUrl && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
-                                      سحابي Cloud ☁️
-                                    </span>
-                                  </>
-                                )}
-                                {file.classId && file.classId !== 'ALL' && (
-                                  <>
-                                    <span>•</span>
-                                    <span className="text-indigo-600 font-bold">{file.classId}</span>
-                                  </>
-                                )}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-sm font-black text-slate-900 truncate">
+                                  {file.fileName}
+                                </h4>
+                                <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">
+                                  <span>{formatBytes(file.fileSize)}</span>
+                                  <span>•</span>
+                                  <span>PDF</span>
+                                  {file.storageUrl && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                                        سحابي Cloud ☁️
+                                      </span>
+                                    </>
+                                  )}
+                                  {file.classId && file.classId !== 'ALL' && (
+                                    <>
+                                      <span>•</span>
+                                      <span className="text-indigo-600 font-bold">{file.classId}</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             </div>
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => handleDelete(file.id, file.storageUrl)}
+                                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 border border-rose-200 transition-colors cursor-pointer shrink-0"
+                                title="حذف الملف"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </div>
 
                           {/* The 3 requested buttons underneath the file */}
