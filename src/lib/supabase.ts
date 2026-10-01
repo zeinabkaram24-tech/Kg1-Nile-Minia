@@ -1414,7 +1414,7 @@ export async function uploadPdfToSupabaseStorage(
 }
 
 /**
- * Fetch all materials metadata from Supabase 'materials' table
+ * Fetch all materials metadata from Supabase 'materials' table (Lightweight, excludes heavy base64 file_data for maximum speed)
  */
 export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
   if (!isSupabaseConfigured) return [];
@@ -1422,7 +1422,7 @@ export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
   try {
     const { data, error } = await supabase
       .from('materials')
-      .select('*')
+      .select('id, file_name, file_size, block, section, class_id, file_url, uploaded_at')
       .order('uploaded_at', { ascending: false });
 
     if (error) {
@@ -1435,6 +1435,26 @@ export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
     console.warn('Network exception fetching materials:', err);
     return [];
   }
+}
+
+/**
+ * Fetch full file_data base64 for a specific material on demand
+ */
+export async function fetchMaterialFileData(id: string): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('materials')
+      .select('file_data')
+      .eq('id', id)
+      .single();
+    if (!error && data && data.file_data) {
+      return data.file_data;
+    }
+  } catch (err) {
+    console.warn('Network exception fetching material file data:', err);
+  }
+  return null;
 }
 
 /**

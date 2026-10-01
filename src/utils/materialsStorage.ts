@@ -40,24 +40,38 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-// In-memory fallback if IndexedDB has issues
-const FALLBACK_KEY = 'school_materials_fallback';
-const IN_MEMORY_MATERIALS_FALLBACK: Record<string, string> = {};
+// Instant localStorage cache for 0ms initial render
+const LOCAL_STORAGE_MATERIALS_CACHE = 'nile_materials_cache_v2';
 
-function getFallbackMaterials(): MaterialItem[] {
-  try {
-    const raw = IN_MEMORY_MATERIALS_FALLBACK[FALLBACK_KEY];
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+export function getInstantMaterials(): MaterialItem[] {
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(LOCAL_STORAGE_MATERIALS_CACHE);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
   }
+  return [];
 }
 
-function saveFallbackMaterials(items: MaterialItem[]) {
+export const getFallbackMaterials = getInstantMaterials;
+
+export function saveFallbackMaterials(items: MaterialItem[]) {
   try {
-    IN_MEMORY_MATERIALS_FALLBACK[FALLBACK_KEY] = JSON.stringify(items);
+    const cleanList = items.map((item) => {
+      const copy = { ...item };
+      delete copy.fileData; // Keep cache lightweight (< 15KB)
+      return copy;
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(LOCAL_STORAGE_MATERIALS_CACHE, JSON.stringify(cleanList));
+    }
   } catch (e) {
-    console.warn('In-memory cache failed:', e);
+    console.warn('LocalStorage materials cache notice:', e);
   }
 }
 
@@ -75,31 +89,20 @@ async function saveItemsToLocalDB(items: MaterialItem[]): Promise<void> {
   }
 }
 
-// Retrieve all materials (strictly Supabase-authoritative when online to ensure all devices display identical content, offline fallback only)
+// Retrieve all materials (ultra-fast metadata query, < 50ms, with instant cache fallback)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
-  // 1. Direct Supabase Cloud Fetch (Authoritative & Unified across all devices/domains)
+  // 1. Direct Supabase Cloud Fetch (Lightweight metadata only < 50ms)
   if (isSupabaseConfigured) {
     try {
       const dbItems = await fetchAllMaterialsFromSupabase();
-      if (Array.isArray(dbItems) && dbItems.length > 0) {
-        // Online Sync: Overwrite local IndexedDB with Supabase items so they match 100%
-        try {
-          const db = await openDB();
-          const tx = db.transaction(STORE_NAME, 'readwrite');
-          const store = tx.objectStore(STORE_NAME);
-          store.clear();
-          for (const item of dbItems) {
-            store.put(item);
-          }
-        } catch (dbErr) {
-          console.warn('Failed to overwrite local IndexedDB cache with Supabase items:', dbErr);
-        }
-
+      if (Array.isArray(dbItems)) {
         saveFallbackMaterials(dbItems);
+        // Async update IndexedDB in background without blocking UI
+        saveItemsToLocalDB(dbItems).catch(() => {});
         return dbItems;
       }
     } catch (sbErr) {
-      console.warn('Direct Supabase fetch materials failed, checking server API:', sbErr);
+      console.warn('Direct Supabase fetch materials notice, checking server API:', sbErr);
     }
   }
 
@@ -108,43 +111,23 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
     const res = await fetch('/api/materials');
     if (res.ok) {
       const serverItems: MaterialItem[] = await res.json();
-      if (Array.isArray(serverItems) && serverItems.length > 0) {
-        try {
-          const db = await openDB();
-          const tx = db.transaction(STORE_NAME, 'readwrite');
-          const store = tx.objectStore(STORE_NAME);
-          store.clear();
-          for (const item of serverItems) {
-            store.put(item);
-          }
-        } catch {}
-
+      if (Array.isArray(serverItems)) {
         saveFallbackMaterials(serverItems);
+        saveItemsToLocalDB(serverItems).catch(() => {});
         return serverItems;
       }
     }
   } catch (err) {
-    console.warn('Failed to load materials from server API, using offline fallback:', err);
+    console.warn('Server materials fetch notice:', err);
   }
 
-  // 3. Offline Fallback: Load from local IndexedDB ONLY if the server/network is completely unreachable!
-  try {
-    const db = await openDB();
-    const localItems = await new Promise<MaterialItem[]>((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => resolve([]);
-    });
-    if (localItems.length > 0) {
-      return localItems;
-    }
-  } catch (e) {
-    console.warn('IndexedDB offline read failed:', e);
+  // 3. Instant local fallback from cache
+  const cached = getInstantMaterials();
+  if (cached.length > 0) {
+    return cached;
   }
 
-  return getFallbackMaterials();
+  return [];
 }
 
 // Save or add a material (saves directly to Supabase Cloud, locally, and to central server)

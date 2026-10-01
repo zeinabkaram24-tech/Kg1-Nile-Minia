@@ -13,7 +13,7 @@ import { StudentAuthModal } from './components/StudentAuthModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
 import { AdminDashboardModal } from './components/AdminDashboardModal';
 import { MaterialsModal } from './components/MaterialsModal';
-import { clearAllMaterials } from './utils/materialsStorage';
+import { clearAllMaterials, getAllMaterials } from './utils/materialsStorage';
 import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
@@ -306,12 +306,13 @@ export default function App() {
         setSupabaseStatus('connecting');
       }
 
-      // Fetch classwork, homework, and planner settings in parallel
+      // Fetch classwork, homework, planner settings, timetables, and preload materials in parallel
       const [cwData, hwData, settings] = await Promise.all([
         fetchAllClasswork(),
         fetchAllHomework(),
         fetchPlannerSettings(),
         syncTimetablesFromCloud(),
+        getAllMaterials().catch(() => []),
       ]);
 
       const profile = getActiveUserProfile();

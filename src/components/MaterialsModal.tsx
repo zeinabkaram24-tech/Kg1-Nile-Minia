@@ -17,6 +17,7 @@ import {
 import { ClassId, MaterialItem } from '../types';
 import {
   getAllMaterials,
+  getInstantMaterials,
   subscribeToMaterials,
   formatBytes,
   openPdfItem,
@@ -42,12 +43,22 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
 }) => {
   const [selectedBlock, setSelectedBlock] = useState<number | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [materials, setMaterials] = useState<MaterialItem[]>(() => getInstantMaterials());
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Load materials from storage
+  // Load materials from storage with instant cache rendering
   const loadMaterials = async () => {
-    const all = await getAllMaterials();
-    setMaterials(all);
+    const cached = getInstantMaterials();
+    if (cached.length > 0 && materials.length === 0) {
+      setMaterials(cached);
+    }
+    setIsSyncing(true);
+    try {
+      const all = await getAllMaterials();
+      setMaterials(all);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleDelete = async (id: string, storageUrl?: string) => {
@@ -436,6 +447,14 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         </div>
                       );
                     })}
+                  </div>
+                ) : isSyncing ? (
+                  /* Loading / Syncing placeholder */
+                  <div className="py-10 px-4 bg-slate-50/80 rounded-2xl border-2 border-dashed border-indigo-200 text-center space-y-3 animate-in fade-in duration-150">
+                    <div className="w-10 h-10 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="text-xs text-indigo-950 font-bold" dir="rtl">
+                      جاري فحص وتحديث الشيتات سحابياً...
+                    </p>
                   </div>
                 ) : (
                   /* Empty state placeholder when no PDF uploaded yet */

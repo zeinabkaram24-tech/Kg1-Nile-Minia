@@ -32,6 +32,7 @@ import { TomorrowSpecialNote } from '../data/defaultWeeklyPlan';
 import { SupabaseConfigModal } from './SupabaseConfigModal';
 import {
   getAllMaterials,
+  getInstantMaterials,
   saveMaterial,
   deleteMaterial,
   clearAllMaterials,
@@ -73,7 +74,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   isAdminEditMode,
   onToggleAdminEditMode,
 }) => {
-  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [materials, setMaterials] = useState<MaterialItem[]>(() => getInstantMaterials());
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MaterialItem | null>(null);

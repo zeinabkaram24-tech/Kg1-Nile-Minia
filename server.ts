@@ -325,7 +325,7 @@ app.get('/api/materials', async (req, res) => {
   try {
     const { data, error } = await serverSupabase
       .from('materials')
-      .select('*')
+      .select('id, file_name, file_size, block, section, class_id, file_url, uploaded_at')
       .order('uploaded_at', { ascending: false });
 
     if (!error && Array.isArray(data)) {
