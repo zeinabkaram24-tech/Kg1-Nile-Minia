@@ -125,8 +125,8 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
           console.log(`[MaterialsSync] Syncing ${missingOnServer.length} local items to server for cross-device access...`);
           missingOnServer.forEach((item) => {
             const itemToSync = { ...item };
-            // Strip fileData if we already have a cloud URL to prevent HTTP 413 Payload Too Large on serverless/proxies
-            if (itemToSync.storageUrl && itemToSync.storageUrl.startsWith('http')) {
+            // Strip fileData if we already have any storageUrl to prevent HTTP 413 Payload Too Large on serverless/proxies
+            if (itemToSync.storageUrl) {
               delete itemToSync.fileData;
             }
             fetch('/api/materials', {
@@ -192,8 +192,8 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
   // 2. Centralized Server Persistence (/api/materials) for laptop & all devices
   try {
     const itemToSync = { ...item };
-    // Strip fileData if we already have a cloud URL to prevent HTTP 413 Payload Too Large on serverless/proxies
-    if (itemToSync.storageUrl && itemToSync.storageUrl.startsWith('http')) {
+    // Strip fileData if we already have any storageUrl to prevent HTTP 413 Payload Too Large on serverless/proxies
+    if (itemToSync.storageUrl) {
       delete itemToSync.fileData;
     }
     const res = await fetch('/api/materials', {
