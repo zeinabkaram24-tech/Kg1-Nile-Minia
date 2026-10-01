@@ -403,6 +403,7 @@ export default function App() {
       } else if (event.type === 'MATERIALS_UPDATE') {
         refreshAllData(false);
         window.dispatchEvent(new CustomEvent('materials_updated'));
+        window.dispatchEvent(new CustomEvent('school_materials_updated'));
         showToast('📚 تم تحديث بنك الأسئلة والملخصات تلقائياً!');
       } else if (event.type === 'TIMETABLE_UPDATE') {
         refreshAllData(false);

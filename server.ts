@@ -90,6 +90,14 @@ app.post('/api/materials/:id/upload-raw', async (req, res) => {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// No-cache middleware for all API endpoints to guarantee instant updates on all devices
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // --- WHATSAPP-STYLE LIVE REAL-TIME SYNC ENGINE ---
 interface SyncClient {
   id: string;
