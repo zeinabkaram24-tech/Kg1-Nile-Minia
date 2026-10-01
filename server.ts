@@ -322,16 +322,31 @@ app.post('/api/materials', async (req, res) => {
     }
 
     // Map client MaterialItem to database snake_case columns (excluding storage_url which is missing from the live schema)
-    const row = {
+    const row: any = {
       id: item.id,
       file_name: item.fileName,
       file_size: Number(item.fileSize || 0),
       block: Number(item.block || 1),
       section: item.section || 'General',
       class_id: item.classId || 'ALL',
-      file_data: item.fileData || null, // Keep fileData in database so other container instances can retrieve and self-heal!
       uploaded_at: item.uploadedAt || new Date().toISOString(),
     };
+
+    // Retrieve existing row to preserve file_data (e.g. raw file uploaded in step 1) if not supplied in this metadata save
+    try {
+      const { data: existingRows } = await serverSupabase
+        .from('materials')
+        .select('file_data')
+        .eq('id', item.id);
+
+      if (existingRows && existingRows.length > 0) {
+        row.file_data = item.fileData || existingRows[0].file_data || null;
+      } else {
+        row.file_data = item.fileData || null;
+      }
+    } catch (err) {
+      row.file_data = item.fileData || null;
+    }
 
     const { error: dbError } = await serverSupabase
       .from('materials')
