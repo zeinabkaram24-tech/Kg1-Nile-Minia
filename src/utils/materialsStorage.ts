@@ -276,9 +276,25 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
       (m) =>
         m.storageUrl === urlOrName ||
         m.linkUrl === urlOrName ||
+        (m.id && urlOrName.includes(m.id)) ||
         (m.fileName && urlOrName.includes(m.fileName))
     );
     if (found) return found;
+
+    const match = urlOrName.match(/\/api\/materials\/([^/]+)\/file/);
+    if (match && match[1]) {
+      return {
+        id: match[1],
+        fileName: defaultTitle || 'ملف PDF مرفق.pdf',
+        fileSize: 0,
+        block: 1,
+        section: 'General',
+        classId: 'ALL',
+        type: 'pdf',
+        storageUrl: urlOrName,
+        uploadedAt: new Date().toISOString(),
+      };
+    }
   }
 
   return {
@@ -295,30 +311,92 @@ export function resolveMaterialItem(urlOrName?: string, defaultTitle?: string): 
   };
 }
 
-// Open PDF or Link directly in our guaranteed In-App Viewer Modal
+// Get guaranteed viewable URL for any PDF item (safe for iframes, objects, and new tabs)
+export function getPdfViewableUrl(item: MaterialItem): string {
+  // 1. External Link
+  if (item.type === 'link' || (item.linkUrl && !item.linkUrl.toLowerCase().endsWith('.pdf'))) {
+    return item.linkUrl || item.storageUrl || '';
+  }
+  // 2. Full HTTP(S) URL
+  if (item.storageUrl && (item.storageUrl.startsWith('http://') || item.storageUrl.startsWith('https://'))) {
+    return item.storageUrl;
+  }
+  // 3. Server file endpoint
+  if (item.id) {
+    return `/api/materials/${item.id}/file`;
+  }
+  // 4. Blob URL from fileData base64 if available
+  if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
+    try {
+      const blob = dataUrlToBlob(item.fileData);
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.warn('Failed to create blob from fileData:', e);
+    }
+  }
+  return item.storageUrl || '';
+}
+
+// Open PDF or Link directly in our guaranteed In-App Viewer Modal or native browser reader
 export function openPdfItem(item: MaterialItem): void {
   try {
+    // If it's a web link, open immediately in new tab
+    if (item.type === 'link' || (item.linkUrl && !item.linkUrl.toLowerCase().endsWith('.pdf'))) {
+      const targetUrl = item.linkUrl || item.storageUrl;
+      if (targetUrl) {
+        window.open(targetUrl, '_blank');
+        return;
+      }
+    }
+
+    const viewableUrl = getPdfViewableUrl(item);
+
+    // On mobile screens (iPhone/Android), opening the PDF directly in a new tab provides the native, full-fidelity PDF reader
+    const isMobile = typeof window !== 'undefined' && (
+      window.innerWidth < 768 ||
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    );
+
+    if (isMobile && viewableUrl) {
+      const win = window.open(viewableUrl, '_blank');
+      if (win) {
+        return;
+      }
+    }
+
     // Dispatch custom event to open In-App PDF Viewer Modal directly in place
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('open_pdf_viewer_modal', { detail: item }));
+      window.dispatchEvent(
+        new CustomEvent('open_pdf_viewer_modal', {
+          detail: {
+            ...item,
+            viewableUrl,
+          },
+        })
+      );
     }
   } catch (e) {
     console.error('Error opening PDF in modal:', e);
   }
 }
 
-// Universal Print Function for PDF item (supports storageUrl, server endpoint, and dataUrl)
+// Universal Print Function for PDF item
 export function printPdfItem(item: MaterialItem): void {
   try {
-    const targetUrl = item.storageUrl
-      ? item.storageUrl
-      : item.fileData
-      ? URL.createObjectURL(dataUrlToBlob(item.fileData))
-      : `/api/materials/${item.id}/file`;
-
+    const targetUrl = getPdfViewableUrl(item);
     if (!targetUrl) return;
 
-    // Create a hidden iframe with the URL to trigger browser print dialog
+    // Direct open for printing
+    const win = window.open(targetUrl, '_blank');
+    if (win) {
+      win.focus();
+      setTimeout(() => {
+        try { win.print(); } catch {}
+      }, 500);
+      return;
+    }
+
+    // Fallback: create hidden iframe
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
     iframe.style.right = '0';
@@ -328,32 +406,16 @@ export function printPdfItem(item: MaterialItem): void {
     iframe.style.border = '0';
     iframe.style.opacity = '0';
     iframe.src = targetUrl;
-
     document.body.appendChild(iframe);
 
-    let printed = false;
-    const executePrint = () => {
-      if (printed) return;
-      printed = true;
-      try {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      } catch {
-        // If iframe printing is blocked, open in new tab for direct printing
-        const newTab = window.open(targetUrl, '_blank');
-        if (newTab) {
-          newTab.focus();
-        }
-      }
-    };
-
     iframe.onload = () => {
-      setTimeout(executePrint, 400);
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch {}
+      }, 400);
     };
-
-    setTimeout(() => {
-      if (!printed) executePrint();
-    }, 1000);
   } catch (e) {
     console.error('Print error:', e);
   }
@@ -362,16 +424,33 @@ export function printPdfItem(item: MaterialItem): void {
 // Universal Download Function (supports storageUrl, server endpoint, and dataUrl)
 export function downloadPdfItem(item: MaterialItem): void {
   try {
-    const fallbackUrl = `/api/materials/${item.id}/file`;
-    const targetUrl = item.storageUrl || (item.fileData ? URL.createObjectURL(dataUrlToBlob(item.fileData)) : fallbackUrl);
+    const fileName = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
+    
+    // If fileData is present, download via Blob (instant, offline-capable)
+    if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
+      const blob = dataUrlToBlob(item.fileData);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      return;
+    }
 
-    const a = document.createElement('a');
-    a.href = targetUrl;
-    a.download = item.fileName.endsWith('.pdf') ? item.fileName : `${item.fileName}.pdf`;
-    a.target = '_blank';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Otherwise download from server endpoint or storageUrl
+    const targetUrl = item.id ? `/api/materials/${item.id}/file` : (item.storageUrl || '');
+    if (targetUrl) {
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      a.download = fileName;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   } catch (e) {
     console.error('Download error:', e);
   }

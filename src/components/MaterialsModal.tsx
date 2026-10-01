@@ -353,12 +353,16 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                         >
                           {/* File Details */}
                           <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                            <div
+                              onClick={() => handlePreview(file)}
+                              className="flex items-center gap-3 cursor-pointer group/title flex-1 min-w-0"
+                              title="اضغط لمعاينة المستند بتنسيقه الأصلي"
+                            >
+                              <div className="w-10 h-10 rounded-xl bg-rose-50 group-hover/title:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0 transition-colors">
                                 <FileText className="w-5 h-5" />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <h4 className="text-sm font-black text-slate-900 truncate">
+                                <h4 className="text-sm font-black text-slate-900 group-hover/title:text-indigo-600 truncate transition-colors">
                                   {file.fileName}
                                 </h4>
                                 <div className="flex items-center gap-2 text-[11px] text-slate-400 font-semibold mt-0.5">

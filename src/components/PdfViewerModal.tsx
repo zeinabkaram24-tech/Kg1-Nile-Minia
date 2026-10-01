@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Download, ExternalLink, Printer, FileText, Maximize2 } from 'lucide-react';
-import { MaterialItem, formatBytes, downloadPdfItem, printPdfItem } from '../utils/materialsStorage';
+import {
+  MaterialItem,
+  formatBytes,
+  downloadPdfItem,
+  printPdfItem,
+  getPdfViewableUrl,
+} from '../utils/materialsStorage';
 
 interface PdfViewerModalProps {
   isOpen?: boolean;
@@ -35,7 +41,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         setActiveTitle(name);
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
-        const url = detail.fileData || detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
+        const url = detail.viewableUrl || getPdfViewableUrl(detail) || detail.storageUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
         setActiveUrl(url || '');
         setActiveTitle(detail.fileName || 'ملف PDF مرفق.pdf');
         setActiveItem(detail);
@@ -63,7 +69,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propItem) {
       setActiveItem(propItem);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
-      const url = propItem.fileData || propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
+      const url = (propItem as any).viewableUrl || getPdfViewableUrl(propItem) || propItem.storageUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
       if (url) setActiveUrl(url);
     }
   }, [propIsOpen, propPdfUrl, propFileName, propItem]);
@@ -101,6 +107,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     }
   };
 
+  const handleOpenNewTab = () => {
+    window.open(activeUrl, '_blank');
+  };
+
   return (
     <div
       id="pdf-viewer-modal-backdrop"
@@ -127,7 +137,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                   PDF
                 </span>
                 {activeItem?.fileSize ? <span>• {formatBytes(activeItem.fileSize)}</span> : null}
-                <span>• معاينة المستند المرفق</span>
+                <span>• بالتنسيق الأصلي للمستند</span>
               </div>
             </div>
           </div>
@@ -159,17 +169,16 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             </button>
 
             {/* Open in new tab */}
-            <a
+            <button
               id="pdf-modal-external-link"
-              href={activeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-xs font-black transition-colors"
+              type="button"
+              onClick={handleOpenNewTab}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-xs font-black transition-colors cursor-pointer"
               title="فتح في تبويب مستقل"
             >
               <ExternalLink className="w-3.5 h-3.5 text-indigo-700" />
               <span className="hidden sm:inline">تبويب جديد</span>
-            </a>
+            </button>
 
             {/* Fullscreen toggle */}
             <button
@@ -195,14 +204,54 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
           </div>
         </div>
 
+        {/* Quick Access Mobile & Desktop Banner */}
+        <div className="py-2.5 px-4 bg-gradient-to-r from-indigo-50 via-slate-50 to-blue-50 border-b border-indigo-100 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs truncate">
+            <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="truncate">معاينة الملف بتنسيقه الأصلي بالكامل:</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenNewTab}
+            className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-xs shadow-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>فتح في عارض المتصفح ↗</span>
+          </button>
+        </div>
+
         {/* PDF Viewer Body */}
         <div className="flex-1 bg-slate-100 relative min-h-0 overflow-hidden flex flex-col">
-          <iframe
-            id="pdf-modal-iframe"
-            src={activeUrl}
-            title={fileTitle}
+          <object
+            data={activeUrl}
+            type="application/pdf"
             className="w-full h-full border-0 bg-white"
-          />
+          >
+            <iframe
+              id="pdf-modal-iframe"
+              src={activeUrl}
+              title={fileTitle}
+              className="w-full h-full border-0 bg-white"
+            >
+              <div className="flex flex-col items-center justify-center p-8 text-center h-full gap-4">
+                <FileText className="w-12 h-12 text-slate-400" />
+                <div>
+                  <h4 className="font-black text-slate-800 text-base mb-1">{fileTitle}</h4>
+                  <p className="text-xs text-slate-500 font-semibold max-w-sm">
+                    متصفحك يحتاج لفتح هذا الملف في نافذة مستقلة لعرضه بتنسيقه الأصلي بالكامل.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenNewTab}
+                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>فتح الملف الآن بتنسيقه الأصلي</span>
+                </button>
+              </div>
+            </iframe>
+          </object>
 
           {/* Bottom helper toolbar */}
           <div className="py-2 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
@@ -210,19 +259,17 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               إذا لم يظهر المستند تلقائياً في متصفحك، يمكنك{' '}
               <button
                 onClick={handleDownload}
-                className="text-indigo-600 hover:underline font-bold"
+                className="text-indigo-600 hover:underline font-bold cursor-pointer"
               >
                 النقر هنا لتحميله
               </button>{' '}
               أو{' '}
-              <a
-                href={activeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 hover:underline font-bold"
+              <button
+                onClick={handleOpenNewTab}
+                className="text-indigo-600 hover:underline font-bold cursor-pointer"
               >
-                فتحه في تبويب جديد
-              </a>
+                فتحه في نافذة جديدة
+              </button>
               .
             </span>
             <span className="text-[11px] text-slate-400 font-bold">
