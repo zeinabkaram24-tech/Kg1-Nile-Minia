@@ -76,6 +76,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showUploadForm, setShowUploadForm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<MaterialItem | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Materials Upload Form State
   const [materialUploadMode, setMaterialUploadMode] = useState<'pdf' | 'link'>('pdf');
@@ -711,18 +713,20 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
     }
   };
 
-  // Handle Delete with Confirmation
-  const handleDelete = async (item: MaterialItem) => {
-    const itemTypeName = item.type === 'link' || item.linkUrl ? 'الرابط' : 'الملف';
-    const confirmed = window.confirm(
-      `هل أنت متأكد من مسح ${itemTypeName} "${item.fileName}" نهائياً من Block ${item.block} (${item.section})؟`
-    );
-    if (!confirmed) return;
+  // Handle Delete with Confirmation (Sandbox-Proof!)
+  const handleDelete = (item: MaterialItem) => {
+    setItemToDelete(item);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    const targetItem = itemToDelete;
+    setItemToDelete(null);
 
     try {
-      await deleteMaterial(item.id, item.storageUrl);
+      await deleteMaterial(targetItem.id, targetItem.storageUrl);
       await refreshMaterials();
-      setSuccessMessage(`تم مسح الملف "${item.fileName}" بنجاح.`);
+      setSuccessMessage(`تم مسح الملف "${targetItem.fileName}" بنجاح.`);
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
       console.error(err);
@@ -2570,14 +2574,8 @@ Sunday:
                 {materials.length > 0 && (
                   <button
                     type="button"
-                    onClick={async () => {
-                      if (window.confirm('هل أنت متأكد من حذف جميع ملفات وروابط الماتيريال؟')) {
-                        await clearAllMaterials();
-                        setMaterials([]);
-                        alert('تم مسح جميع ملفات الماتيريال بنجاح!');
-                      }
-                    }}
-                    className="px-2.5 py-1 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-lg transition-colors border border-rose-200"
+                    onClick={() => setShowClearConfirm(true)}
+                    className="px-2.5 py-1 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-lg transition-colors border border-rose-200 cursor-pointer"
                   >
                     مسح جميع ملفات الماتيريال
                   </button>
@@ -2733,6 +2731,80 @@ Sunday:
           setSuccessMessage('تم حفظ إعدادات ومفاتيح Supabase وتحديث الاتصال بنجاح!');
         }}
       />
+
+      {/* Custom React Delete Confirmation Modal (100% Sandbox/iFrame Proof!) */}
+      {itemToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" dir="rtl">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-sm w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
+                <Trash2 className="w-5 h-5 animate-bounce" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">تأكيد مسح الماتيريال</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-600 leading-relaxed text-right">
+              هل أنتِ متأكدة من مسح {itemToDelete.type === 'link' || itemToDelete.linkUrl ? 'الرابط' : 'الملف'} 
+              <span className="font-extrabold text-rose-600 block mt-1">"{itemToDelete.fileName}"</span> 
+              نهائياً من Block {itemToDelete.block} ({itemToDelete.section})؟ لا يمكن التراجع عن هذا الإجراء.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="flex-1 py-2 text-xs font-black text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors cursor-pointer"
+              >
+                نعم، مسح نهائياً
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
+                className="flex-1 py-2 text-xs font-black text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom React Clear All Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" dir="rtl">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-sm w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 animate-pulse" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">تأكيد مسح الكل</h3>
+            </div>
+            <p className="text-xs font-bold text-slate-600 leading-relaxed text-right">
+              هل أنتِ متأكدة من مسح **جميع** ملفات وروابط الماتيريال المرفوعة نهائياً؟ هذا الإجراء سيقوم بتصفير قائمة المواد بالكامل على جميع الأجهزة.
+            </p>
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowClearConfirm(false);
+                  await clearAllMaterials();
+                  setMaterials([]);
+                  setSuccessMessage('تم مسح جميع ملفات الماتيريال بنجاح!');
+                  setTimeout(() => setSuccessMessage(null), 3000);
+                }}
+                className="flex-1 py-2 text-xs font-black text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors cursor-pointer"
+              >
+                نعم، مسح الكل
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 py-2 text-xs font-black text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
