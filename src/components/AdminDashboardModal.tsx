@@ -679,6 +679,7 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           fileSize: 0,
           storageUrl: cleanUrl,
           linkUrl: cleanUrl,
+          fileData: cleanUrl, // For schema backup syncing
           type: 'link',
           block: targetBlock,
           section: targetSection,

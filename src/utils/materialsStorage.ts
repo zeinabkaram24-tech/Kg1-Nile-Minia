@@ -142,7 +142,8 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
     console.warn('Could not fetch server materials:', serverErr);
   }
 
-  // 3. Fetch from Supabase Cloud if configured
+  // 3. Fetch from Supabase Cloud if configured (Disabled direct client-side sync to prevent PGRST204 column mismatches, handled fully by backend APIs now!)
+  /*
   if (isSupabaseConfigured) {
     try {
       const cloudItems = await fetchAllMaterialsFromSupabase();
@@ -160,6 +161,7 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
       console.warn('Could not fetch cloud materials:', err);
     }
   }
+  */
 
   const finalItems = Array.from(itemsMap.values());
 
@@ -211,7 +213,8 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     console.warn('Failed to sync material to server API:', serverErr);
   }
 
-  // 3. Sync to Supabase Cloud Database if configured
+  // 3. Sync to Supabase Cloud Database if configured (Disabled direct client-side sync to let the backend APIs handle this cleanly)
+  /*
   if (isSupabaseConfigured) {
     try {
       await saveMaterialToSupabase(item);
@@ -219,6 +222,7 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
       console.warn('Failed to sync material to Supabase cloud:', err);
     }
   }
+  */
 
   // Notify components across app
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
@@ -250,7 +254,8 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
     console.warn('Failed to delete material from server API:', serverErr);
   }
 
-  // 3. Delete from Supabase Cloud
+  // 3. Delete from Supabase Cloud (Disabled direct client-side sync to let the backend APIs handle this cleanly)
+  /*
   if (isSupabaseConfigured) {
     try {
       await deleteMaterialFromSupabase(id, storageUrl);
@@ -258,6 +263,7 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
       console.warn('Failed to delete material from Supabase cloud:', err);
     }
   }
+  */
 
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));

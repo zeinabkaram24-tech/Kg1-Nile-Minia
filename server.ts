@@ -277,18 +277,22 @@ app.get('/api/materials', async (req, res) => {
       return res.json(getStoredMaterials());
     }
 
-    // Map database snake_case columns to camelCase expected by the client
-    const mapped = (data || []).map((row: any) => ({
-      id: row.id,
-      fileName: row.file_name,
-      fileSize: Number(row.file_size || 0),
-      block: Number(row.block || 1),
-      section: row.section || 'General',
-      classId: row.class_id || 'ALL',
-      storageUrl: row.storage_url || '',
-      type: row.file_data ? 'pdf' : (row.storage_url && row.storage_url.includes('http') ? 'link' : 'pdf'),
-      uploadedAt: row.uploaded_at,
-    }));
+    // Map database snake_case columns to camelCase expected by the client, computing storageUrl/type safely without missing column
+    const mapped = (data || []).map((row: any) => {
+      const isLink = row.file_data && (row.file_data.startsWith('http://') || row.file_data.startsWith('https://'));
+      return {
+        id: row.id,
+        fileName: row.file_name,
+        fileSize: Number(row.file_size || 0),
+        block: Number(row.block || 1),
+        section: row.section || 'General',
+        classId: row.class_id || 'ALL',
+        storageUrl: isLink ? row.file_data : `/api/materials/${row.id}/file`,
+        linkUrl: isLink ? row.file_data : undefined,
+        type: isLink ? 'link' : 'pdf',
+        uploadedAt: row.uploaded_at,
+      };
+    });
 
     res.json(mapped);
   } catch (err: any) {
@@ -317,7 +321,7 @@ app.post('/api/materials', async (req, res) => {
       }
     }
 
-    // Map client MaterialItem to database snake_case columns
+    // Map client MaterialItem to database snake_case columns (excluding storage_url which is missing from the live schema)
     const row = {
       id: item.id,
       file_name: item.fileName,
@@ -325,7 +329,6 @@ app.post('/api/materials', async (req, res) => {
       block: Number(item.block || 1),
       section: item.section || 'General',
       class_id: item.classId || 'ALL',
-      storage_url: item.storageUrl || '',
       file_data: item.fileData || null, // Keep fileData in database so other container instances can retrieve and self-heal!
       uploaded_at: item.uploadedAt || new Date().toISOString(),
     };
@@ -413,7 +416,6 @@ app.post('/api/materials/:id/upload-raw', express.raw({ type: 'application/octet
       if (existingRows && existingRows.length > 0) {
         const row = {
           ...existingRows[0],
-          storage_url: storageUrl,
           file_data: base64Data,
         };
         await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
@@ -425,7 +427,6 @@ app.post('/api/materials/:id/upload-raw', express.raw({ type: 'application/octet
           block: 1,
           section: 'General',
           class_id: 'ALL',
-          storage_url: storageUrl,
           file_data: base64Data,
           uploaded_at: new Date().toISOString(),
         };
