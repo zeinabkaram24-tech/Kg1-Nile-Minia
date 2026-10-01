@@ -1338,13 +1338,17 @@ export function materialToRow(item: MaterialItem): MaterialRow {
 
 export function rowToMaterial(row: MaterialRow): MaterialItem {
   const effectiveUrl = row.file_url || undefined;
-  const isWebUrl = Boolean(
+  const isPdf = Boolean(
+    (row.file_name && row.file_name.toLowerCase().endsWith('.pdf')) ||
+    (effectiveUrl && effectiveUrl.toLowerCase().endsWith('.pdf')) ||
+    (effectiveUrl && effectiveUrl.includes('/api/materials/')) ||
+    (row.file_size && row.file_size > 0)
+  );
+  const isLink = !isPdf && Boolean(
     effectiveUrl &&
     (effectiveUrl.startsWith('http://') || effectiveUrl.startsWith('https://')) &&
-    !effectiveUrl.toLowerCase().endsWith('.pdf') &&
-    !effectiveUrl.includes('.pdf?')
+    !effectiveUrl.includes('/api/materials/')
   );
-  const isLink = isWebUrl || row.file_size === 0;
 
   return {
     id: row.id,

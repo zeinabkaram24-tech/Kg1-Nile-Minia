@@ -297,7 +297,11 @@ export const MaterialsModal: React.FC<MaterialsModalProps> = ({
                 {currentSectionMaterials.length > 0 ? (
                   <div className="space-y-3 pt-1">
                     {currentSectionMaterials.map((file) => {
-                      const isLink = file.type === 'link' || Boolean(file.linkUrl);
+                      const isLink =
+                        file.type === 'link' &&
+                        !file.fileName?.toLowerCase().endsWith('.pdf') &&
+                        Boolean(file.linkUrl) &&
+                        !file.linkUrl?.includes('/api/materials/');
                       const targetLink = file.linkUrl || file.storageUrl || '';
 
                       if (isLink) {

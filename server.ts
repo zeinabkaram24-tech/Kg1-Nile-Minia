@@ -329,19 +329,33 @@ app.get('/api/materials', async (req, res) => {
       .order('uploaded_at', { ascending: false });
 
     if (!error && Array.isArray(data)) {
-      const items = data.map((row: any) => ({
-        id: row.id,
-        fileName: row.file_name,
-        fileSize: row.file_size,
-        block: row.block,
-        section: row.section,
-        classId: row.class_id || 'ALL',
-        storageUrl: row.file_url || `/api/materials/${row.id}/file`,
-        linkUrl: row.file_url || undefined,
-        type: row.file_url && !row.file_url.endsWith('.pdf') && !row.file_url.includes('.pdf?') ? 'link' : 'pdf',
-        fileData: row.file_data || undefined,
-        uploadedAt: row.uploaded_at,
-      }));
+      const items = data.map((row: any) => {
+        const isPdf = Boolean(
+          (row.file_name && row.file_name.toLowerCase().endsWith('.pdf')) ||
+          (row.file_url && row.file_url.toLowerCase().endsWith('.pdf')) ||
+          (row.file_url && row.file_url.includes('/api/materials/')) ||
+          (row.file_size && row.file_size > 0)
+        );
+        const isLink = !isPdf && Boolean(
+          row.file_url &&
+          (row.file_url.startsWith('http://') || row.file_url.startsWith('https://')) &&
+          !row.file_url.includes('/api/materials/')
+        );
+
+        return {
+          id: row.id,
+          fileName: row.file_name,
+          fileSize: row.file_size,
+          block: row.block,
+          section: row.section,
+          classId: row.class_id || 'ALL',
+          storageUrl: row.file_url || `/api/materials/${row.id}/file`,
+          linkUrl: isLink ? row.file_url : undefined,
+          type: isLink ? 'link' : 'pdf',
+          fileData: row.file_data || undefined,
+          uploadedAt: row.uploaded_at,
+        };
+      });
       return res.json(items);
     }
   } catch (err: any) {

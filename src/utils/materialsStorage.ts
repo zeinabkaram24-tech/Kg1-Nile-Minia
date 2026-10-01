@@ -320,41 +320,56 @@ export function getPdfViewableUrl(item: MaterialItem): string {
   return item.storageUrl || '';
 }
 
-// Open PDF or Link directly in our guaranteed In-App Viewer Modal or native browser reader
+// Create a guaranteed in-memory Blob URL for any MaterialItem (100% immune to router navigation or HTML rewrites)
+export async function getMaterialBlobUrl(item: MaterialItem): Promise<string> {
+  // 1. If we already have fileData in memory:
+  if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
+    try {
+      const blob = dataUrlToBlob(item.fileData);
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      console.warn('Failed to convert fileData to blob:', e);
+    }
+  }
+
+  // 2. Fetch file_data on-demand from Supabase
+  if (item.id) {
+    try {
+      const { fetchMaterialFileData } = await import('../lib/supabase');
+      const data = await fetchMaterialFileData(item.id);
+      if (data && data.includes(',')) {
+        item.fileData = data;
+        const blob = dataUrlToBlob(data);
+        return URL.createObjectURL(blob);
+      }
+    } catch (e) {
+      console.warn('Could not fetch fileData from Supabase:', e);
+    }
+  }
+
+  // 3. Fallback to server endpoint
+  return item.storageUrl || `/api/materials/${item.id}/file`;
+}
+
+// Open PDF or Link directly in our guaranteed In-App Viewer Modal
 export function openPdfItem(item: MaterialItem): void {
   try {
-    // If it's a web link, open immediately in new tab
-    if (item.type === 'link' || (item.linkUrl && !item.linkUrl.toLowerCase().endsWith('.pdf'))) {
-      const targetUrl = item.linkUrl || item.storageUrl;
-      if (targetUrl) {
-        window.open(targetUrl, '_blank');
-        return;
-      }
+    // If it's a real external website (like youtube.com or external domain):
+    if (
+      item.type === 'link' &&
+      item.linkUrl &&
+      (item.linkUrl.startsWith('http://') || item.linkUrl.startsWith('https://')) &&
+      !item.linkUrl.includes('/api/materials/')
+    ) {
+      window.open(item.linkUrl, '_blank');
+      return;
     }
 
-    const viewableUrl = getPdfViewableUrl(item);
-
-    // On mobile screens (iPhone/Android), opening the PDF directly in a new tab provides the native, full-fidelity PDF reader
-    const isMobile = typeof window !== 'undefined' && (
-      window.innerWidth < 768 ||
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    );
-
-    if (isMobile && viewableUrl) {
-      const win = window.open(viewableUrl, '_blank');
-      if (win) {
-        return;
-      }
-    }
-
-    // Dispatch custom event to open In-App PDF Viewer Modal directly in place
+    // Always dispatch event to open guaranteed In-App Viewer Modal
     if (typeof window !== 'undefined') {
       window.dispatchEvent(
         new CustomEvent('open_pdf_viewer_modal', {
-          detail: {
-            ...item,
-            viewableUrl,
-          },
+          detail: item,
         })
       );
     }

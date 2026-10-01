@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, ExternalLink, Printer, FileText, Maximize2 } from 'lucide-react';
+import { X, Download, ExternalLink, Printer, FileText, Maximize2, Loader2 } from 'lucide-react';
 import {
   MaterialItem,
   formatBytes,
   downloadPdfItem,
   printPdfItem,
   getPdfViewableUrl,
+  getMaterialBlobUrl,
 } from '../utils/materialsStorage';
 
 interface PdfViewerModalProps {
@@ -26,8 +27,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [internalOpen, setInternalOpen] = useState(false);
   const [activeItem, setActiveItem] = useState<MaterialItem | null>(null);
   const [activeUrl, setActiveUrl] = useState<string>('');
+  const [blobUrl, setBlobUrl] = useState<string>('');
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoadingBlob, setIsLoadingBlob] = useState(false);
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -41,10 +44,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         setActiveTitle(name);
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
-        const url = detail.viewableUrl || getPdfViewableUrl(detail) || detail.storageUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
-        setActiveUrl(url || '');
         setActiveTitle(detail.fileName || 'ملف PDF مرفق.pdf');
         setActiveItem(detail);
+        const fallbackUrl = detail.viewableUrl || getPdfViewableUrl(detail) || (detail.id ? `/api/materials/${detail.id}/file` : '');
+        setActiveUrl(fallbackUrl || '');
       }
       setInternalOpen(true);
     };
@@ -69,10 +72,36 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propItem) {
       setActiveItem(propItem);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
-      const url = (propItem as any).viewableUrl || getPdfViewableUrl(propItem) || propItem.storageUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
+      const url = (propItem as any).viewableUrl || getPdfViewableUrl(propItem) || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
       if (url) setActiveUrl(url);
     }
   }, [propIsOpen, propPdfUrl, propFileName, propItem]);
+
+  // Generate in-memory Blob URL for active item to prevent ANY app routing reloads
+  useEffect(() => {
+    if (!activeItem) return;
+    let cancelled = false;
+    setIsLoadingBlob(true);
+
+    getMaterialBlobUrl(activeItem)
+      .then((url) => {
+        if (!cancelled && url) {
+          setBlobUrl(url);
+          setActiveUrl(url);
+          setIsLoadingBlob(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error creating material blob url:', err);
+        if (!cancelled) {
+          setIsLoadingBlob(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeItem]);
 
   const isOpen = propIsOpen !== undefined ? propIsOpen : internalOpen;
 
@@ -81,16 +110,17 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propOnClose) propOnClose();
   };
 
-  if (!isOpen || !activeUrl) return null;
+  if (!isOpen || (!activeUrl && !isLoadingBlob)) return null;
 
   const fileTitle = activeTitle || activeItem?.fileName || 'ملف PDF مرفق.pdf';
+  const effectiveDisplayUrl = blobUrl || activeUrl;
 
   const handleDownload = () => {
     if (activeItem) {
       downloadPdfItem(activeItem);
     } else {
       const a = document.createElement('a');
-      a.href = activeUrl;
+      a.href = effectiveDisplayUrl;
       a.download = fileTitle;
       document.body.appendChild(a);
       a.click();
@@ -102,13 +132,15 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (activeItem) {
       printPdfItem(activeItem);
     } else {
-      const a = window.open(activeUrl, '_blank');
+      const a = window.open(effectiveDisplayUrl, '_blank');
       a?.focus();
     }
   };
 
   const handleOpenNewTab = () => {
-    window.open(activeUrl, '_blank');
+    if (effectiveDisplayUrl) {
+      window.open(effectiveDisplayUrl, '_blank');
+    }
   };
 
   return (
@@ -216,47 +248,65 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
             className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-xs shadow-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>فتح في عارض المتصفح ↗</span>
+            <span>عرض في نافذة مستقلة ↗</span>
           </button>
         </div>
 
         {/* PDF Viewer Body */}
         <div className="flex-1 bg-slate-100 relative min-h-0 overflow-hidden flex flex-col">
-          <object
-            data={activeUrl}
-            type="application/pdf"
-            className="w-full h-full border-0 bg-white"
-          >
-            <iframe
-              id="pdf-modal-iframe"
-              src={activeUrl}
-              title={fileTitle}
+          {isLoadingBlob ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 text-center gap-3">
+              <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+              <p className="text-sm font-black text-slate-800">جاري فتح وتجهيز المستند بالتنسيق الأصلي...</p>
+              <span className="text-xs text-slate-400 font-semibold">{fileTitle}</span>
+            </div>
+          ) : (
+            <object
+              data={effectiveDisplayUrl}
+              type="application/pdf"
               className="w-full h-full border-0 bg-white"
             >
-              <div className="flex flex-col items-center justify-center p-8 text-center h-full gap-4">
-                <FileText className="w-12 h-12 text-slate-400" />
-                <div>
-                  <h4 className="font-black text-slate-800 text-base mb-1">{fileTitle}</h4>
-                  <p className="text-xs text-slate-500 font-semibold max-w-sm">
-                    متصفحك يحتاج لفتح هذا الملف في نافذة مستقلة لعرضه بتنسيقه الأصلي بالكامل.
-                  </p>
+              <iframe
+                id="pdf-modal-iframe"
+                src={effectiveDisplayUrl}
+                title={fileTitle}
+                className="w-full h-full border-0 bg-white"
+              >
+                <div className="flex flex-col items-center justify-center p-8 text-center h-full gap-4">
+                  <FileText className="w-12 h-12 text-slate-400" />
+                  <div>
+                    <h4 className="font-black text-slate-800 text-base mb-1">{fileTitle}</h4>
+                    <p className="text-xs text-slate-500 font-semibold max-w-sm">
+                      يمكنك فتح الملف في نافذة مستقلة أو تحميله لعرضه بتنسيقه الأصلي بالكامل.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleOpenNewTab}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>فتح في نافذة جديدة</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>تحميل</span>
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleOpenNewTab}
-                  className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>فتح الملف الآن بتنسيقه الأصلي</span>
-                </button>
-              </div>
-            </iframe>
-          </object>
+              </iframe>
+            </object>
+          )}
 
           {/* Bottom helper toolbar */}
           <div className="py-2 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
             <span>
-              إذا لم يظهر المستند تلقائياً في متصفحك، يمكنك{' '}
+              إذا لم يظهر المستند تلقائياً، يمكنك{' '}
               <button
                 onClick={handleDownload}
                 className="text-indigo-600 hover:underline font-bold cursor-pointer"
@@ -268,7 +318,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                 onClick={handleOpenNewTab}
                 className="text-indigo-600 hover:underline font-bold cursor-pointer"
               >
-                فتحه في نافذة جديدة
+                فتحه في نافذة مستقلة
               </button>
               .
             </span>
