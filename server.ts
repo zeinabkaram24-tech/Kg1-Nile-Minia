@@ -17,6 +17,112 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// --- WHATSAPP-STYLE LIVE REAL-TIME SYNC ENGINE ---
+interface SyncClient {
+  id: string;
+  res: any;
+}
+
+let syncClients: SyncClient[] = [];
+
+// Global broadcaster available to any router/file on the server
+(global as any).broadcastLiveUpdate = (type: string, data?: any, originSessionId?: string) => {
+  const payload = JSON.stringify({
+    type,
+    data: data || null,
+    originSessionId: originSessionId || '',
+    timestamp: Date.now(),
+  });
+
+  let activeClients = 0;
+  syncClients.forEach((client) => {
+    try {
+      client.res.write(`data: ${payload}\n\n`);
+      activeClients++;
+    } catch (err) {
+      // ignore
+    }
+  });
+  console.log(`[LiveSync] Broadcasted event ${type} to ${activeClients}/${syncClients.length} clients.`);
+};
+
+// SSE Live Sync registration endpoint
+app.get('/api/live-sync', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+  res.write('\n');
+
+  const clientId = `conn_${Math.random().toString(36).substring(2, 9)}_${Date.now()}`;
+  syncClients.push({ id: clientId, res });
+
+  // Initial handshake
+  res.write(`data: ${JSON.stringify({ type: 'CONNECTED', clientId })}\n\n`);
+
+  // Heartbeat ping every 15 seconds to keep connections open on iOS / mobile Safari
+  const pingInterval = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      // ignore
+    }
+  }, 15000);
+
+  req.on('close', () => {
+    clearInterval(pingInterval);
+    syncClients = syncClients.filter((c) => c.id !== clientId);
+  });
+});
+
+// Explicit broadcast API
+app.post('/api/live-sync/broadcast', (req, res) => {
+  const { type, data } = req.body;
+  const originSessionId = req.headers['x-session-id'] as string || '';
+  if (typeof (global as any).broadcastLiveUpdate === 'function') {
+    (global as any).broadcastLiveUpdate(type, data, originSessionId);
+  }
+  res.json({ success: true, clientsConnected: syncClients.length });
+});
+
+// Auto-broadcast middleware for any successful REST mutation
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'DELETE'].includes(req.method) && req.path.startsWith('/api/')) {
+    res.on('finish', () => {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        const path = req.path;
+        if (path.includes('/live-sync')) return; // Skip live sync itself
+
+        let type: string = 'PLANNER_UPDATE';
+        if (path.includes('/materials')) {
+          type = 'MATERIALS_UPDATE';
+        } else if (path.includes('/timetables') || path.includes('/timetable')) {
+          type = 'TIMETABLE_UPDATE';
+        } else if (path.includes('/planner-settings')) {
+          type = 'SETTINGS_UPDATE';
+        } else if (path.includes('/tomorrow-notes')) {
+          type = 'PLANNER_UPDATE';
+        } else if (path.includes('/classwork')) {
+          type = 'PLANNER_UPDATE';
+        } else if (path.includes('/homework')) {
+          type = 'PLANNER_UPDATE';
+        } else if (path.includes('/student-progress')) {
+          type = 'SETTINGS_UPDATE';
+        }
+
+        const originSessionId = req.headers['x-session-id'] as string || '';
+        if (typeof (global as any).broadcastLiveUpdate === 'function') {
+          (global as any).broadcastLiveUpdate(type, null, originSessionId);
+        }
+      }
+    });
+  }
+  next();
+});
+// --------------------------------------------------
+
 app.use(dbRouter);
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
 
@@ -167,6 +273,13 @@ app.post('/api/materials', (req, res) => {
       } catch (fErr) {
         console.warn('Failed to write material file to disk:', fErr);
       }
+    }
+
+    // ALWAYS delete the massive fileData base64 string from the list object
+    // stored in materials.json to keep it extremely lightweight (few KB instead of MB),
+    // ensuring lightning-fast loading on mobile and low memory devices.
+    if (item.fileData) {
+      delete item.fileData;
     }
 
     const current = getStoredMaterials();

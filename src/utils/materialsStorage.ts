@@ -124,10 +124,15 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
         if (missingOnServer.length > 0) {
           console.log(`[MaterialsSync] Syncing ${missingOnServer.length} local items to server for cross-device access...`);
           missingOnServer.forEach((item) => {
+            const itemToSync = { ...item };
+            // Strip fileData if we already have a cloud URL to prevent HTTP 413 Payload Too Large on serverless/proxies
+            if (itemToSync.storageUrl && itemToSync.storageUrl.startsWith('http')) {
+              delete itemToSync.fileData;
+            }
             fetch('/api/materials', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(item),
+              body: JSON.stringify(itemToSync),
             }).catch((err) => console.warn('Background sync item to server failed:', err));
           });
         }
@@ -186,10 +191,15 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
 
   // 2. Centralized Server Persistence (/api/materials) for laptop & all devices
   try {
+    const itemToSync = { ...item };
+    // Strip fileData if we already have a cloud URL to prevent HTTP 413 Payload Too Large on serverless/proxies
+    if (itemToSync.storageUrl && itemToSync.storageUrl.startsWith('http')) {
+      delete itemToSync.fileData;
+    }
     const res = await fetch('/api/materials', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
+      body: JSON.stringify(itemToSync),
     });
     if (res.ok) {
       const data = await res.json();

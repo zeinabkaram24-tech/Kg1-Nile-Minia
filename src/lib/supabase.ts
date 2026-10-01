@@ -1372,11 +1372,11 @@ export async function uploadPdfToSupabaseStorage(
   if (!isSupabaseConfigured) return null;
 
   try {
-    const bucketName = 'materials';
+    let bucketName = 'school_materials';
     const cleanName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${Date.now()}_${cleanName}`;
 
-    const { error: uploadError } = await supabase.storage
+    let uploadResult = await supabase.storage
       .from(bucketName)
       .upload(path, file, {
         cacheControl: '3600',
@@ -1384,8 +1384,21 @@ export async function uploadPdfToSupabaseStorage(
         contentType: 'application/pdf',
       });
 
-    if (uploadError) {
-      console.warn('Storage upload notice (falling back to database or local):', uploadError.message);
+    // Fallback to 'materials' bucket if 'school_materials' fails (e.g. bucket doesn't exist)
+    if (uploadResult.error) {
+      console.warn(`[Supabase Storage] Upload to '${bucketName}' failed, trying 'materials' bucket:`, uploadResult.error.message);
+      bucketName = 'materials';
+      uploadResult = await supabase.storage
+        .from(bucketName)
+        .upload(path, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'application/pdf',
+        });
+    }
+
+    if (uploadResult.error) {
+      console.warn('Storage upload notice (falling back to database or local):', uploadResult.error.message);
       return null;
     }
 

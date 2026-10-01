@@ -58,8 +58,9 @@ import {
   saveLocalCustomHomework,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
-import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon } from 'lucide-react';
+import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon, Wifi, WifiOff } from 'lucide-react';
 import { getAutoDetectedToday } from './utils/academicCalendar';
+import { subscribeToLiveSync, subscribeToLiveSyncStatus, LiveSyncStatus } from './services/liveSyncService';
 
 // Real local app storage with fallback for browser environment
 const appStorage = {
@@ -213,6 +214,9 @@ export default function App() {
   const [supabaseStatus, setSupabaseStatus] = useState<'connecting' | 'connected' | 'unconfigured' | 'error'>(() => {
     return isSupabaseConfigured ? 'connecting' : 'unconfigured';
   });
+
+  // WhatsApp-Style SSE Live Synchronization Connection Status
+  const [liveSyncStatus, setLiveSyncStatus] = useState<LiveSyncStatus>('connecting');
 
   // Classwork state initialized based on user profile
   const [classworkList, setClassworkList] = useState<ClassworkEntry[]>(() => {
@@ -380,6 +384,35 @@ export default function App() {
 
     refreshAllData(false);
 
+    // Subscribe to WhatsApp-Style Real-time SSE Live Sync status
+    const unsubscribeStatus = subscribeToLiveSyncStatus((status) => {
+      setLiveSyncStatus(status);
+    });
+
+    // Subscribe to WhatsApp-Style Real-time SSE Live Sync events
+    const unsubscribeEvents = subscribeToLiveSync((event) => {
+      console.log('[LiveSync] Real-time event received:', event);
+      if (
+        event.type === 'PLANNER_UPDATE' ||
+        event.type === 'REFRESH_ALL' ||
+        event.type === 'PLANNER_CLEAR' ||
+        event.type === 'PLANNER_DELETE'
+      ) {
+        refreshAllData(false);
+        showToast('⚡ تم تحديث الجدول والتحضيرات تلقائياً لمطابقة التغييرات الحالية!');
+      } else if (event.type === 'MATERIALS_UPDATE') {
+        refreshAllData(false);
+        window.dispatchEvent(new CustomEvent('materials_updated'));
+        showToast('📚 تم تحديث بنك الأسئلة والملخصات تلقائياً!');
+      } else if (event.type === 'TIMETABLE_UPDATE') {
+        refreshAllData(false);
+        showToast('📅 تم تحديث جدول الحصص والمواد تلقائياً!');
+      } else if (event.type === 'SETTINGS_UPDATE') {
+        refreshAllData(false);
+        showToast('⚙️ تم تحديث الإعدادات والخيارات تلقائياً!');
+      }
+    });
+
     // Re-sync whenever window gets focus or tab becomes active, and roll over date if changed
     const handleFocusSync = () => {
       if (document.visibilityState === 'visible') {
@@ -406,54 +439,53 @@ export default function App() {
       }
     }, 10000);
 
-    // Setup Supabase Realtime Channels only if configured
-    if (!isSupabaseConfigured) {
-      return () => {
-        isMounted = false;
-        window.removeEventListener('focus', handleFocusSync);
-        document.removeEventListener('visibilitychange', handleFocusSync);
-        clearInterval(syncInterval);
-      };
-    }
+    let channel: any = null;
 
-    const channel = supabase
-      .channel('planner-realtime-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newCw = rowToClasswork(payload.new as ClassworkRow);
-          setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          const updatedCw = rowToClasswork(payload.new as ClassworkRow);
-          setClassworkList((prev) =>
-            prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
-          );
-        } else if (payload.eventType === 'DELETE') {
-          const oldId = payload.old.id;
-          setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
-        }
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const newHw = rowToHomework(payload.new as HomeworkRow);
-          setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
-        } else if (payload.eventType === 'UPDATE') {
-          const updatedHw = rowToHomework(payload.new as HomeworkRow);
-          setHomeworkList((prev) =>
-            prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
-          );
-        } else if (payload.eventType === 'DELETE') {
-          const oldId = payload.old.id;
-          setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
-        }
-      })
-      .subscribe();
+    // Setup Supabase Realtime Channels only if configured
+    if (isSupabaseConfigured) {
+      channel = supabase
+        .channel('planner-realtime-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newCw = rowToClasswork(payload.new as ClassworkRow);
+            setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedCw = rowToClasswork(payload.new as ClassworkRow);
+            setClassworkList((prev) =>
+              prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = payload.old.id;
+            setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newHw = rowToHomework(payload.new as HomeworkRow);
+            setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedHw = rowToHomework(payload.new as HomeworkRow);
+            setHomeworkList((prev) =>
+              prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const oldId = payload.old.id;
+            setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
+          }
+        })
+        .subscribe();
+    }
 
     return () => {
       isMounted = false;
       window.removeEventListener('focus', handleFocusSync);
       document.removeEventListener('visibilitychange', handleFocusSync);
       clearInterval(syncInterval);
-      supabase.removeChannel(channel);
+      unsubscribeStatus();
+      unsubscribeEvents();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [refreshAllData]);
 
@@ -1062,6 +1094,38 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Live Sync Indicator */}
+            {liveSyncStatus === 'connected' && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"
+                title="مزامنة فورية مباشرة نشطة (مثل الواتس اب) - الشاشات متطابقة تلقائياً في نفس الوقت"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <Wifi className="w-3.5 h-3.5 text-blue-600" />
+                <span>مزامنة مباشرة نشطة</span>
+              </div>
+            )}
+            {liveSyncStatus === 'connecting' && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"
+                title="جاري الاتصال بقناة المزامنة الفورية..."
+              >
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                <span>جاري ربط المزامنة...</span>
+              </div>
+            )}
+            {liveSyncStatus === 'disconnected' && (
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
+                title="انقر لإعادة الاتصال الفوري بمخدم المزامنة"
+              >
+                <WifiOff className="w-3.5 h-3.5 text-slate-500" />
+                <span>المزامنة منفصلة (انقر للربط)</span>
+              </button>
+            )}
+
             {/* Supabase connection indicator */}
             {supabaseStatus === 'connected' && (
               <button
