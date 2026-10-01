@@ -35,7 +35,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         setActiveTitle(name);
         setActiveItem(null);
       } else if (detail && typeof detail === 'object') {
-        const url = detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
+        const url = detail.fileData || detail.storageUrl || detail.linkUrl || (detail.id ? `/api/materials/${detail.id}/file` : '');
         setActiveUrl(url || '');
         setActiveTitle(detail.fileName || 'ملف PDF مرفق.pdf');
         setActiveItem(detail);
@@ -63,7 +63,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
     if (propItem) {
       setActiveItem(propItem);
       if (propItem.fileName) setActiveTitle(propItem.fileName);
-      const url = propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
+      const url = propItem.fileData || propItem.storageUrl || propItem.linkUrl || (propItem.id ? `/api/materials/${propItem.id}/file` : '');
       if (url) setActiveUrl(url);
     }
   }, [propIsOpen, propPdfUrl, propFileName, propItem]);

@@ -5,6 +5,7 @@ import {
   fetchAllMaterialsFromSupabase,
   saveMaterialToSupabase,
   deleteMaterialFromSupabase,
+  clearAllMaterialsFromSupabase,
 } from '../lib/supabase';
 
 const DB_NAME = 'SchoolMaterialsDB';
@@ -74,26 +75,49 @@ async function saveItemsToLocalDB(items: MaterialItem[]): Promise<void> {
   }
 }
 
-// Retrieve all materials (strictly server-authoritative when online to ensure all devices display identical content, offline fallback only)
+// Retrieve all materials (strictly Supabase-authoritative when online to ensure all devices display identical content, offline fallback only)
 export async function getAllMaterials(): Promise<MaterialItem[]> {
-  // 1. Try to fetch from the central server API (authoritative!)
-  try {
-    const res = await fetch('/api/materials');
-    if (res.ok) {
-      const serverItems: MaterialItem[] = await res.json();
-      if (Array.isArray(serverItems)) {
-        // Online Sync: Overwrite local IndexedDB with server items so they match 100% (clearing out stale local-only items)
+  // 1. Direct Supabase Cloud Fetch (Authoritative & Unified across all devices/domains)
+  if (isSupabaseConfigured) {
+    try {
+      const dbItems = await fetchAllMaterialsFromSupabase();
+      if (Array.isArray(dbItems) && dbItems.length > 0) {
+        // Online Sync: Overwrite local IndexedDB with Supabase items so they match 100%
         try {
           const db = await openDB();
           const tx = db.transaction(STORE_NAME, 'readwrite');
           const store = tx.objectStore(STORE_NAME);
-          store.clear(); // Wipes old local cache completely to sync perfectly with other devices!
-          for (const item of serverItems) {
+          store.clear();
+          for (const item of dbItems) {
             store.put(item);
           }
         } catch (dbErr) {
-          console.warn('Failed to overwrite local IndexedDB cache with server items:', dbErr);
+          console.warn('Failed to overwrite local IndexedDB cache with Supabase items:', dbErr);
         }
+
+        saveFallbackMaterials(dbItems);
+        return dbItems;
+      }
+    } catch (sbErr) {
+      console.warn('Direct Supabase fetch materials failed, checking server API:', sbErr);
+    }
+  }
+
+  // 2. Try to fetch from the central server API as secondary online source
+  try {
+    const res = await fetch('/api/materials');
+    if (res.ok) {
+      const serverItems: MaterialItem[] = await res.json();
+      if (Array.isArray(serverItems) && serverItems.length > 0) {
+        try {
+          const db = await openDB();
+          const tx = db.transaction(STORE_NAME, 'readwrite');
+          const store = tx.objectStore(STORE_NAME);
+          store.clear();
+          for (const item of serverItems) {
+            store.put(item);
+          }
+        } catch {}
 
         saveFallbackMaterials(serverItems);
         return serverItems;
@@ -103,7 +127,7 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
     console.warn('Failed to load materials from server API, using offline fallback:', err);
   }
 
-  // 2. Offline Fallback: Load from local IndexedDB ONLY if the server/network is completely unreachable!
+  // 3. Offline Fallback: Load from local IndexedDB ONLY if the server/network is completely unreachable!
   try {
     const db = await openDB();
     const localItems = await new Promise<MaterialItem[]>((resolve) => {
@@ -123,9 +147,18 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
   return getFallbackMaterials();
 }
 
-// Save or add a material (saves locally AND to central server AND Supabase Cloud)
+// Save or add a material (saves directly to Supabase Cloud, locally, and to central server)
 export async function saveMaterial(item: MaterialItem): Promise<void> {
-  // 1. Save to local IndexedDB
+  // 1. Direct Supabase Cloud Save (Guaranteed sync across all devices, just like classwork)
+  if (isSupabaseConfigured) {
+    try {
+      await saveMaterialToSupabase(item);
+    } catch (err) {
+      console.warn('Failed to sync material to Supabase cloud:', err);
+    }
+  }
+
+  // 2. Save to local IndexedDB for instant offline access
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -143,46 +176,35 @@ export async function saveMaterial(item: MaterialItem): Promise<void> {
     saveFallbackMaterials(existing);
   }
 
-  // 2. Centralized Server Persistence (/api/materials) for laptop & all devices
+  // 3. Secondary server persistence (/api/materials)
   try {
     const itemToSync = { ...item };
-    // Strip fileData if we already have any storageUrl to prevent HTTP 413 Payload Too Large on serverless/proxies
-    if (itemToSync.storageUrl) {
-      delete itemToSync.fileData;
-    }
-    const res = await fetch('/api/materials', {
+    await fetch('/api/materials', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(itemToSync),
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.item && data.item.storageUrl) {
-        item.storageUrl = data.item.storageUrl;
-      }
-    }
   } catch (serverErr) {
     console.warn('Failed to sync material to server API:', serverErr);
   }
 
-  // 3. Sync to Supabase Cloud Database if configured (Disabled direct client-side sync to let the backend APIs handle this cleanly)
-  /*
-  if (isSupabaseConfigured) {
-    try {
-      await saveMaterialToSupabase(item);
-    } catch (err) {
-      console.warn('Failed to sync material to Supabase cloud:', err);
-    }
-  }
-  */
-
   // Notify components across app
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
+  window.dispatchEvent(new CustomEvent('materials_updated'));
 }
 
-// Delete a material (deletes locally, from server, and from Supabase Cloud)
+// Delete a material (deletes from Supabase Cloud, locally, and central server)
 export async function deleteMaterial(id: string, storageUrl?: string): Promise<void> {
-  // 1. Delete from local IndexedDB
+  // 1. Direct Supabase Cloud Delete
+  if (isSupabaseConfigured) {
+    try {
+      await deleteMaterialFromSupabase(id);
+    } catch (err) {
+      console.warn('Failed to delete material from Supabase cloud:', err);
+    }
+  }
+
+  // 2. Delete from local IndexedDB
   try {
     const db = await openDB();
     await new Promise<void>((resolve, reject) => {
@@ -199,26 +221,16 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
     saveFallbackMaterials(existing);
   }
 
-  // 2. Delete from centralized server
+  // 3. Delete from centralized server
   try {
     await fetch(`/api/materials/${encodeURIComponent(id)}`, { method: 'DELETE' });
   } catch (serverErr) {
     console.warn('Failed to delete material from server API:', serverErr);
   }
 
-  // 3. Delete from Supabase Cloud (Disabled direct client-side sync to let the backend APIs handle this cleanly)
-  /*
-  if (isSupabaseConfigured) {
-    try {
-      await deleteMaterialFromSupabase(id, storageUrl);
-    } catch (err) {
-      console.warn('Failed to delete material from Supabase cloud:', err);
-    }
-  }
-  */
-
   // Notify components
   window.dispatchEvent(new CustomEvent(EVENT_NAME));
+  window.dispatchEvent(new CustomEvent('materials_updated'));
 }
 
 // Subscribe to updates
@@ -365,8 +377,18 @@ export function downloadPdfItem(item: MaterialItem): void {
   }
 }
 
-// Clear all materials completely from IndexedDB, in-memory cache, and trigger event
+// Clear all materials completely from IndexedDB, Supabase, and in-memory cache, and trigger event
 export async function clearAllMaterials(): Promise<void> {
+  // 1. Clear Supabase
+  if (isSupabaseConfigured) {
+    try {
+      await clearAllMaterialsFromSupabase();
+    } catch (err) {
+      console.warn('Failed to clear materials from Supabase:', err);
+    }
+  }
+
+  // 2. Clear IndexedDB
   try {
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -381,6 +403,7 @@ export async function clearAllMaterials(): Promise<void> {
   } catch {}
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(EVENT_NAME));
+    window.dispatchEvent(new CustomEvent('materials_updated'));
   }
 }
 

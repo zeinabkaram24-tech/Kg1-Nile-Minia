@@ -59,24 +59,15 @@ app.post('/api/materials/:id/upload-raw', async (req, res) => {
     const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
     fs.writeFileSync(filePath, buffer);
 
-    // 2. Upload to global settings row in planner_settings
+    // 2. Upload to Supabase 'materials' table (file_data)
     const base64Data = `data:application/pdf;base64,${buffer.toString('base64')}`;
     try {
-      const { data: rowData } = await serverSupabase
-        .from('planner_settings')
-        .select('settings')
-        .eq('id', 'global')
-        .single();
-
-      const currentSettings = (rowData && rowData.settings) ? { ...rowData.settings } : {};
-      currentSettings[`material_file_${id}`] = base64Data;
-
       await serverSupabase
-        .from('planner_settings')
-        .update({ settings: currentSettings, updated_at: new Date().toISOString() })
-        .eq('id', 'global');
+        .from('materials')
+        .update({ file_data: base64Data })
+        .eq('id', id);
     } catch (dbErr: any) {
-      console.warn('[Raw Upload Stream] Failed to save material_file to planner_settings settings field:', dbErr.message);
+      console.warn('[Raw Upload Stream] Failed to update file_data in materials table:', dbErr.message);
     }
 
     const storageUrl = `/api/materials/${id}/file`;
@@ -329,26 +320,34 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Materials endpoints (Cloud-Persistent & Self-Healing across Mobile, Laptop & Desktop using global planner_settings row)
+// Materials endpoints (Directly synced with Supabase 'materials' table)
 app.get('/api/materials', async (req, res) => {
   try {
     const { data, error } = await serverSupabase
-      .from('planner_settings')
-      .select('settings')
-      .eq('id', 'global')
-      .single();
+      .from('materials')
+      .select('*')
+      .order('uploaded_at', { ascending: false });
 
-    if (error || !data || !data.settings || !data.settings.school_materials_list) {
-      console.warn('[Server Supabase] school_materials_list warning, falling back to local disk JSON:', error?.message);
-      return res.json(getStoredMaterials());
+    if (!error && Array.isArray(data)) {
+      const items = data.map((row: any) => ({
+        id: row.id,
+        fileName: row.file_name,
+        fileSize: row.file_size,
+        block: row.block,
+        section: row.section,
+        classId: row.class_id || 'ALL',
+        storageUrl: row.file_url || `/api/materials/${row.id}/file`,
+        linkUrl: row.file_url || undefined,
+        type: row.file_url && !row.file_url.endsWith('.pdf') && !row.file_url.includes('.pdf?') ? 'link' : 'pdf',
+        fileData: row.file_data || undefined,
+        uploadedAt: row.uploaded_at,
+      }));
+      return res.json(items);
     }
-
-    const items = data.settings.school_materials_list;
-    res.json(items);
   } catch (err: any) {
     console.error('[Server Supabase] Materials fetch error:', err);
-    res.json(getStoredMaterials());
   }
+  res.json(getStoredMaterials());
 });
 
 app.post('/api/materials', async (req, res) => {
@@ -358,7 +357,7 @@ app.post('/api/materials', async (req, res) => {
       return res.status(400).json({ error: 'Valid material item with id is required' });
     }
 
-    // Save metadata locally to disk as fallback
+    // 1. Save metadata locally to disk as fallback
     const itemWithoutData = { ...item };
     delete itemWithoutData.fileData;
 
@@ -371,64 +370,45 @@ app.post('/api/materials', async (req, res) => {
     }
     saveStoredMaterials(currentLocal);
 
-    // Fetch global settings
-    const { data: rowData } = await serverSupabase
-      .from('planner_settings')
-      .select('settings')
-      .eq('id', 'global')
-      .single();
-
-    const currentSettings = (rowData && rowData.settings) ? { ...rowData.settings } : {};
-
-    // Save fileData to settings if provided directly
+    // 2. Save binary file to disk if base64 provided
     if (item.fileData && typeof item.fileData === 'string' && item.fileData.includes(',')) {
       try {
         const base64Data = item.fileData.split(',')[1];
         const buffer = Buffer.from(base64Data, 'base64');
         const filePath = path.join(MATERIALS_DIR, `${item.id}.pdf`);
         fs.writeFileSync(filePath, buffer);
-        item.storageUrl = `/api/materials/${item.id}/file`;
-
-        // Store file in settings object
-        currentSettings[`material_file_${item.id}`] = item.fileData;
       } catch (fErr) {
         console.warn('[Server Disk] Failed to write material file to disk:', fErr);
       }
     }
 
-    // Clean list: find and replace or insert
-    const cleanItem = { ...item };
-    delete cleanItem.fileData; // never keep massive binary in the main index
-    if (!cleanItem.storageUrl) {
-      cleanItem.storageUrl = `/api/materials/${cleanItem.id}/file`;
+    // 3. Upsert directly into Supabase 'materials' table
+    try {
+      const row = {
+        id: item.id,
+        file_name: item.fileName,
+        file_size: typeof item.fileSize === 'number' ? item.fileSize : Number(item.fileSize) || 0,
+        block: typeof item.block === 'number' ? item.block : Number(item.block) || 1,
+        section: item.section || 'Main sheet',
+        class_id: item.classId || 'ALL',
+        file_url: item.storageUrl || item.linkUrl || `/api/materials/${item.id}/file`,
+        file_data: item.fileData || null,
+        uploaded_at: item.uploadedAt || new Date().toISOString(),
+      };
+
+      await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
+    } catch (sbErr: any) {
+      console.warn('[Server Supabase] Upsert into materials table notice:', sbErr.message);
     }
 
-    let items: any[] = currentSettings.school_materials_list || [];
-    if (!Array.isArray(items)) items = [];
-
-    const existingIdx = items.findIndex((m) => m.id === cleanItem.id);
-    if (existingIdx >= 0) {
-      items[existingIdx] = { ...items[existingIdx], ...cleanItem };
-    } else {
-      items.unshift(cleanItem);
-    }
-
-    currentSettings.school_materials_list = items;
-
-    // Update settings column in Supabase
-    await serverSupabase
-      .from('planner_settings')
-      .update({ settings: currentSettings, updated_at: new Date().toISOString() })
-      .eq('id', 'global');
-
-    // LiveSync Broadcast!
+    // 4. LiveSync Broadcast!
     if (typeof (global as any).broadcastLiveUpdate === 'function') {
-      (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', items);
+      (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', item);
     }
 
-    res.json({ success: true, item: cleanItem });
+    res.json({ success: true, item });
   } catch (err: any) {
-    console.error('[Server Supabase] Error saving material to planner_settings:', err);
+    console.error('[Server Supabase] Error saving material to materials table:', err);
     res.status(500).json({ error: err.message || 'Error saving material' });
   }
 });
@@ -445,32 +425,28 @@ app.get('/api/materials/:id/file', async (req, res) => {
     return stream.pipe(res);
   }
 
-  // 2. Self-Healing: Retrieve from planner_settings!
+  // 2. Retrieve from Supabase 'materials' table (file_data)
   try {
     const { data, error } = await serverSupabase
-      .from('planner_settings')
-      .select('settings')
-      .eq('id', 'global')
+      .from('materials')
+      .select('file_data')
+      .eq('id', id)
       .single();
 
-    if (!error && data && data.settings && data.settings[`material_file_${id}`]) {
-      let base64Str = data.settings[`material_file_${id}`];
+    if (!error && data && data.file_data) {
+      let base64Str = data.file_data;
       if (base64Str.includes(',')) {
         base64Str = base64Str.split(',')[1];
       }
       const buffer = Buffer.from(base64Str, 'base64');
-      
-      // Save it back to local disk for fast subsequent reads
-      try {
-        fs.writeFileSync(filePath, buffer);
-      } catch {}
+      try { fs.writeFileSync(filePath, buffer); } catch {}
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
       return res.send(buffer);
     }
   } catch (dbErr) {
-    console.warn('[Server Self-Healing] Could not retrieve file from planner_settings settings:', dbErr);
+    console.warn('[Server Self-Healing] Could not retrieve file from materials table:', dbErr);
   }
 
   // 3. Fallback to materials.json list
@@ -503,31 +479,16 @@ app.delete('/api/materials/:id', async (req, res) => {
     try { fs.unlinkSync(filePath); } catch {}
   }
 
-  // 3. Delete from planner_settings
+  // 3. Delete from Supabase 'materials' table
   try {
-    const { data } = await serverSupabase
-      .from('planner_settings')
-      .select('settings')
-      .eq('id', 'global')
-      .single();
-
-    if (data && data.settings) {
-      const currentSettings = { ...data.settings };
-      delete currentSettings[`material_file_${id}`];
-
-      let list = currentSettings.school_materials_list || [];
-      if (Array.isArray(list)) {
-        list = list.filter((m: any) => m.id !== id);
-      }
-      currentSettings.school_materials_list = list;
-
-      await serverSupabase
-        .from('planner_settings')
-        .update({ settings: currentSettings, updated_at: new Date().toISOString() })
-        .eq('id', 'global');
-    }
+    await serverSupabase.from('materials').delete().eq('id', id);
   } catch (err) {
-    console.warn('[Server Supabase] Error deleting material from settings:', err);
+    console.warn('[Server Supabase] Error deleting material from materials table:', err);
+  }
+
+  // 4. LiveSync Broadcast!
+  if (typeof (global as any).broadcastLiveUpdate === 'function') {
+    (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', { deletedId: id });
   }
 
   res.json({ success: true });
@@ -543,26 +504,12 @@ app.post('/api/materials/clear', async (req, res) => {
       });
     }
 
-    const { data } = await serverSupabase
-      .from('planner_settings')
-      .select('settings')
-      .eq('id', 'global')
-      .single();
+    try {
+      await serverSupabase.from('materials').delete().neq('id', '___dummy___');
+    } catch {}
 
-    if (data && data.settings) {
-      const currentSettings = { ...data.settings };
-      delete currentSettings.school_materials_list;
-
-      Object.keys(currentSettings).forEach((key) => {
-        if (key.startsWith('material_file_')) {
-          delete currentSettings[key];
-        }
-      });
-
-      await serverSupabase
-        .from('planner_settings')
-        .update({ settings: currentSettings, updated_at: new Date().toISOString() })
-        .eq('id', 'global');
+    if (typeof (global as any).broadcastLiveUpdate === 'function') {
+      (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', { cleared: true });
     }
     
     res.json({ success: true });

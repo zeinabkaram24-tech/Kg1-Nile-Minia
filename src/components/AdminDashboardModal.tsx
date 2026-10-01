@@ -573,46 +573,36 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
         const materialId = 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 
-        // 1. First, upload the raw file to the high-performance raw upload endpoint
-        let storageUrl: string | undefined = undefined;
-        try {
-          const fileBuffer = await selectedFile.arrayBuffer();
-          const rawRes = await fetch(`/api/materials/${materialId}/upload-raw`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/octet-stream' },
-            body: fileBuffer, // Sends computed binary ArrayBuffer to guarantee Content-Length header and prevent proxy blocking!
-          });
-          if (rawRes.ok) {
-            const rawData = await rawRes.json();
-            if (rawData.storageUrl) {
-              storageUrl = rawData.storageUrl;
-            }
-          }
-        } catch (rawErr) {
-          console.warn('Raw binary upload to server failed, trying direct Supabase storage:', rawErr);
-        }
+        // Read the file as Data URL (base64) so it is stored directly in Supabase
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const fileDataUrl = reader.result as string;
 
-        // 2. Fallback to direct client-side Supabase storage if the raw upload failed
-        if (!storageUrl) {
+          let storageUrl: string | undefined = undefined;
           try {
-            const cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
-            if (cloudUrl) {
-              storageUrl = cloudUrl;
+            const fileBuffer = await selectedFile.arrayBuffer();
+            const rawRes = await fetch(`/api/materials/${materialId}/upload-raw`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/octet-stream' },
+              body: fileBuffer,
+            });
+            if (rawRes.ok) {
+              const rawData = await rawRes.json();
+              if (rawData.storageUrl) {
+                storageUrl = rawData.storageUrl;
+              }
             }
-          } catch (uploadErr) {
-            console.warn('Direct bucket upload failed:', uploadErr);
+          } catch (rawErr) {
+            console.warn('Raw binary upload to server failed:', rawErr);
           }
-        }
 
-        // 3. Save metadata. Skip FileReader if storageUrl is already successfully retrieved!
-        const saveMetadata = async (fileData?: string) => {
           try {
             const newItem: MaterialItem = {
               id: materialId,
               fileName: selectedFile.name,
               fileSize: selectedFile.size,
-              fileData: fileData || '', // Only cached locally if available
-              storageUrl: storageUrl, // Points to the persistent URL!
+              fileData: fileDataUrl, // Complete PDF data synced directly to Supabase table materials!
+              storageUrl: storageUrl || `/api/materials/${materialId}/file`,
               type: 'pdf',
               block: targetBlock,
               section: targetSection,
@@ -640,19 +630,12 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           }
         };
 
-        if (storageUrl) {
-          await saveMetadata();
-        } else {
-          const reader = new FileReader();
-          reader.onload = async () => {
-            await saveMetadata(reader.result as string);
-          };
-          reader.onerror = () => {
-            setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
-            setIsUploading(false);
-          };
-          reader.readAsDataURL(selectedFile);
-        }
+        reader.onerror = () => {
+          setErrorMessage('تعذر قراءة ملف الـ PDF. يرجى التحقق من الملف.');
+          setIsUploading(false);
+        };
+
+        reader.readAsDataURL(selectedFile);
       } catch (err) {
         console.error(err);
         setErrorMessage('حدث خطأ غير متوقع أثناء الرفع.');

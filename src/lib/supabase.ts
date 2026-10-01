@@ -1314,7 +1314,7 @@ export interface MaterialRow {
   block: number;
   section: string;
   class_id: string | null;
-  storage_url: string | null;
+  file_url: string | null;
   file_data: string | null;
   uploaded_at: string;
 }
@@ -1330,19 +1330,19 @@ export function materialToRow(item: MaterialItem): MaterialRow {
     block: blockNum,
     section: item.section || 'Main sheet',
     class_id: item.classId || 'ALL',
-    storage_url: effectiveUrl,
-    // Only save file_data if small (< 1.5MB) to prevent large DB payloads
-    file_data: sizeNum < 1500000 ? (item.fileData || null) : null,
+    file_url: effectiveUrl,
+    file_data: item.fileData || null,
     uploaded_at: item.uploadedAt || new Date().toISOString(),
   };
 }
 
 export function rowToMaterial(row: MaterialRow): MaterialItem {
+  const effectiveUrl = row.file_url || undefined;
   const isWebUrl = Boolean(
-    row.storage_url &&
-    (row.storage_url.startsWith('http://') || row.storage_url.startsWith('https://')) &&
-    !row.storage_url.toLowerCase().endsWith('.pdf') &&
-    !row.storage_url.includes('.pdf?')
+    effectiveUrl &&
+    (effectiveUrl.startsWith('http://') || effectiveUrl.startsWith('https://')) &&
+    !effectiveUrl.toLowerCase().endsWith('.pdf') &&
+    !effectiveUrl.includes('.pdf?')
   );
   const isLink = isWebUrl || row.file_size === 0;
 
@@ -1353,8 +1353,8 @@ export function rowToMaterial(row: MaterialRow): MaterialItem {
     block: row.block,
     section: row.section,
     classId: (row.class_id as ClassId | 'ALL') || 'ALL',
-    storageUrl: row.storage_url || undefined,
-    linkUrl: isLink ? (row.storage_url || undefined) : undefined,
+    storageUrl: effectiveUrl,
+    linkUrl: isLink ? effectiveUrl : undefined,
     type: isLink ? 'link' : 'pdf',
     fileData: row.file_data || undefined,
     uploadedAt: row.uploaded_at,
@@ -1476,6 +1476,18 @@ export async function deleteMaterialFromSupabase(id: string, storageUrl?: string
     }
   } catch (err) {
     console.warn('Network exception deleting material from Supabase:', err);
+  }
+}
+
+/**
+ * Clear all materials from Supabase 'materials' table
+ */
+export async function clearAllMaterialsFromSupabase(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    await supabase.from('materials').delete().neq('id', '___non_existent___');
+  } catch (err) {
+    console.warn('Network exception clearing materials from Supabase:', err);
   }
 }
 
