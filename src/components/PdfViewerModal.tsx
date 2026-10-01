@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, ExternalLink, Printer, FileText, Maximize2, Loader2, Layers, Monitor } from 'lucide-react';
+import { X, Download, ExternalLink, Printer, FileText, Maximize2, Loader2 } from 'lucide-react';
 import {
   MaterialItem,
   formatBytes,
@@ -8,7 +8,6 @@ import {
   getPdfViewableUrl,
   getMaterialBlobUrl,
 } from '../utils/materialsStorage';
-import { PdfCanvasViewer } from './PdfCanvasViewer';
 
 interface PdfViewerModalProps {
   isOpen?: boolean;
@@ -32,24 +31,6 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   const [activeTitle, setActiveTitle] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoadingBlob, setIsLoadingBlob] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [viewerMode, setViewerMode] = useState<'canvas' | 'native'>('canvas');
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile =
-        window.innerWidth < 768 ||
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      setIsMobile(mobile);
-      if (mobile) {
-        setViewerMode('canvas');
-      }
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Listen to global open_pdf_viewer_modal custom events
   useEffect(() => {
@@ -165,74 +146,42 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   return (
     <div
       id="pdf-viewer-modal-backdrop"
-      className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150"
     >
       <div
         id="pdf-viewer-modal-container"
-        className={`bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 flex flex-col transition-all overflow-hidden ${
-          isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-5xl h-[95vh] sm:h-[92vh]'
+        className={`bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col transition-all overflow-hidden ${
+          isFullscreen ? 'w-full h-full rounded-none' : 'w-full max-w-5xl h-[92vh]'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-3.5 sm:px-6 py-3 border-b border-slate-200 bg-slate-50/95 shrink-0 gap-2 sm:gap-3">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-slate-50/90 shrink-0 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
+              <FileText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-xs sm:text-base font-black text-slate-900 truncate" title={fileTitle}>
+              <h3 className="text-sm sm:text-base font-black text-slate-900 truncate" title={fileTitle}>
                 {fileTitle}
               </h3>
-              <div className="flex items-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-semibold">
-                <span className="px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 font-bold border border-rose-200/60">
+              <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold">
+                <span className="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold border border-rose-200/60">
                   PDF
                 </span>
                 {activeItem?.fileSize ? <span>• {formatBytes(activeItem.fileSize)}</span> : null}
-                <span className="hidden sm:inline">• بالتنسيق الأصلي</span>
+                <span>• بالتنسيق الأصلي للمستند</span>
               </div>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            {/* Desktop mode switch (only on desktop) */}
-            {!isMobile && (
-              <div className="hidden md:flex items-center bg-slate-200/80 p-0.5 rounded-xl border border-slate-300 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setViewerMode('canvas')}
-                  className={`px-2.5 py-1 rounded-lg font-black text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
-                    viewerMode === 'canvas'
-                      ? 'bg-white text-indigo-950 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  title="عرض صفحات المستند مباشرة"
-                >
-                  <Layers className="w-3 h-3 text-indigo-600" />
-                  <span>عرض الصفحات</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewerMode('native')}
-                  className={`px-2.5 py-1 rounded-lg font-black text-[11px] flex items-center gap-1 transition-all cursor-pointer ${
-                    viewerMode === 'native'
-                      ? 'bg-white text-indigo-950 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  title="عارض المتصفح الافتراضي"
-                >
-                  <Monitor className="w-3 h-3 text-slate-600" />
-                  <span>عارض المتصفح</span>
-                </button>
-              </div>
-            )}
-
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Download */}
             <button
               id="pdf-modal-download-btn"
               type="button"
               onClick={handleDownload}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black transition-colors cursor-pointer"
               title="تحميل الملف للجهاز"
             >
               <Download className="w-3.5 h-3.5 text-emerald-700" />
@@ -244,23 +193,23 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               id="pdf-modal-print-btn"
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-black transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 text-xs font-black transition-colors cursor-pointer"
               title="طباعة الملف"
             >
               <Printer className="w-3.5 h-3.5 text-slate-600" />
               <span className="hidden sm:inline">طباعة</span>
             </button>
 
-            {/* Open in new tab (desktop) */}
+            {/* Open in new tab */}
             <button
               id="pdf-modal-external-link"
               type="button"
               onClick={handleOpenNewTab}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-xs font-black transition-colors cursor-pointer"
-              title="فتح في نافذة مستقلة"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-950 border border-indigo-200 text-xs font-black transition-colors cursor-pointer"
+              title="فتح في تبويب مستقل"
             >
               <ExternalLink className="w-3.5 h-3.5 text-indigo-700" />
-              <span>نافذة جديدة</span>
+              <span className="hidden sm:inline">تبويب جديد</span>
             </button>
 
             {/* Fullscreen toggle */}
@@ -268,7 +217,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
               id="pdf-modal-fullscreen-btn"
               type="button"
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="hidden sm:block p-1.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200/80 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200/80 transition-colors cursor-pointer"
               title={isFullscreen ? 'تصغير' : 'ملء الشاشة'}
             >
               <Maximize2 className="w-4 h-4" />
@@ -287,23 +236,31 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
           </div>
         </div>
 
+        {/* Quick Access Mobile & Desktop Banner */}
+        <div className="py-2.5 px-4 bg-gradient-to-r from-indigo-50 via-slate-50 to-blue-50 border-b border-indigo-100 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 text-indigo-950 font-bold text-xs truncate">
+            <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span className="truncate">معاينة الملف بتنسيقه الأصلي بالكامل:</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenNewTab}
+            className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black text-xs shadow-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>عرض في نافذة مستقلة ↗</span>
+          </button>
+        </div>
+
         {/* PDF Viewer Body */}
         <div className="flex-1 bg-slate-100 relative min-h-0 overflow-hidden flex flex-col">
           {isLoadingBlob ? (
             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50 text-center gap-3">
               <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
-              <p className="text-sm font-black text-slate-800">جاري عرض وتجهيز المستند مباشرة...</p>
+              <p className="text-sm font-black text-slate-800">جاري فتح وتجهيز المستند بالتنسيق الأصلي...</p>
               <span className="text-xs text-slate-400 font-semibold">{fileTitle}</span>
             </div>
-          ) : viewerMode === 'canvas' || isMobile ? (
-            /* Direct In-App High-DPI Page Viewer (Works 100% on Mobile & Desktop!) */
-            <PdfCanvasViewer
-              fileData={activeItem?.fileData}
-              blobUrl={effectiveDisplayUrl}
-              fileName={fileTitle}
-            />
           ) : (
-            /* Desktop Native Browser PDF plugin */
             <object
               data={effectiveDisplayUrl}
               type="application/pdf"
@@ -314,9 +271,61 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
                 src={effectiveDisplayUrl}
                 title={fileTitle}
                 className="w-full h-full border-0 bg-white"
-              />
+              >
+                <div className="flex flex-col items-center justify-center p-8 text-center h-full gap-4">
+                  <FileText className="w-12 h-12 text-slate-400" />
+                  <div>
+                    <h4 className="font-black text-slate-800 text-base mb-1">{fileTitle}</h4>
+                    <p className="text-xs text-slate-500 font-semibold max-w-sm">
+                      يمكنك فتح الملف في نافذة مستقلة أو تحميله لعرضه بتنسيقه الأصلي بالكامل.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleOpenNewTab}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>فتح في نافذة جديدة</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownload}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md cursor-pointer flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>تحميل</span>
+                    </button>
+                  </div>
+                </div>
+              </iframe>
             </object>
           )}
+
+          {/* Bottom helper toolbar */}
+          <div className="py-2 px-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0 flex-wrap gap-2">
+            <span>
+              إذا لم يظهر المستند تلقائياً، يمكنك{' '}
+              <button
+                onClick={handleDownload}
+                className="text-indigo-600 hover:underline font-bold cursor-pointer"
+              >
+                النقر هنا لتحميله
+              </button>{' '}
+              أو{' '}
+              <button
+                onClick={handleOpenNewTab}
+                className="text-indigo-600 hover:underline font-bold cursor-pointer"
+              >
+                فتحه في نافذة مستقلة
+              </button>
+              .
+            </span>
+            <span className="text-[11px] text-slate-400 font-bold">
+              {fileTitle}
+            </span>
+          </div>
         </div>
       </div>
     </div>
