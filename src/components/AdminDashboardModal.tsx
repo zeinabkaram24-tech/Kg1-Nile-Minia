@@ -569,26 +569,50 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         setIsUploading(true);
         setErrorMessage(null);
 
-        // 1. Try uploading to Supabase Storage bucket first
-        let cloudUrl: string | null = null;
+        const materialId = 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+
+        // 1. First, upload the raw file to the high-performance raw upload endpoint
+        let storageUrl: string | undefined = undefined;
         try {
-          cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
-        } catch (uploadErr) {
-          console.warn('Direct bucket upload failed, using local/DB fallback:', uploadErr);
+          const rawRes = await fetch(`/api/materials/${materialId}/upload-raw`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/octet-stream' },
+            body: selectedFile, // Streams raw binary directly to the server!
+          });
+          if (rawRes.ok) {
+            const rawData = await rawRes.json();
+            if (rawData.storageUrl) {
+              storageUrl = rawData.storageUrl;
+            }
+          }
+        } catch (rawErr) {
+          console.warn('Raw binary upload to server failed, trying direct Supabase storage:', rawErr);
         }
 
-        // 2. Read file binary as Base64 Data URL for local offline cache and fallback
+        // 2. Fallback to direct client-side Supabase storage if the raw upload failed
+        if (!storageUrl) {
+          try {
+            const cloudUrl = await uploadPdfToSupabaseStorage(selectedFile, selectedFile.name);
+            if (cloudUrl) {
+              storageUrl = cloudUrl;
+            }
+          } catch (uploadErr) {
+            console.warn('Direct bucket upload failed:', uploadErr);
+          }
+        }
+
+        // 3. Read base64 locally ONLY for local IndexedDB cache, NEVER send to metadata endpoint if we have storageUrl
         const reader = new FileReader();
         reader.onload = async () => {
           try {
             const fileData = reader.result as string;
 
             const newItem: MaterialItem = {
-              id: 'mat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+              id: materialId,
               fileName: selectedFile.name,
               fileSize: selectedFile.size,
-              fileData: fileData,
-              storageUrl: cloudUrl || undefined,
+              fileData: fileData, // Saved to local IndexedDB for instant offline access
+              storageUrl: storageUrl, // Points to the persistent URL!
               type: 'pdf',
               block: targetBlock,
               section: targetSection,
@@ -600,15 +624,14 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
             await refreshMaterials();
 
             setSuccessMessage(
-              cloudUrl
-                ? `تم رفع الملف سحابياً بنجاح وتوفيره لجميع الأجهزة واللابتوب!`
-                : `تم حفظ الملف بنجاح في Block ${targetBlock} — ${targetSection}!`
+              storageUrl && storageUrl.startsWith('http')
+                ? `تم رفع وتزامن الملف سحابياً بنجاح وتوفيره للموبايل والبريفيو وكل الأجهزة!`
+                : `تم حفظ الملف بنجاح وتزامن البيانات!`
             );
             setSelectedFile(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
             setIsUploading(false);
 
-            // Auto clear success message after 4s
             setTimeout(() => {
               setSuccessMessage(null);
             }, 4000);

@@ -348,6 +348,90 @@ app.post('/api/materials', async (req, res) => {
   }
 });
 
+// High-Performance Raw Binary Upload (Bypasses JSON/Base64 overhead and 4.5MB Serverless Body limits!)
+app.post('/api/materials/:id/upload-raw', express.raw({ type: 'application/octet-stream', limit: '50mb' }), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const buffer = req.body;
+    
+    if (!buffer || buffer.length === 0) {
+      return res.status(400).json({ error: 'No file data received' });
+    }
+
+    console.log(`[Raw Upload] Received ${buffer.length} bytes for material ${id}`);
+
+    // 1. Write raw binary buffer to disk
+    const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
+    fs.writeFileSync(filePath, buffer);
+
+    // 2. Upload directly to Supabase Storage Bucket
+    let cloudUrl: string | null = null;
+    try {
+      const cleanName = `${id}.pdf`;
+      const bucketName = 'school_materials';
+      
+      const { data: uploadData, error: uploadError } = await serverSupabase.storage
+        .from(bucketName)
+        .upload(cleanName, buffer, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'application/pdf',
+        });
+
+      if (!uploadError) {
+        const { data: publicUrlData } = serverSupabase.storage
+          .from(bucketName)
+          .getPublicUrl(cleanName);
+        cloudUrl = publicUrlData.publicUrl || null;
+      } else {
+        console.warn('[Raw Upload] Supabase Storage bucket upload warning, falling back to database/disk:', uploadError.message);
+      }
+    } catch (sbErr) {
+      console.warn('[Raw Upload] Supabase Storage exception:', sbErr);
+    }
+
+    const storageUrl = cloudUrl || `/api/materials/${id}/file`;
+    const base64Data = `data:application/pdf;base64,${buffer.toString('base64')}`;
+
+    // 3. Upsert into Supabase materials table (pre-save file_data for direct sync to other instances!)
+    try {
+      const { data: existingRows } = await serverSupabase
+        .from('materials')
+        .select('*')
+        .eq('id', id);
+
+      if (existingRows && existingRows.length > 0) {
+        const row = {
+          ...existingRows[0],
+          storage_url: storageUrl,
+          file_data: base64Data,
+        };
+        await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
+      } else {
+        const row = {
+          id,
+          file_name: 'Uploaded PDF.pdf',
+          file_size: buffer.length,
+          block: 1,
+          section: 'General',
+          class_id: 'ALL',
+          storage_url: storageUrl,
+          file_data: base64Data,
+          uploaded_at: new Date().toISOString(),
+        };
+        await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
+      }
+    } catch (dbErr: any) {
+      console.warn('[Raw Upload] Database record save warning:', dbErr.message);
+    }
+
+    res.json({ success: true, storageUrl });
+  } catch (err: any) {
+    console.error('[Raw Upload] Error in raw upload controller:', err);
+    res.status(500).json({ error: err.message || 'Error uploading file' });
+  }
+});
+
 app.get('/api/materials/:id/file', async (req, res) => {
   const { id } = req.params;
   const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
