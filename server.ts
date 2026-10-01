@@ -362,7 +362,7 @@ app.post('/api/materials', async (req, res) => {
 });
 
 // High-Performance Raw Binary Upload (Bypasses JSON/Base64 overhead and 4.5MB Serverless Body limits!)
-app.post('/api/materials/:id/upload-raw', express.raw({ type: 'application/octet-stream', limit: '50mb' }), async (req, res) => {
+app.post('/api/materials/:id/upload-raw', express.raw({ type: () => true, limit: '50mb' }), async (req, res) => {
   try {
     const { id } = req.params;
     const buffer = req.body;
@@ -463,9 +463,12 @@ app.get('/api/materials/:id/file', async (req, res) => {
       .eq('id', id)
       .single();
 
-    if (!error && data && data.file_data && data.file_data.includes(',')) {
-      const base64Data = data.file_data.split(',')[1];
-      const buffer = Buffer.from(base64Data, 'base64');
+    if (!error && data && data.file_data) {
+      let base64Str = data.file_data;
+      if (base64Str.includes(',')) {
+        base64Str = base64Str.split(',')[1];
+      }
+      const buffer = Buffer.from(base64Str, 'base64');
       
       // Save it back to local disk for fast subsequent reads
       try {
@@ -483,9 +486,12 @@ app.get('/api/materials/:id/file', async (req, res) => {
   // 3. Fallback to materials.json list
   const list = getStoredMaterials();
   const found = list.find((m: any) => m.id === id);
-  if (found && found.fileData && found.fileData.includes(',')) {
-    const base64Data = found.fileData.split(',')[1];
-    const buffer = Buffer.from(base64Data, 'base64');
+  if (found && found.fileData) {
+    let base64Str = found.fileData;
+    if (base64Str.includes(',')) {
+      base64Str = base64Str.split(',')[1];
+    }
+    const buffer = Buffer.from(base64Str, 'base64');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
     return res.send(buffer);
