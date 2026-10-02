@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { CLASS_TIMETABLES } from './src/data/timetables';
 
 dotenv.config();
 
@@ -371,6 +372,34 @@ router.get('/api/db/timetables', async (req, res) => {
         }
       }
     }
+
+    // Server-side final guarantee: ensure all classes with baseline schedules have slots
+    let finalNeedsHeal = false;
+    for (const [classId, schedule] of Object.entries(CLASS_TIMETABLES)) {
+      const hasBaselineSlots = schedule && Object.values(schedule).some(slots => Array.isArray(slots) && slots.length > 0);
+      if (hasBaselineSlots) {
+        const currentClassSchedule = map[classId];
+        const currentHasSlots = currentClassSchedule && Object.values(currentClassSchedule).some((slots: any) => Array.isArray(slots) && slots.length > 0);
+        if (!currentHasSlots) {
+          map[classId] = schedule;
+          finalNeedsHeal = true;
+        }
+      }
+    }
+
+    if (finalNeedsHeal) {
+      writeJsonFile(FILE_PATHS.timetables, map);
+      if (supabase) {
+        try {
+          await supabase.from('planner_settings').upsert({
+            key: 'custom_timetables',
+            value: JSON.stringify(map),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'key' });
+        } catch {}
+      }
+    }
+
     res.json({ success: true, data: map });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
