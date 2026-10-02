@@ -24,7 +24,7 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
   try {
     const raw = localStorage.getItem(TIMETABLE_STORAGE_KEY);
     if (!raw) {
-      return {
+      const initial = {
         KG1A: CLASS_TIMETABLES.KG1A || createEmptyWeekSchedule(),
         KG1B: CLASS_TIMETABLES.KG1B || createEmptyWeekSchedule(),
         KG1C: CLASS_TIMETABLES.KG1C || createEmptyWeekSchedule(),
@@ -34,14 +34,26 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
         G2B: CLASS_TIMETABLES.G2B || createEmptyWeekSchedule(),
         G2C: CLASS_TIMETABLES.G2C || createEmptyWeekSchedule(),
       };
+      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(initial));
+      return initial;
     }
     const parsed = JSON.parse(raw);
+    let needsUpdate = false;
     const getCleaned = (classId: ClassId) => {
       const sanitized = sanitizeSchedule(parsed[classId]);
-      return hasAnySlots(sanitized) ? sanitized! : (CLASS_TIMETABLES[classId] || createEmptyWeekSchedule());
+      if (hasAnySlots(sanitized)) {
+        return sanitized!;
+      } else {
+        const baseline = CLASS_TIMETABLES[classId] || createEmptyWeekSchedule();
+        if (hasAnySlots(baseline)) {
+          parsed[classId] = baseline;
+          needsUpdate = true;
+        }
+        return baseline;
+      }
     };
 
-    return {
+    const finalTimetables = {
       KG1A: getCleaned('KG1A'),
       KG1B: getCleaned('KG1B'),
       KG1C: getCleaned('KG1C'),
@@ -51,6 +63,15 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
       G2B: getCleaned('G2B'),
       G2C: getCleaned('G2C'),
     };
+
+    if (needsUpdate) {
+      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(parsed));
+      supabaseSaveAllTimetables(parsed).catch((err) => {
+        console.warn('Auto-healing cloud timetable save warning:', err);
+      });
+    }
+
+    return finalTimetables;
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);
     return CLASS_TIMETABLES;
@@ -74,8 +95,26 @@ export async function syncTimetablesFromCloud(): Promise<Record<ClassId, Record<
   try {
     const cloudTimetables = await supabaseFetchTimetables();
     if (cloudTimetables && Object.keys(cloudTimetables).length > 0) {
+      let needsHeal = false;
+      const classIds: ClassId[] = ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E', 'G2A', 'G2B', 'G2C'];
+      for (const classId of classIds) {
+        const sanitized = sanitizeSchedule(cloudTimetables[classId]);
+        if (!hasAnySlots(sanitized)) {
+          const baseline = CLASS_TIMETABLES[classId];
+          if (hasAnySlots(baseline)) {
+            cloudTimetables[classId] = baseline;
+            needsHeal = true;
+          }
+        }
+      }
+
       localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(cloudTimetables));
       window.dispatchEvent(new Event('timetableUpdated'));
+
+      if (needsHeal) {
+        supabaseSaveAllTimetables(cloudTimetables).catch(() => {});
+      }
+
       return cloudTimetables;
     }
   } catch (err) {
