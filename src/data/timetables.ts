@@ -278,6 +278,50 @@ const BASE_SCHEDULE_KG1C: Record<SchoolDay, PeriodSlot[]> = {
   ],
 };
 
+const BASE_SCHEDULE_KG1D: Record<SchoolDay, PeriodSlot[]> = {
+  Saturday: [],
+  Sunday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 3, time: '9:55 - 10:45', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 4, time: '10:45 - 11:35', subject: 'PE', teacher: 'Shreen Emad' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 6, time: '12:55 - 1:45', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+  ],
+  Monday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 3, time: '9:55 - 10:45', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 4, time: '10:45 - 11:35', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 6, time: '12:55 - 1:45', subject: 'Music', teacher: 'Sara Khalifa' },
+  ],
+  Tuesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'Music', teacher: 'Sara Khalifa' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 3, time: '9:55 - 10:45', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+  ],
+  Wednesday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 2, time: '8:35 - 9:25', subject: 'Art', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 4, time: '10:45 - 11:35', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+    { period: 5, time: '12:05 - 12:55', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 6, time: '12:55 - 1:45', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+  ],
+  Thursday: [
+    { period: 1, time: '7:45 - 8:35', subject: 'PE', teacher: 'Shreen Emad' },
+    { period: 2, time: '8:35 - 9:25', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 3, time: '9:55 - 10:45', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 4, time: '10:45 - 11:35', subject: 'English', teacher: 'Saraa yousef / Esraa Fouly' },
+    { period: 5, time: '12:05 - 12:55', subject: 'Art', teacher: 'Nourhan Mahmoud Sary' },
+    { period: 6, time: '12:55 - 1:45', subject: 'Arabic', teacher: 'Amany Saad / Nourhan Nabil' },
+  ],
+};
+
 const BASE_SCHEDULE_KG1E: Record<SchoolDay, PeriodSlot[]> = {
   Saturday: [],
   Sunday: [
@@ -339,14 +383,14 @@ const RAW_CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = {
   KG1A: BASE_SCHEDULE_KG1A,
   KG1B: EMPTY_SCHEDULE,
   KG1C: BASE_SCHEDULE_KG1C,
-  KG1D: EMPTY_SCHEDULE,
+  KG1D: BASE_SCHEDULE_KG1D,
   KG1E: BASE_SCHEDULE_KG1E,
 
   // Aliases for compatibility
   'A': BASE_SCHEDULE_KG1A,
   'B': EMPTY_SCHEDULE,
   'C': BASE_SCHEDULE_KG1C,
-  'D': EMPTY_SCHEDULE,
+  'D': BASE_SCHEDULE_KG1D,
   'E': BASE_SCHEDULE_KG1E,
 };
 
@@ -362,6 +406,9 @@ export const CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> =
       }
       if (prop === 'KG1C' || prop === 'C') {
         return BASE_SCHEDULE_KG1C;
+      }
+      if (prop === 'KG1D' || prop === 'D') {
+        return BASE_SCHEDULE_KG1D;
       }
       if (prop === 'KG1E' || prop === 'E') {
         return BASE_SCHEDULE_KG1E;
