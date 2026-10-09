@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type } from '@google/genai';
 import { useMemo, useState } from 'react';
 
 export interface WeeklyPlanRow {
@@ -15,82 +14,27 @@ export interface WeeklyPlanExtraction {
 
 export type WeeklyPlanMimeType = 'application/pdf' | 'image/png' | 'image/jpeg' | 'image/webp';
 
-/** JSON schema returned by Gemini for every uploaded weekly-plan document. */
-export const WEEKLY_PLAN_RESPONSE_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    items: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          day: { type: Type.STRING, description: 'Day name exactly as visible in the document.' },
-          subject: { type: Type.STRING, description: 'Subject name exactly as visible in the document.' },
-          classWork: { type: Type.STRING, description: 'Classwork or lesson content. Empty string when absent.' },
-          homeWork: { type: Type.STRING, description: 'Homework content. Empty string when absent.' },
-          notes: { type: Type.STRING, description: 'Other notes, materials, pages, or preparation. Empty string when absent.' }
-        },
-        required: ['day', 'subject', 'classWork', 'homeWork', 'notes'],
-        propertyOrdering: ['day', 'subject', 'classWork', 'homeWork', 'notes']
-      }
-    }
-  },
-  required: ['items'],
-  propertyOrdering: ['items']
-} as const;
-
-function getGeminiClient(): GoogleGenAI {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('Missing VITE_GEMINI_API_KEY. Add it to .env.local before analyzing a file.');
-  }
-  return new GoogleGenAI({ apiKey });
-}
-
-function stripDataUrl(base64: string): string {
-  return base64.includes(',') ? base64.slice(base64.indexOf(',') + 1) : base64;
-}
-
 /**
- * Sends a PDF or Base64 image to Gemini 2.5 Flash and returns strict structured JSON.
- * The browser client requires the API key to be supplied through VITE_GEMINI_API_KEY.
+ * Sends a PDF or Base64 image to the server-side Gemini proxy endpoint and returns structured JSON.
  */
 export async function extractWeeklyPlanWithGemini(
   fileBase64: string,
   mimeType: WeeklyPlanMimeType
 ): Promise<WeeklyPlanExtraction> {
-  const ai = getGeminiClient();
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: [{
-      role: 'user',
-      parts: [
-        {
-          text: [
-            'Read the uploaded weekly school plan carefully.',
-            'Return one item for every visible subject/day combination.',
-            'Preserve the original language (Arabic or English).',
-            'Do not invent missing values; use an empty string.',
-            'Return exactly three classified fields for every row: classWork, homeWork, and notes (the Tomorrow field).',
-            'Put lesson explanations in classWork, assignments in homeWork, and notes such as tomorrow preparation, materials, pages, or reminders in notes.',
-            'Copy the visible text faithfully; do not summarize, translate, or invent content.'
-          ].join(' ')
-        },
-        { inlineData: { data: stripDataUrl(fileBase64), mimeType } }
-      ]
-    }],
-    config: {
-      responseMimeType: 'application/json',
-      responseSchema: WEEKLY_PLAN_RESPONSE_SCHEMA,
-      temperature: 0
-    }
+  const response = await fetch('/api/extract-weekly-plan', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileBase64, mimeType }),
   });
 
-  const text = response.text?.trim();
-  if (!text) throw new Error('Gemini returned an empty extraction response.');
-  const parsed = JSON.parse(text) as WeeklyPlanExtraction;
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || `Failed to extract plan: ${response.statusText}`);
+  }
+
+  const data = await response.json();
   return {
-    items: (parsed.items || []).map((item) => ({
+    items: (data.items || []).map((item: any) => ({
       day: String(item.day || '').trim(),
       subject: String(item.subject || '').trim(),
       classWork: String(item.classWork || '').trim(),

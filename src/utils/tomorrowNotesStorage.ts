@@ -13,7 +13,7 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
     const raw = appStorage.getItem(LOCAL_CUSTOM_TOMORROW_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) return parsed.filter((n) => n.block !== 2);
     }
   } catch {}
   return [];
@@ -22,7 +22,7 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
 export function saveLocalCustomTomorrowNotes(notes: TomorrowSpecialNote[], mode: 'merge' | 'replace' = 'merge') {
   try {
     if (mode === 'replace') {
-      appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(notes));
+      appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(notes.filter((n) => n.block !== 2)));
       return;
     }
     const current = getLocalCustomTomorrowNotes();
@@ -32,8 +32,10 @@ export function saveLocalCustomTomorrowNotes(notes: TomorrowSpecialNote[], mode:
       map.set(key, n);
     });
     notes.forEach((n) => {
-      const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-      map.set(key, n);
+      if (n.block !== 2) {
+        const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+        map.set(key, n);
+      }
     });
     appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(Array.from(map.values())));
   } catch {}
@@ -84,6 +86,9 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
+  if (block === 2) {
+    return [];
+  }
   const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
 
   // Base official notes for Block/Week or EffectiveWeek from static files

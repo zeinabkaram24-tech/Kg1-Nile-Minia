@@ -265,6 +265,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
+    if (currentBlock === 2 && currentWeek === 1) return [];
     const base =
       currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
         ? WEEK2_SPECIAL_NOTES.filter(
@@ -286,6 +287,10 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let isMounted = true;
     const loadNotes = async () => {
       try {
+        if (currentBlock === 2 && currentWeek === 1) {
+          if (isMounted) setTomorrowNotes([]);
+          return;
+        }
         const [deletedIds, notes] = await Promise.all([
           getDeletedTomorrowNoteIds(),
           getTomorrowNotesForDay(
@@ -459,6 +464,9 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
+    if (currentBlock === 2) {
+      return [];
+    }
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
@@ -617,12 +625,13 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Prioritize quizzes and tests to appear first in the notes list
   const sortedNotes = useMemo(() => {
+    if (currentBlock === 2 && currentWeek === 1) return [];
     return [...mergedNotes].sort((a, b) => {
       const aQuiz = isQuizOrTest(a) ? 1 : 0;
       const bQuiz = isQuizOrTest(b) ? 1 : 0;
       return bQuiz - aQuiz;
     });
-  }, [mergedNotes]);
+  }, [mergedNotes, currentBlock, currentWeek]);
 
   if (!hasClassTimetable(currentClass) && !isAdminEditMode) {
     return (
@@ -663,7 +672,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             جدول حصص الغد — يوم {ARABIC_DAY_NAMES[tomorrowDay]} ({tomorrowDay})
           </span>
           <span className="text-xs text-indigo-900 font-bold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
-            {currentClass} • 8 حصص
+            {currentClass} • {targetPeriods.length} حصص
           </span>
         </div>
 
@@ -696,6 +705,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       </div>
 
       {/* Second: Block for Notes Underneath (ملاحظات وتحذيرات حصص الغد - كويزات واختبارات باللون الأحمر) */}
+      {!(currentBlock === 2 && currentWeek === 1 && !isAdminEditMode) && (
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
           <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
@@ -811,6 +821,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

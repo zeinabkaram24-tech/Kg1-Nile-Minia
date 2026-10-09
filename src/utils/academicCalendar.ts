@@ -61,12 +61,12 @@ export function getAutoDetectedToday(customDate?: Date): AcademicDateInfo {
     if (d === 1) {
       topic = 1;
       week = 3; // Thursday 1/10 of Week 3
-    } else if (d < 9) {
+    } else if (d < 8) {
       topic = 1;
-      week = 4; // 2/10 - 8/10 (starts Friday 2/10)
+      week = 4; // 2/10 - 7/10
     } else if (d < 16) {
       topic = 2;
-      week = 1; // 9/10 - 15/10 (starts Friday 9/10)
+      week = 1; // 8/10 - 15/10 (starts Thursday/Friday for upcoming week)
     } else if (d < 23) {
       topic = 2;
       week = 2; // 16/10 - 22/10 (starts Friday 16/10)

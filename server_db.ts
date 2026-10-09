@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { CLASS_TIMETABLES } from './src/data/timetables';
+import { CLASS_TIMETABLES } from './src/data/timetables.ts';
 
 dotenv.config();
 

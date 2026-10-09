@@ -194,11 +194,15 @@ export default function App() {
 
   // Current Topic (1, 2, 3, 4) - Automatically defaults to today's academic topic
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
+    const saved = appStorage.getItem('nile_planner_block');
+    if (saved && !isNaN(Number(saved))) return Number(saved);
     return autoDetected.topic;
   });
 
   // Current Week (1, 2, 3, 4) - Automatically defaults to today's academic week
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
+    const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
+    if (saved && !isNaN(Number(saved))) return Number(saved);
     return autoDetected.week;
   });
 

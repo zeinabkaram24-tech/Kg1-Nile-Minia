@@ -1,4 +1,4 @@
-import { ClassId, SchoolDay, SubjectName, PeriodSlot, BreakSlot } from '../types';
+import type { ClassId, SchoolDay, SubjectName, PeriodSlot, BreakSlot } from '../types.ts';
 
 export const SCHOOL_NAME = 'Nile Egyptian International School';
 export const SCHOOL_BRANCH = 'Menia';

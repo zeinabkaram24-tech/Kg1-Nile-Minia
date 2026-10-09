@@ -7,8 +7,8 @@ const requireFn = typeof require !== 'undefined' ? require : createRequire(impor
 const pdf = requireFn('pdf-parse');
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
-import { CLASS_TIMETABLES } from './src/data/timetables';
-import dbRouter from './server_db';
+import { CLASS_TIMETABLES } from './src/data/timetables.ts';
+import dbRouter from './server_db.ts';
 import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
@@ -2137,6 +2137,60 @@ ${planText}
       homework: fallback.homework,
       tomorrowNotes: fallback.tomorrowNotes,
     });
+  }
+});
+
+app.post('/api/extract-weekly-plan', async (req, res) => {
+  try {
+    const { fileBase64, mimeType } = req.body;
+    if (!fileBase64) {
+      return res.status(400).json({ error: 'fileBase64 is required' });
+    }
+
+    const ai = getGenAI();
+    if (!ai) {
+      return res.status(503).json({ error: 'Gemini API is not configured on the server (missing GEMINI_API_KEY)' });
+    }
+
+    const cleanBase64 = String(fileBase64).replace(/^data:[^;]+;base64,/, '').trim();
+    const contents = [{
+      role: 'user',
+      parts: [
+        {
+          text: [
+            'Read the uploaded weekly school plan carefully.',
+            'Return one item for every visible subject/day combination.',
+            'Preserve the original language (Arabic or English).',
+            'Do not invent missing values; use an empty string.',
+            'Return exactly three classified fields for every row: classWork, homeWork, and notes (the Tomorrow field).',
+            'Put lesson explanations in classWork, assignments in homeWork, and notes such as tomorrow preparation, materials, pages, or reminders in notes.',
+            'Copy the visible text faithfully; do not summarize, translate, or invent content.'
+          ].join(' ')
+        },
+        { inlineData: { data: cleanBase64, mimeType: mimeType || 'application/pdf' } }
+      ]
+    }];
+
+    const textOutput = await generateWithFallback(ai, contents, {
+      responseMimeType: 'application/json',
+      temperature: 0,
+    });
+
+    const parsed = cleanAndParseJson(textOutput);
+    const items = Array.isArray(parsed?.items)
+      ? parsed.items.map((item: any) => ({
+          day: String(item.day || '').trim(),
+          subject: String(item.subject || '').trim(),
+          classWork: String(item.classWork || '').trim(),
+          homeWork: String(item.homeWork || '').trim(),
+          notes: String(item.notes || '').trim()
+        }))
+      : [];
+
+    return res.json({ items });
+  } catch (error: any) {
+    console.error('Error in /api/extract-weekly-plan:', error);
+    res.status(500).json({ error: error?.message || 'Error extracting weekly plan with Gemini' });
   }
 });
 
