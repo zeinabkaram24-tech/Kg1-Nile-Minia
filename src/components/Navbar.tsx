@@ -256,7 +256,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="appearance-none bg-purple-50 hover:bg-purple-100/80 border border-purple-200 text-purple-950 font-black text-xs rounded-xl pl-2.5 pr-6 py-1 cursor-pointer transition-colors shadow-2xs focus:outline-none focus:ring-2 focus:ring-purple-500"
                 title="Week"
               >
-                {[1, 2, 3, 4].map((w) => {
+                {(currentBlock === 1 ? [1, 2, 3, 4, 5] : [1, 2, 3, 4]).map((w) => {
                   const range = BLOCK_WEEK_DATES[currentBlock]?.[w];
                   return (
                     <option key={w} value={w}>

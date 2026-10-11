@@ -13,7 +13,7 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
     const raw = appStorage.getItem(LOCAL_CUSTOM_TOMORROW_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.filter((n) => n.block !== 2);
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch {}
   return [];
@@ -22,7 +22,7 @@ export function getLocalCustomTomorrowNotes(): TomorrowSpecialNote[] {
 export function saveLocalCustomTomorrowNotes(notes: TomorrowSpecialNote[], mode: 'merge' | 'replace' = 'merge') {
   try {
     if (mode === 'replace') {
-      appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(notes.filter((n) => n.block !== 2)));
+      appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(notes));
       return;
     }
     const current = getLocalCustomTomorrowNotes();
@@ -32,10 +32,8 @@ export function saveLocalCustomTomorrowNotes(notes: TomorrowSpecialNote[], mode:
       map.set(key, n);
     });
     notes.forEach((n) => {
-      if (n.block !== 2) {
-        const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
-        map.set(key, n);
-      }
+      const key = n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      map.set(key, n);
     });
     appStorage.setItem(LOCAL_CUSTOM_TOMORROW_KEY, JSON.stringify(Array.from(map.values())));
   } catch {}
@@ -86,14 +84,15 @@ export async function getTomorrowNotesForDay(
   classId: ClassId,
   targetDay: SchoolDay
 ): Promise<TomorrowSpecialNote[]> {
-  if (block === 2) {
-    return [];
-  }
   const effectiveWeek = targetDay === 'Sunday' && week > 1 ? week - 1 : week;
 
   // Base official notes for Block/Week or EffectiveWeek from static files
   const baseNotes: TomorrowSpecialNote[] =
-    block === 1 && (week === 3 || effectiveWeek === 3)
+    block === 2 && (week === 1 || effectiveWeek === 1)
+      ? SPECIAL_TEACHER_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && n.block === 2 && (n.week === 1 || !n.week)
+        )
+      : block === 1 && (week === 3 || effectiveWeek === 3)
       ? WEEK3_SPECIAL_NOTES.filter(
           (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay
         )
@@ -103,9 +102,11 @@ export async function getTomorrowNotesForDay(
         )
       : block === 1 && (week === 1 || effectiveWeek === 1)
       ? SPECIAL_TEACHER_NOTES.filter(
-          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week)
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && (n.week === 1 || !n.week) && (n.block === 1 || !n.block)
         )
-      : [];
+      : SPECIAL_TEACHER_NOTES.filter(
+          (n) => (n.classId === classId || (n.classId as any) === 'ALL') && n.targetDay === targetDay && n.block === block && (n.week === week || !n.week)
+        );
 
   // Load custom notes from localStorage
   const localCustom = getLocalCustomTomorrowNotes().filter(

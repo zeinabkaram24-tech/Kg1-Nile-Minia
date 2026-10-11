@@ -174,10 +174,22 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       }
     }
 
-    if (isQuizOrTest(n) || n.bagItem) return false;
     const lower = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase().trim();
-    if (lower.includes('تسليم') || lower.includes('submission') || lower.includes('استلام') || lower.includes('شيت') || lower.includes('sheet')) return false;
-    return lower.startsWith('hw:') || lower.startsWith('homework:') || lower.startsWith('واجب:');
+    if (
+      lower.includes('تسليم هوم ورك') ||
+      lower.includes('تسليم الواجب') ||
+      lower.includes('تسليم واجب') ||
+      lower.includes('تسليم بوكلت') ||
+      lower.includes('تذكير: تسليم') ||
+      lower.startsWith('hw:') ||
+      lower.startsWith('homework:') ||
+      lower.startsWith('واجب:')
+    ) {
+      return true;
+    }
+
+    if (isQuizOrTest(n) || n.bagItem) return false;
+    return true;
   };
 
   // Support both currentWeek and previous week if applicable
@@ -265,9 +277,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
   };
 
   const [tomorrowNotes, setTomorrowNotes] = useState<TomorrowSpecialNote[]>(() => {
-    if (currentBlock === 2 && currentWeek === 1) return [];
     const base =
-      currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
+      currentBlock === 2 && (currentWeek === 1 || effectiveWeek === 1)
+        ? SPECIAL_TEACHER_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              n.targetDay === tomorrowDay &&
+              n.block === 2 &&
+              (n.week === 1 || !n.week)
+          )
+        : currentBlock === 1 && (currentWeek === 2 || effectiveWeek === 2)
         ? WEEK2_SPECIAL_NOTES.filter(
             (n) => (n.classId === currentClass || (n.classId as any) === 'ALL') && n.targetDay === tomorrowDay
           )
@@ -276,9 +295,16 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
             (n) =>
               (n.classId === currentClass || (n.classId as any) === 'ALL') &&
               n.targetDay === tomorrowDay &&
-              (n.week === 1 || !n.week)
+              (n.week === 1 || !n.week) &&
+              (n.block === 1 || !n.block)
           )
-        : [];
+        : SPECIAL_TEACHER_NOTES.filter(
+            (n) =>
+              (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+              n.targetDay === tomorrowDay &&
+              n.block === currentBlock &&
+              (n.week === currentWeek || !n.week)
+          );
 
     return base.filter((n) => !isDisallowedTomorrowItem(n));
   });
@@ -287,10 +313,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     let isMounted = true;
     const loadNotes = async () => {
       try {
-        if (currentBlock === 2 && currentWeek === 1) {
-          if (isMounted) setTomorrowNotes([]);
-          return;
-        }
         const [deletedIds, notes] = await Promise.all([
           getDeletedTomorrowNoteIds(),
           getTomorrowNotesForDay(
@@ -368,15 +390,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     const isArabic = note.subject === 'Arabic' || fullText.includes('عربي') || fullText.includes('عربية');
     const isEnglish = note.subject === 'English' || fullText.includes('english');
 
-    // Is it a homework submission task?
-    const isSubmission =
-      fullText.includes('تسليم') ||
-      fullText.includes('submission') ||
-      fullText.includes('استلام') ||
-      fullText.includes('واجب') ||
-      fullText.includes('homework') ||
-      fullText.includes('hw:');
-
     // Arabic translation helper for subject names
     const getArabicSubjectName = (subj: string) => {
       const s = subj.toLowerCase();
@@ -393,16 +406,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     };
 
     const arabName = getArabicSubjectName(note.subject);
-
-    if (isSubmission) {
-      return {
-        label: 'تسليم هوم ورك 📋',
-        badgeClass: 'bg-indigo-600 text-white font-black shadow-2xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px]',
-        cardClass: 'bg-indigo-50/70 border-2 border-indigo-300 text-indigo-950 font-bold shadow-2xs',
-        subjectName: arabName,
-        isAlert: false,
-      };
-    }
 
     if (quiz) {
       // User directive: Arabic dictation is strictly 'إملاء' (NO 'Dictation'), English dictation is 'Dictation' / 'ديكتيشن'
@@ -464,9 +467,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Automatically link and synchronize tests/quizzes/dictations and homework submissions from homework and classwork
   const linkedAlerts = useMemo<TomorrowSpecialNote[]>(() => {
-    if (currentBlock === 2) {
-      return [];
-    }
     const alerts: TomorrowSpecialNote[] = [];
     const checkText = (txt: string) => {
       return /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((txt || '').toLowerCase());
@@ -495,33 +495,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           bagItem: h.pages || undefined,
           isQuiz: true,
           categoryType: 'quiz',
-          block: currentBlock,
-          week: currentWeek,
-          pdfUrl: h.pdfUrl,
-        });
-      }
-      // B) Due for submission tomorrow (e.g. Social Studies homework sheet due on Sunday for 2A & 2C)
-      else if (h.dueDay === tomorrowDay) {
-        const isSocial = h.subject === 'Social Studies';
-        const isScience = h.subject === 'Science';
-        alerts.push({
-          id: hwDueAlertId,
-          classId: currentClass,
-          targetDay: tomorrowDay,
-          subject: h.subject,
-          note: isSocial
-            ? 'تسليم واجب الدراسات الاجتماعية (أول حصة في الأسبوع)'
-            : isScience
-            ? 'تسليم بوكلت الـ science'
-            : `تسليم واجب ${h.subject}: ${h.task}`,
-          arabicNote: isSocial
-            ? 'تذكير: تجهيز وتسليم واجب الدراسات الاجتماعية (شيت الواجب المنزلي) في أول حصة في الأسبوع'
-            : isScience
-            ? 'تسليم بوكلت الـ science'
-            : (h.details ? `تذكير: تسليم الواجب غداً (${h.details})` : `تذكير: تسليم واجب ${h.subject} غداً`),
-          bagItem: isSocial ? 'شيت واجب الدراسات الاجتماعية المرفق' : isScience ? 'بوكليت الـ science' : (h.pages || undefined),
-          isQuiz: false,
-          categoryType: 'note',
           block: currentBlock,
           week: currentWeek,
           pdfUrl: h.pdfUrl,
@@ -625,7 +598,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
 
   // Prioritize quizzes and tests to appear first in the notes list
   const sortedNotes = useMemo(() => {
-    if (currentBlock === 2 && currentWeek === 1) return [];
     return [...mergedNotes].sort((a, b) => {
       const aQuiz = isQuizOrTest(a) ? 1 : 0;
       const bQuiz = isQuizOrTest(b) ? 1 : 0;
@@ -705,7 +677,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       </div>
 
       {/* Second: Block for Notes Underneath (ملاحظات وتحذيرات حصص الغد - كويزات واختبارات باللون الأحمر) */}
-      {!(currentBlock === 2 && currentWeek === 1 && !isAdminEditMode) && (
       <div className="bg-white rounded-2xl border border-slate-200 p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
           <div className="flex items-center gap-2 text-amber-950 font-black text-xs sm:text-sm">
@@ -821,7 +792,6 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
           </div>
         )}
       </div>
-      )}
     </div>
   );
 };

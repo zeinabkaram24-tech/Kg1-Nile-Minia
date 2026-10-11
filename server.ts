@@ -13,19 +13,85 @@ import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
-let cleanedSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
-if (cleanedSbUrl.endsWith('/rest/v1/')) {
-  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 9);
-} else if (cleanedSbUrl.endsWith('/rest/v1')) {
-  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 8);
-}
-if (cleanedSbUrl.endsWith('/')) {
-  cleanedSbUrl = cleanedSbUrl.substring(0, cleanedSbUrl.length - 1);
+const DATA_DIR = path.join(process.cwd(), 'data');
+const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
+const DATA_UPLOADS_DIR = path.join(process.cwd(), 'data', 'uploads');
+const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
+const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
+const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
+
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
+  if (!fs.existsSync(DATA_UPLOADS_DIR)) fs.mkdirSync(DATA_UPLOADS_DIR, { recursive: true });
+} catch (e) {
+  console.warn('Could not ensure data/upload directories:', e);
 }
 
-const SB_URL = cleanedSbUrl;
-const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag').trim();
-const serverSupabase = createClient(SB_URL, SB_KEY);
+function getStoredSupabaseConfig(): { url: string; key: string; geminiKey?: string } | null {
+  try {
+    if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
+      const raw = fs.readFileSync(SUPABASE_CONFIG_FILE, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Error reading supabase_config.json:', err);
+  }
+  return null;
+}
+
+const storedSbConfig = getStoredSupabaseConfig();
+let activeSbUrl = (
+  storedSbConfig?.url ||
+  process.env.VITE_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  'https://umryrjwmlkdbjmgmnbkt.supabase.co'
+).trim();
+
+if (activeSbUrl.endsWith('/rest/v1/')) {
+  activeSbUrl = activeSbUrl.substring(0, activeSbUrl.length - 9);
+} else if (activeSbUrl.endsWith('/rest/v1')) {
+  activeSbUrl = activeSbUrl.substring(0, activeSbUrl.length - 8);
+}
+if (activeSbUrl.endsWith('/')) {
+  activeSbUrl = activeSbUrl.substring(0, activeSbUrl.length - 1);
+}
+
+let activeSbKey = (
+  storedSbConfig?.key ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag'
+).trim();
+
+if (storedSbConfig?.geminiKey) {
+  process.env.GEMINI_API_KEY = storedSbConfig.geminiKey;
+  process.env.VITE_GEMINI_API_KEY = storedSbConfig.geminiKey;
+}
+
+let serverSupabase = createClient(activeSbUrl, activeSbKey);
+
+function reinitServerSupabase(url: string, key: string, geminiKey?: string) {
+  try {
+    let cleanUrl = (url || '').trim();
+    if (cleanUrl.endsWith('/rest/v1/')) cleanUrl = cleanUrl.substring(0, cleanUrl.length - 9);
+    else if (cleanUrl.endsWith('/rest/v1')) cleanUrl = cleanUrl.substring(0, cleanUrl.length - 8);
+    if (cleanUrl.endsWith('/')) cleanUrl = cleanUrl.substring(0, cleanUrl.length - 1);
+    const cleanKey = (key || '').trim();
+    if (cleanUrl && cleanKey) {
+      activeSbUrl = cleanUrl;
+      activeSbKey = cleanKey;
+      serverSupabase = createClient(cleanUrl, cleanKey);
+      console.log('[Server Supabase] Client dynamically updated for URL:', cleanUrl);
+    }
+    if (geminiKey) {
+      process.env.GEMINI_API_KEY = geminiKey.trim();
+      process.env.VITE_GEMINI_API_KEY = geminiKey.trim();
+    }
+  } catch (e) {
+    console.warn('[Server Supabase] Error reinitializing client:', e);
+  }
+}
 
 const app = express();
 const PORT = 3000;
@@ -197,36 +263,11 @@ app.use((req, res, next) => {
 app.use(dbRouter);
 app.use('/materials', express.static(path.join(process.cwd(), 'public', 'materials')));
 
-// Directories for server-side persistence
-const DATA_DIR = path.join(process.cwd(), 'data');
-const MATERIALS_DIR = path.join(process.cwd(), 'uploads', 'materials');
-const MATERIALS_FILE = path.join(DATA_DIR, 'materials.json');
-const PLANNER_DATA_FILE = path.join(DATA_DIR, 'planner_data.json');
-const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
-
-try {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(MATERIALS_DIR)) fs.mkdirSync(MATERIALS_DIR, { recursive: true });
-} catch (e) {
-  console.warn('Could not ensure data/upload directories:', e);
-}
-
-function getStoredSupabaseConfig(): { url: string; key: string } | null {
-  try {
-    if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
-      const raw = fs.readFileSync(SUPABASE_CONFIG_FILE, 'utf-8');
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.warn('Error reading supabase_config.json:', err);
-  }
-  return null;
-}
-
-function saveStoredSupabaseConfig(config: { url: string; key: string } | null): void {
+function saveStoredSupabaseConfig(config: { url: string; key: string; geminiKey?: string } | null): void {
   try {
     if (config) {
       fs.writeFileSync(SUPABASE_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+      reinitServerSupabase(config.url, config.key, config.geminiKey);
     } else if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
       fs.unlinkSync(SUPABASE_CONFIG_FILE);
     }
@@ -293,13 +334,22 @@ function getGenAI(): GoogleGenAI | null {
 
 // Shared Supabase Configuration for cross-device sync
 app.get('/api/supabase-config', (req, res) => {
-  res.json(getStoredSupabaseConfig() || { url: '', key: '' });
+  const stored = getStoredSupabaseConfig();
+  res.json({
+    url: stored?.url || activeSbUrl,
+    key: stored?.key || activeSbKey,
+    geminiKey: stored?.geminiKey || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '',
+  });
 });
 
 app.post('/api/supabase-config', (req, res) => {
   try {
-    const { url, key } = req.body;
-    saveStoredSupabaseConfig({ url: url || '', key: key || '' });
+    const { url, key, geminiKey } = req.body;
+    saveStoredSupabaseConfig({
+      url: url || activeSbUrl,
+      key: key || activeSbKey,
+      geminiKey: geminiKey || process.env.GEMINI_API_KEY || '',
+    });
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error saving Supabase config' });
@@ -427,16 +477,26 @@ app.post('/api/materials', async (req, res) => {
   }
 });
 
-app.get('/api/materials/:id/file', async (req, res) => {
+const serveMaterialFile = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
-  const filePath = path.join(MATERIALS_DIR, `${id}.pdf`);
+  const cleanId = id.replace(/\.pdf$/i, '');
+  const candidatePaths = [
+    path.join(DATA_UPLOADS_DIR, `${cleanId}.pdf`),
+    path.join(DATA_UPLOADS_DIR, `${id}.pdf`),
+    path.join(DATA_UPLOADS_DIR, id),
+    path.join(MATERIALS_DIR, `${cleanId}.pdf`),
+    path.join(MATERIALS_DIR, `${id}.pdf`),
+    path.join(MATERIALS_DIR, id),
+  ];
 
   // 1. Try local disk first (extremely fast)
-  if (fs.existsSync(filePath)) {
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
-    const stream = fs.createReadStream(filePath);
-    return stream.pipe(res);
+  for (const filePath of candidatePaths) {
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${cleanId}.pdf"`);
+      const stream = fs.createReadStream(filePath);
+      return stream.pipe(res);
+    }
   }
 
   // 2. Retrieve from Supabase 'materials' table (file_data)
@@ -444,7 +504,7 @@ app.get('/api/materials/:id/file', async (req, res) => {
     const { data, error } = await serverSupabase
       .from('materials')
       .select('file_data')
-      .eq('id', id)
+      .eq('id', cleanId)
       .single();
 
     if (!error && data && data.file_data) {
@@ -453,10 +513,13 @@ app.get('/api/materials/:id/file', async (req, res) => {
         base64Str = base64Str.split(',')[1];
       }
       const buffer = Buffer.from(base64Str, 'base64');
-      try { fs.writeFileSync(filePath, buffer); } catch {}
+      try {
+        const destPath = path.join(DATA_UPLOADS_DIR, `${cleanId}.pdf`);
+        fs.writeFileSync(destPath, buffer);
+      } catch {}
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+      res.setHeader('Content-Disposition', `inline; filename="${cleanId}.pdf"`);
       return res.send(buffer);
     }
   } catch (dbErr) {
@@ -465,7 +528,7 @@ app.get('/api/materials/:id/file', async (req, res) => {
 
   // 3. Fallback to materials.json list
   const list = getStoredMaterials();
-  const found = list.find((m: any) => m.id === id);
+  const found = list.find((m: any) => m.id === cleanId || m.id === id);
   if (found && found.fileData) {
     let base64Str = found.fileData;
     if (base64Str.includes(',')) {
@@ -473,12 +536,15 @@ app.get('/api/materials/:id/file', async (req, res) => {
     }
     const buffer = Buffer.from(base64Str, 'base64');
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline; filename="material.pdf"');
+    res.setHeader('Content-Disposition', `inline; filename="${cleanId}.pdf"`);
     return res.send(buffer);
   }
 
   res.status(404).json({ error: 'File not found' });
-});
+};
+
+app.get('/api/materials/:id/file', serveMaterialFile);
+app.get('/api/materials/pdf/:id', serveMaterialFile);
 
 app.delete('/api/materials/:id', async (req, res) => {
   const { id } = req.params;

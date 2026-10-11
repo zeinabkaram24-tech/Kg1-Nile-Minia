@@ -35,6 +35,7 @@ export const BLOCK_WEEK_DATES: Record<number, Record<number, string>> = {
     2: '20/9 - 24/9',
     3: '27/9 - 1/10',
     4: '4/10 - 8/10',
+    5: '11/10 - 15/10',
   },
   2: {
     1: '11/10 - 15/10',
@@ -381,17 +382,22 @@ const EMPTY_SCHEDULE: Record<SchoolDay, PeriodSlot[]> = createEmptyWeekSchedule(
 
 const RAW_CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = {
   KG1A: BASE_SCHEDULE_KG1A,
-  KG1B: EMPTY_SCHEDULE,
+  KG1B: BASE_SCHEDULE_KG1A,
   KG1C: BASE_SCHEDULE_KG1C,
   KG1D: BASE_SCHEDULE_KG1D,
   KG1E: BASE_SCHEDULE_KG1E,
 
   // Aliases for compatibility
   'A': BASE_SCHEDULE_KG1A,
-  'B': EMPTY_SCHEDULE,
+  'B': BASE_SCHEDULE_KG1A,
   'C': BASE_SCHEDULE_KG1C,
   'D': BASE_SCHEDULE_KG1D,
   'E': BASE_SCHEDULE_KG1E,
+  'G2A': BASE_SCHEDULE_KG1A,
+  'G2B': BASE_SCHEDULE_KG1A,
+  'G2C': BASE_SCHEDULE_KG1C,
+  'G2D': BASE_SCHEDULE_KG1D,
+  'G2E': BASE_SCHEDULE_KG1E,
 };
 
 export const CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> = new Proxy(
@@ -401,19 +407,22 @@ export const CLASS_TIMETABLES: Record<string, Record<SchoolDay, PeriodSlot[]>> =
       if (typeof prop === 'string' && target[prop]) {
         return target[prop];
       }
-      if (prop === 'KG1A' || prop === 'A') {
+      if (prop === 'KG1A' || prop === 'A' || prop === 'G2A') {
         return BASE_SCHEDULE_KG1A;
       }
-      if (prop === 'KG1C' || prop === 'C') {
+      if (prop === 'KG1B' || prop === 'B' || prop === 'G2B') {
+        return BASE_SCHEDULE_KG1A;
+      }
+      if (prop === 'KG1C' || prop === 'C' || prop === 'G2C') {
         return BASE_SCHEDULE_KG1C;
       }
-      if (prop === 'KG1D' || prop === 'D') {
+      if (prop === 'KG1D' || prop === 'D' || prop === 'G2D') {
         return BASE_SCHEDULE_KG1D;
       }
-      if (prop === 'KG1E' || prop === 'E') {
+      if (prop === 'KG1E' || prop === 'E' || prop === 'G2E') {
         return BASE_SCHEDULE_KG1E;
       }
-      return EMPTY_SCHEDULE;
+      return BASE_SCHEDULE_KG1A;
     },
   }
 );

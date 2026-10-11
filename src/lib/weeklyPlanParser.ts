@@ -1,4 +1,3 @@
-import mammoth from 'mammoth';
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { extractTextFromPdf } from './timetableParser';
@@ -282,6 +281,7 @@ export async function extractWeeklyPlanText(dataUrl: string, fileType?: string):
     return normalize(await extractOcrText(dataUrl));
   }
   if (fileType === 'word' || fileType === 'doc' || /word|document|msword/i.test(dataUrl.slice(0, 100))) {
+    const mammoth = (await import('mammoth')).default;
     const result = await mammoth.extractRawText({ arrayBuffer: dataUrlToArrayBuffer(dataUrl) });
     return normalize(result.value);
   }

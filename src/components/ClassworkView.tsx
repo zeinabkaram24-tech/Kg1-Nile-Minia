@@ -296,6 +296,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                 </span>
                 <span>لتجهيز الاختبارات والكويزات.</span>
               </div>
+
             </div>
           </div>
         ) : (

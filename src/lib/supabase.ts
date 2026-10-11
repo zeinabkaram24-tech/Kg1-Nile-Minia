@@ -47,8 +47,14 @@ export function getActiveSupabaseConfig(): { url: string; key: string } {
     }
   }
   // Fall back to environment variable or central default if not saved locally
-  const url = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL;
-  const key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || DEFAULT_SUPABASE_ANON_KEY;
+  const url =
+    (typeof import.meta !== 'undefined' && import.meta?.env
+      ? (import.meta.env.VITE_SUPABASE_URL as string)
+      : '') || DEFAULT_SUPABASE_URL;
+  const key =
+    (typeof import.meta !== 'undefined' && import.meta?.env
+      ? (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+      : '') || DEFAULT_SUPABASE_ANON_KEY;
   return {
     url: cleanSupabaseUrl(url),
     key: cleanSupabaseKey(key),

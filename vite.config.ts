@@ -17,9 +17,29 @@ export default defineConfig(() => {
     build: {
       target: 'es2020',
       cssTarget: 'chrome61',
+      chunkSizeWarningLimit: 1200,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('node_modules/pdfjs-dist')) {
+              return 'vendor-pdfjs';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('node_modules/@supabase')) {
+              return 'vendor-supabase';
+            }
+          },
+        },
+      },
     },
     esbuild: {
       target: 'es2020',
+      legalComments: 'none',
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
@@ -30,4 +50,3 @@ export default defineConfig(() => {
     },
   };
 });
-

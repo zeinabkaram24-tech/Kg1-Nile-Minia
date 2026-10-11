@@ -9,14 +9,13 @@ import {
   RefreshCw,
   Trash2,
   Check,
-  ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import {
   getActiveSupabaseConfig,
   saveActiveSupabaseConfig,
   updateSupabaseClient,
   isSupabaseConfigured,
-  supabase,
 } from '../lib/supabase';
 
 interface SupabaseConfigModalProps {
@@ -34,6 +33,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
 }) => {
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState('');
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     success: boolean;
@@ -48,6 +48,23 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
       setAnonKey(config.key);
       setTestResult(null);
       setSavedSuccess(false);
+
+      fetch('/api/supabase-config')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            if (data.url && (!config.url || config.url.includes('placeholder'))) {
+              setUrl(data.url);
+            }
+            if (data.key && (!config.key || config.key.includes('placeholder'))) {
+              setAnonKey(data.key);
+            }
+            if (data.geminiKey) {
+              setGeminiKey(data.geminiKey);
+            }
+          }
+        })
+        .catch(() => {});
     }
   }, [isOpen]);
 
@@ -66,18 +83,20 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
     setTestResult(null);
 
     try {
-      // Temporarily test client
       const testClient = updateSupabaseClient(url.trim(), anonKey.trim());
       const { error } = await testClient
         .from('classwork')
         .select('id', { count: 'exact', head: true });
 
       if (error) {
-        // Even if table doesn't exist, check error message
-        if (error.code === 'PGRST116' || error.message.includes('relation') || error.code === '42P01') {
+        if (
+          error.code === 'PGRST116' ||
+          error.message.includes('relation') ||
+          error.code === '42P01'
+        ) {
           setTestResult({
             success: true,
-            message: 'تم الاتصال بـ Supabase بنجاح! (جداول المشروع جاهزة للإنشاء/التهيئة).',
+            message: 'تم الاتصال بـ Supabase بنجاح! الجداول جاهزة للربط.',
           });
         } else {
           setTestResult({
@@ -104,19 +123,24 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
   const handleSavePermanently = async () => {
     const cleanedUrl = url.trim();
     const cleanedKey = anonKey.trim();
+    const cleanedGeminiKey = geminiKey.trim();
 
     saveActiveSupabaseConfig(cleanedUrl, cleanedKey);
     updateSupabaseClient(cleanedUrl, cleanedKey);
 
-    // Synchronize configuration to backend server
+    // Synchronize configuration to backend server once and for all
     try {
       await fetch('/api/supabase-config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: cleanedUrl, key: cleanedKey }),
+        body: JSON.stringify({
+          url: cleanedUrl,
+          key: cleanedKey,
+          geminiKey: cleanedGeminiKey,
+        }),
       });
     } catch (err) {
-      console.warn('Failed to save Supabase config on server:', err);
+      console.warn('Failed to save configuration on server:', err);
     }
 
     setSavedSuccess(true);
@@ -132,7 +156,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
   const handleClearLocalStorageDuplicates = () => {
     if (
       window.confirm(
-        'هل تريد مسح البيانات المؤقتة القديمة المخزنة محلياً بالمتصفح؟ سيتم الاعتماد بالكامل على بيانات السحابة (Supabase) ومنع أي تكرار.'
+        'هل تريد مسح البيانات المؤقتة القديمة المخزنة بالمتصفح؟ سيتم الاعتماد بالكامل على بيانات السحابة (Supabase) لمنع أي تكرار.'
       )
     ) {
       localStorage.removeItem('nile_planner_custom_classwork_v2');
@@ -158,10 +182,10 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
             </div>
             <div>
               <h3 className="text-base font-black text-slate-900">
-                إعدادات وحفظ ربط قاعدة بيانات Supabase
+                إعدادات المفاتيح والربط السحابي (مرة واحدة فقط)
               </h3>
               <p className="text-xs text-slate-500 font-medium">
-                حفظ رابط المشروع والمفتاح دائماً لعدم الحاجة لإدخالهما مجدداً
+                تدخل البيانات هنا مرة واحدة فقط وتحفظ دائماً على الخادم وفي المتصفح
               </p>
             </div>
           </div>
@@ -173,28 +197,11 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
           </button>
         </div>
 
-        {/* Status Indicator */}
-        <div
-          className={`p-3.5 rounded-2xl border flex items-center justify-between text-xs font-bold ${
-            isSupabaseConfigured
-              ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
-              : 'bg-amber-50/80 border-amber-200 text-amber-900'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isSupabaseConfigured ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-              }`}
-            />
-            <span>
-              {isSupabaseConfigured
-                ? 'الحالة: متصل بقاعدة بيانات Supabase السحابية'
-                : 'الحالة: لم يتم ربط Supabase (يعمل بالبيانات المحلية)'}
-            </span>
-          </div>
-          <span className="text-[11px] font-black opacity-80">
-            {isSupabaseConfigured ? 'Live Cloud Sync' : 'Offline / Local'}
+        {/* Single Entry Guarantee Banner */}
+        <div className="p-3 bg-emerald-50/90 border border-emerald-200 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-900 font-bold">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>
+            يتم حفظ الإعدادات تلقائياً ولن يُطلب منك إدخال الرابط أو المفاتيح مرة أخرى.
           </span>
         </div>
 
@@ -218,14 +225,14 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
               />
             </div>
             <span className="text-[11px] text-slate-400 font-medium block">
-              رابط المشروع الخاص بك يبدأ بـ https:// وينتهي بـ .supabase.co
+              رابط المشروع ينتهي بـ .supabase.co
             </span>
           </div>
 
           {/* Supabase Anon / Publishable Key */}
           <div className="space-y-1.5">
             <label className="block text-xs font-black text-slate-700">
-              2. مفتاح الـ API العام (Anon / Publishable API Key):
+              2. مفتاح Supabase (Anon / Publishable API Key):
             </label>
             <div className="relative">
               <Key className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -240,7 +247,30 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
               />
             </div>
             <span className="text-[11px] text-slate-400 font-medium block">
-              يقبل كلاً من المفاتيح الجديدة (sb_publishable_...) ومفاتيح JWT السابقة.
+              يقبل مفاتيح sb_publishable_... ومفاتيح JWT السابقة.
+            </span>
+          </div>
+
+          {/* Gemini API Key */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-black text-slate-700 flex items-center justify-between">
+              <span>3. مفتاح Gemini API (اختياري للذكاء الاصطناعي):</span>
+              <span className="text-[10px] text-slate-400 font-bold">اختياري</span>
+            </label>
+            <div className="relative">
+              <Sparkles className="w-4 h-4 text-amber-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="password"
+                value={geminiKey}
+                onChange={(e) => setGeminiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full text-xs font-mono border border-slate-200 rounded-xl py-2.5 pr-3 pl-9 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-left bg-slate-50/50"
+                dir="ltr"
+                id="gemini_key_input"
+              />
+            </div>
+            <span className="text-[11px] text-slate-400 font-medium block">
+              يُستخدم في قراءة الخطط الأسبوعية وتصنيف المهام صوتياً.
             </span>
           </div>
         </div>
@@ -267,7 +297,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
         {savedSuccess && (
           <div className="p-3 bg-emerald-100 border border-emerald-300 text-emerald-950 rounded-xl text-xs font-black flex items-center gap-2 animate-bounce">
             <Check className="w-4 h-4 text-emerald-700" />
-            <span>تم حفظ الإعدادات بنجاح دائم في متصفحك! لن يطلبها منك مرة أخرى.</span>
+            <span>تم حفظ الإعدادات بنجاح دائم! لن يطلبها منك مرة أخرى إطلاقاً.</span>
           </div>
         )}
 
@@ -280,7 +310,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
             title="مسح البيانات المؤقتة المحلية لمنع التكرار"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>مسح التخزين المحلي المؤقت</span>
+            <span>مسح التخزين المؤقت</span>
           </button>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -301,7 +331,7 @@ export const SupabaseConfigModal: React.FC<SupabaseConfigModalProps> = ({
               className="flex-1 sm:flex-none px-5 py-2 rounded-xl text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>حفظ دائم في المتصفح</span>
+              <span>حفظ نهائي (مرة واحدة)</span>
             </button>
           </div>
         </div>

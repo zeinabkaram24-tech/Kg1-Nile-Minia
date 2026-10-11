@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "id": "tn-b2-w1-eng-sun-toy",
+    "classId": "ALL",
+    "targetDay": "Sunday",
+    "subject": "English",
+    "note": "Kindly send your child's favorite toy with him/her to school to talk about in the show and tell activity 🧸",
+    "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+    "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+    "icon": "🧸",
+    "block": 2,
+    "week": 1,
+    "isQuiz": false,
+    "categoryType": "note",
+    "linkUrl": "https://www.youtube.com/watch?v=RudSiIzZQoA",
+    "linkTitle": "I am too absolutely small for school' story 📖",
+    "links": [
+      {
+        "title": "I am too absolutely small for school' story 📖",
+        "url": "https://www.youtube.com/watch?v=RudSiIzZQoA"
+      }
+    ]
+  }
+]

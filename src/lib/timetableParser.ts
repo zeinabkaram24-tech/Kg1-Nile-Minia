@@ -2,7 +2,6 @@ import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { PeriodSlot, DaySchedule, SchoolClass } from '../types';
 import { PERIOD_TIMES } from '../data/initialData';
-import { createWorker } from 'tesseract.js';
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -52,6 +51,7 @@ export async function extractTextFromPdf(dataUrl: string): Promise<string> {
 
   // Scanned PDFs have no text layer. Render each page and OCR it so Weekly Plan
   // files still produce usable Classwork, Homework, and Tomorrow content.
+  const { createWorker } = await import('tesseract.js');
   const worker = await createWorker('eng+ara');
   try {
     const ocrPages: string[] = [];
@@ -117,6 +117,7 @@ export async function parseUploadedTimetable(dataUrl: string, classId: SchoolCla
   if (fileType === 'pdf') return parseTimetableFromText(await extractTextFromPdf(dataUrl), classId);
   if (fileType !== 'image') return { days: [], slotsCount: 0 };
 
+  const { createWorker } = await import('tesseract.js');
   const worker = await createWorker('eng+ara');
   try {
     const result = await worker.recognize(dataUrl);

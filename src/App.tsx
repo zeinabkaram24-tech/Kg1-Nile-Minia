@@ -177,38 +177,48 @@ export default function App() {
     return getActiveUserProfile();
   });
 
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
-    return getActiveUserProfile() === null;
-  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
-  // Real-world automatic date detection (e.g. today is 21st, opens directly on Monday 21st, Topic 1, Week 2)
+  // Real-world automatic date detection
   const autoDetected = useMemo(() => getAutoDetectedToday(), []);
 
   // Class selection (KG1A, KG1B, KG1C, KG1D, KG1E)
   const [currentClass, setCurrentClass] = useState<ClassId>(() => {
     const profile = getActiveUserProfile();
-    if (profile?.classId) return profile.classId;
+    if (profile?.classId && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(profile.classId)) {
+      return profile.classId;
+    }
     const saved = appStorage.getItem(STORAGE_KEYS.CLASS);
-    return saved && (saved.startsWith('KG1') || saved.startsWith('G2') || ['A','B','C','D','E','2A','2B','2C','2D','2E'].includes(saved)) ? saved : 'KG1A';
+    if (saved && ['KG1A', 'KG1B', 'KG1C', 'KG1D', 'KG1E'].includes(saved as any)) {
+      return saved as ClassId;
+    }
+    if (saved && ['A', 'B', 'C', 'D', 'E'].includes(saved)) {
+      return (`KG1${saved}` as ClassId);
+    }
+    return 'KG1A';
   });
 
-  // Current Topic (1, 2, 3, 4) - Automatically defaults to today's academic topic
+  // Current Topic (Topic 2 / Home and school)
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
     const saved = appStorage.getItem('nile_planner_block');
     if (saved && !isNaN(Number(saved))) return Number(saved);
-    return autoDetected.topic;
+    return 2;
   });
 
-  // Current Week (1, 2, 3, 4) - Automatically defaults to today's academic week
+  // Current Week (Week 1)
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
     const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
     if (saved && !isNaN(Number(saved))) return Number(saved);
-    return autoDetected.week;
+    return 1;
   });
 
-  // Selected Day (Sunday, Monday, Tuesday, Wednesday, Thursday) - Automatically defaults to today's real day!
+  // Selected Day (Sunday - first school day of the week with lessons)
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
-    return autoDetected.day;
+    const saved = appStorage.getItem(STORAGE_KEYS.DAY);
+    if (saved && ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'].includes(saved)) {
+      return saved as SchoolDay;
+    }
+    return 'Sunday';
   });
 
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'
@@ -438,13 +448,6 @@ export default function App() {
     window.addEventListener('focus', handleFocusSync);
     document.addEventListener('visibilitychange', handleFocusSync);
 
-    // Auto periodic sync every 10 seconds to catch edits made on mobile or laptop in background
-    const syncInterval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        refreshAllData(false);
-      }
-    }, 10000);
-
     let channel: any = null;
 
     // Setup Supabase Realtime Channels only if configured
@@ -486,7 +489,6 @@ export default function App() {
       isMounted = false;
       window.removeEventListener('focus', handleFocusSync);
       document.removeEventListener('visibilitychange', handleFocusSync);
-      clearInterval(syncInterval);
       unsubscribeStatus();
       unsubscribeEvents();
       if (channel) {
