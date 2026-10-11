@@ -16,12 +16,12 @@ export const TOPIC2_WEEK1_CLASSWORK: ClassworkEntry[] = [
     block: 2,
     week: 1,
     completed: false,
-    linkUrl: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
+    linkUrl: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
     linkTitle: "I am too absolutely small for school' story 📖",
     links: [
       {
         title: "I am too absolutely small for school' story 📖",
-        url: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
+        url: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
       },
       {
         title: 'number 5 🔢',
@@ -260,12 +260,12 @@ export const TOPIC2_WEEK1_HOMEWORK: HomeworkEntry[] = [
     week: 1,
     completed: false,
     priority: 'normal',
-    linkUrl: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
+    linkUrl: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
     linkTitle: "I am too absolutely small for school' story 📖",
     links: [
       {
         title: "I am too absolutely small for school' story 📖",
-        url: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
+        url: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
       },
       {
         title: 'number 5 🔢',
@@ -514,13 +514,5 @@ export const TOPIC2_WEEK1_SPECIAL_NOTES: TomorrowSpecialNote[] = [
     week: 1,
     isQuiz: false,
     categoryType: 'note',
-    linkUrl: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
-    linkTitle: "I am too absolutely small for school' story 📖",
-    links: [
-      {
-        title: "I am too absolutely small for school' story 📖",
-        url: 'https://www.youtube.com/watch?v=RudSiIzZQoA',
-      },
-    ],
   },
 ];

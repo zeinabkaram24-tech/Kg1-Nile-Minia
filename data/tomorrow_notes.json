@@ -11,14 +11,6 @@
     "block": 2,
     "week": 1,
     "isQuiz": false,
-    "categoryType": "note",
-    "linkUrl": "https://www.youtube.com/watch?v=RudSiIzZQoA",
-    "linkTitle": "I am too absolutely small for school' story 📖",
-    "links": [
-      {
-        "title": "I am too absolutely small for school' story 📖",
-        "url": "https://www.youtube.com/watch?v=RudSiIzZQoA"
-      }
-    ]
+    "categoryType": "note"
   }
 ]

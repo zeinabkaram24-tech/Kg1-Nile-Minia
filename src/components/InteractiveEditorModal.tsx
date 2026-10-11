@@ -1069,27 +1069,44 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
             </h4>
 
             {/* Link inputs */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">رابط إلكتروني مرفق (URL):</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/..."
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
-                />
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 mb-1">رابط إلكتروني مرفق (URL):</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-500 mb-1">اسم الرابط المرفق:</label>
+                  <input
+                    type="text"
+                    placeholder="مثال: فيديو شرح الدرس 📺"
+                    value={linkTitle}
+                    onChange={(e) => setLinkTitle(e.target.value)}
+                    className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-500 mb-1">اسم الرابط المرفق:</label>
-                <input
-                  type="text"
-                  placeholder="مثال: فيديو شرح الدرس 📺"
-                  value={linkTitle}
-                  onChange={(e) => setLinkTitle(e.target.value)}
-                  className="w-full text-[11px] font-bold p-2 bg-white border border-slate-200 rounded-xl focus:border-indigo-400"
-                />
-              </div>
+              {linkUrl && (
+                <div className="flex items-center justify-between p-2 bg-blue-50 text-blue-950 rounded-xl border border-blue-200 text-xs font-bold">
+                  <span className="truncate max-w-[320px]">🔗 {linkUrl}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLinkUrl('');
+                      setLinkTitle('');
+                    }}
+                    className="text-rose-600 hover:text-rose-800 font-black cursor-pointer text-[10px]"
+                  >
+                    حذف الرابط ❌
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* File Upload Zone */}

@@ -7172,12 +7172,12 @@
       "block": 2,
       "week": 1,
       "completed": false,
-      "linkUrl": "https://www.youtube.com/watch?v=RudSiIzZQoA",
+      "linkUrl": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story",
       "linkTitle": "I am too absolutely small for school' story 📖",
       "links": [
         {
           "title": "I am too absolutely small for school' story 📖",
-          "url": "https://www.youtube.com/watch?v=RudSiIzZQoA"
+          "url": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story"
         },
         {
           "title": "number 5 🔢",
@@ -7276,6 +7276,71 @@
           "url": "https://www.youtube.com/watch?v=xNw1SSz18Gg"
         }
       ]
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1A",
+      "classId": "KG1A",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "completed": false,
+      "block": 2,
+      "week": 1
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1D",
+      "classId": "KG1D",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "completed": false,
+      "block": 2,
+      "week": 1
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1C",
+      "classId": "KG1C",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "completed": false,
+      "block": 2,
+      "week": 1
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1B",
+      "classId": "KG1B",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "completed": false,
+      "block": 2,
+      "week": 1
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1E",
+      "classId": "KG1E",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "completed": false,
+      "block": 2,
+      "week": 1
     }
   ],
   "homework": [
@@ -11934,12 +11999,12 @@
       "week": 1,
       "completed": false,
       "priority": "normal",
-      "linkUrl": "https://www.youtube.com/watch?v=RudSiIzZQoA",
+      "linkUrl": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story",
       "linkTitle": "I am too absolutely small for school' story 📖",
       "links": [
         {
           "title": "I am too absolutely small for school' story 📖",
-          "url": "https://www.youtube.com/watch?v=RudSiIzZQoA"
+          "url": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story"
         },
         {
           "title": "number 5 🔢",
@@ -12187,15 +12252,77 @@
       "block": 2,
       "week": 1,
       "isQuiz": false,
+      "categoryType": "note"
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1A",
+      "classId": "KG1A",
+      "subject": "English",
+      "block": 2,
+      "week": 1,
+      "note": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "isQuiz": false,
       "categoryType": "note",
-      "linkUrl": "https://www.youtube.com/watch?v=RudSiIzZQoA",
-      "linkTitle": "I am too absolutely small for school' story 📖",
-      "links": [
-        {
-          "title": "I am too absolutely small for school' story 📖",
-          "url": "https://www.youtube.com/watch?v=RudSiIzZQoA"
-        }
-      ]
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1B",
+      "classId": "KG1B",
+      "subject": "English",
+      "block": 2,
+      "week": 1,
+      "note": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1C",
+      "classId": "KG1C",
+      "subject": "English",
+      "block": 2,
+      "week": 1,
+      "note": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1D",
+      "classId": "KG1D",
+      "subject": "English",
+      "block": 2,
+      "week": 1,
+      "note": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
+    },
+    {
+      "id": "tn-b2-w1-eng-sun-toy-KG1E",
+      "classId": "KG1E",
+      "subject": "English",
+      "block": 2,
+      "week": 1,
+      "note": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "isQuiz": false,
+      "categoryType": "note",
+      "targetDay": "Sunday",
+      "isCustom": true
     }
   ],
   "deletedTomorrowNoteIds": [],
