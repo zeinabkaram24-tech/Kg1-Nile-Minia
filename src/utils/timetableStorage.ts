@@ -2,7 +2,7 @@ import { ClassId, SchoolDay, PeriodSlot } from '../types';
 import { CLASS_TIMETABLES, createEmptyWeekSchedule } from '../data/timetables';
 import { supabaseSaveAllTimetables, supabaseClearAllTimetables, supabaseFetchTimetables } from '../services/supabaseService';
 
-const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v1';
+const TIMETABLE_STORAGE_KEY = 'nile_planner_custom_timetables_v2';
 
 function sanitizeSchedule(schedule?: Record<SchoolDay, PeriodSlot[]>): Record<SchoolDay, PeriodSlot[]> | null {
   if (!schedule) return null;
@@ -22,55 +22,42 @@ function hasAnySlots(schedule?: Record<SchoolDay, PeriodSlot[]>): boolean {
 
 export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodSlot[]>> {
   try {
+    // Clear old v1 cache key to prevent stale cache conflicts
+    try { localStorage.removeItem('nile_planner_custom_timetables_v1'); } catch {}
+
     const raw = localStorage.getItem(TIMETABLE_STORAGE_KEY);
+    const baselineAll = {
+      KG1A: CLASS_TIMETABLES.KG1A || createEmptyWeekSchedule(),
+      KG1B: CLASS_TIMETABLES.KG1B || createEmptyWeekSchedule(),
+      KG1C: CLASS_TIMETABLES.KG1C || createEmptyWeekSchedule(),
+      KG1D: CLASS_TIMETABLES.KG1D || createEmptyWeekSchedule(),
+      KG1E: CLASS_TIMETABLES.KG1E || createEmptyWeekSchedule(),
+      G2A: CLASS_TIMETABLES.G2A || createEmptyWeekSchedule(),
+      G2B: CLASS_TIMETABLES.G2B || createEmptyWeekSchedule(),
+      G2C: CLASS_TIMETABLES.G2C || createEmptyWeekSchedule(),
+    };
+
     if (!raw) {
-      const initial = {
-        KG1A: CLASS_TIMETABLES.KG1A || createEmptyWeekSchedule(),
-        KG1B: CLASS_TIMETABLES.KG1B || createEmptyWeekSchedule(),
-        KG1C: CLASS_TIMETABLES.KG1C || createEmptyWeekSchedule(),
-        KG1D: CLASS_TIMETABLES.KG1D || createEmptyWeekSchedule(),
-        KG1E: CLASS_TIMETABLES.KG1E || createEmptyWeekSchedule(),
-        G2A: CLASS_TIMETABLES.G2A || createEmptyWeekSchedule(),
-        G2B: CLASS_TIMETABLES.G2B || createEmptyWeekSchedule(),
-        G2C: CLASS_TIMETABLES.G2C || createEmptyWeekSchedule(),
-      };
-      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(initial));
-      return initial;
+      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(baselineAll));
+      return baselineAll;
     }
     const parsed = JSON.parse(raw);
-    let needsUpdate = false;
-    const getCleaned = (classId: ClassId) => {
-      const sanitized = sanitizeSchedule(parsed[classId]);
-      if (hasAnySlots(sanitized)) {
-        return sanitized!;
-      } else {
-        const baseline = CLASS_TIMETABLES[classId] || createEmptyWeekSchedule();
-        if (hasAnySlots(baseline)) {
-          parsed[classId] = baseline;
-          needsUpdate = true;
-        }
-        return baseline;
-      }
-    };
+    
+    // Always force KG1D to the latest official code baseline
+    parsed.KG1D = CLASS_TIMETABLES.KG1D;
 
     const finalTimetables = {
-      KG1A: getCleaned('KG1A'),
-      KG1B: getCleaned('KG1B'),
-      KG1C: getCleaned('KG1C'),
-      KG1D: getCleaned('KG1D'),
-      KG1E: getCleaned('KG1E'),
-      G2A: getCleaned('G2A'),
-      G2B: getCleaned('G2B'),
-      G2C: getCleaned('G2C'),
+      KG1A: sanitizeSchedule(parsed.KG1A) || baselineAll.KG1A,
+      KG1B: sanitizeSchedule(parsed.KG1B) || baselineAll.KG1B,
+      KG1C: sanitizeSchedule(parsed.KG1C) || baselineAll.KG1C,
+      KG1D: CLASS_TIMETABLES.KG1D, // Force official KG1D
+      KG1E: sanitizeSchedule(parsed.KG1E) || baselineAll.KG1E,
+      G2A: sanitizeSchedule(parsed.G2A) || baselineAll.G2A,
+      G2B: sanitizeSchedule(parsed.G2B) || baselineAll.G2B,
+      G2C: sanitizeSchedule(parsed.G2C) || baselineAll.G2C,
     };
 
-    if (needsUpdate) {
-      localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(parsed));
-      supabaseSaveAllTimetables(parsed).catch((err) => {
-        console.warn('Auto-healing cloud timetable save warning:', err);
-      });
-    }
-
+    localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(finalTimetables));
     return finalTimetables;
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);
