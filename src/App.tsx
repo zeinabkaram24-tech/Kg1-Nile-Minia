@@ -198,27 +198,19 @@ export default function App() {
     return 'KG1A';
   });
 
-  // Current Topic (Topic 2 / Home and school)
+  // Current Topic (Topic / Block) - Automatically defaults to today's real academic topic based on computer date
   const [currentBlock, setCurrentBlock] = useState<number>(() => {
-    const saved = appStorage.getItem('nile_planner_block');
-    if (saved && !isNaN(Number(saved))) return Number(saved);
-    return 2;
+    return autoDetected.topic;
   });
 
-  // Current Week (Week 1)
+  // Current Week - Automatically defaults to today's real academic week based on computer date
   const [currentWeek, setCurrentWeek] = useState<number>(() => {
-    const saved = appStorage.getItem(STORAGE_KEYS.WEEK);
-    if (saved && !isNaN(Number(saved))) return Number(saved);
-    return 1;
+    return autoDetected.week;
   });
 
-  // Selected Day (Sunday - first school day of the week with lessons)
+  // Selected Day - Automatically defaults to today's real day based on computer date
   const [selectedDay, setSelectedDay] = useState<SchoolDay>(() => {
-    const saved = appStorage.getItem(STORAGE_KEYS.DAY);
-    if (saved && ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday'].includes(saved)) {
-      return saved as SchoolDay;
-    }
-    return 'Sunday';
+    return autoDetected.day;
   });
 
   // Active View Tab: 'classwork' | 'homework' | 'tomorrow' | 'timetable'

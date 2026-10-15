@@ -12,5 +12,19 @@
     "week": 1,
     "isQuiz": false,
     "categoryType": "note"
+  },
+  {
+    "id": "tn-b2-w2-ara-sun-return",
+    "classId": "ALL",
+    "targetDay": "Sunday",
+    "subject": "Arabic",
+    "note": "يرجى حل أوراق العمل المنزلية وإعادة إرسالها إلى المدرسة يوم الأحد 26/10 📋",
+    "arabicNote": "يرجى حل أوراق العمل المنزلية وإعادة إرسالها إلى المدرسة يوم الأحد 26/10 📋",
+    "bagItem": "أوراق العمل المنزلية المكتملة",
+    "icon": "📋",
+    "block": 2,
+    "week": 2,
+    "isQuiz": false,
+    "categoryType": "note"
   }
 ]

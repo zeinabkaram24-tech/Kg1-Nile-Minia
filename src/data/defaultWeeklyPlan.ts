@@ -5,6 +5,7 @@ import { WEEK3_CLASSWORK, WEEK3_HOMEWORK, WEEK3_SPECIAL_NOTES } from './week3Pla
 import { WEEK4_CLASSWORK, WEEK4_HOMEWORK, WEEK4_SPECIAL_NOTES } from './week4Plan';
 import { WEEK5_CLASSWORK, WEEK5_HOMEWORK, WEEK5_SPECIAL_NOTES } from './week5Plan';
 import { TOPIC2_WEEK1_CLASSWORK, TOPIC2_WEEK1_HOMEWORK, TOPIC2_WEEK1_SPECIAL_NOTES } from './topic2Week1Plan';
+import { TOPIC2_WEEK2_CLASSWORK, TOPIC2_WEEK2_HOMEWORK, TOPIC2_WEEK2_SPECIAL_NOTES } from './topic2Week2Plan';
 
 export type { TomorrowSpecialNote };
 
@@ -15,6 +16,7 @@ export const SPECIAL_TEACHER_NOTES: TomorrowSpecialNote[] = [
   ...WEEK4_SPECIAL_NOTES,
   ...WEEK5_SPECIAL_NOTES,
   ...TOPIC2_WEEK1_SPECIAL_NOTES,
+  ...TOPIC2_WEEK2_SPECIAL_NOTES,
 ];
 
 export const DEFAULT_CLASSWORK: ClassworkEntry[] = [
@@ -24,6 +26,7 @@ export const DEFAULT_CLASSWORK: ClassworkEntry[] = [
   ...WEEK4_CLASSWORK,
   ...WEEK5_CLASSWORK,
   ...TOPIC2_WEEK1_CLASSWORK,
+  ...TOPIC2_WEEK2_CLASSWORK,
 ];
 export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK1_CLASSWORK,
@@ -32,6 +35,7 @@ export const INITIAL_CLASSWORK: ClassworkEntry[] = [
   ...WEEK4_CLASSWORK,
   ...WEEK5_CLASSWORK,
   ...TOPIC2_WEEK1_CLASSWORK,
+  ...TOPIC2_WEEK2_CLASSWORK,
 ];
 
 export const DEFAULT_HOMEWORK: HomeworkEntry[] = [
@@ -41,6 +45,7 @@ export const DEFAULT_HOMEWORK: HomeworkEntry[] = [
   ...WEEK4_HOMEWORK,
   ...WEEK5_HOMEWORK,
   ...TOPIC2_WEEK1_HOMEWORK,
+  ...TOPIC2_WEEK2_HOMEWORK,
 ];
 export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK1_HOMEWORK,
@@ -49,4 +54,5 @@ export const INITIAL_HOMEWORK: HomeworkEntry[] = [
   ...WEEK4_HOMEWORK,
   ...WEEK5_HOMEWORK,
   ...TOPIC2_WEEK1_HOMEWORK,
+  ...TOPIC2_WEEK2_HOMEWORK,
 ];
