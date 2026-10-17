@@ -9,12 +9,15 @@ import {
   Trash,
   Plus,
   Calendar,
+  Sparkles,
+  ShoppingBag,
 } from 'lucide-react';
 import { ClassId, SchoolDay, ClassworkEntry, SubjectName } from '../types';
 import { CLASS_TIMETABLES, SUBJECT_METADATA, hasClassTimetable } from '../data/timetables';
 import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
+import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -265,40 +268,92 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       {/* Timetable Period Cards or Weekend / Empty Day Message */}
       {visibleSlots.length === 0 ? (
         selectedDay === 'Saturday' ? (
-          <div
-            id="saturday-prep-card"
-            className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 max-w-xl mx-auto shadow-sm text-right"
-            dir="rtl"
-          >
-            <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center justify-start gap-2">
-              <span className="text-xl">📌</span>
-              <span>يُخصص يوم السبت للتجهيز والتحضير الأسبوعي:</span>
-            </h3>
+          (() => {
+            const sundayNotes = SPECIAL_TEACHER_NOTES.filter(
+              (n) =>
+                (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+                n.targetDay === 'Sunday' &&
+                (n.block || 1) === currentBlock &&
+                (n.week === currentWeek || (!n.week && currentWeek === 1))
+            );
 
-            {/* Blue accent divider */}
-            <div className="h-[2.5px] bg-blue-600 rounded-full my-4 sm:my-5" />
+            return (
+              <div
+                id="saturday-prep-card"
+                className="bg-white rounded-3xl border border-slate-200/90 p-5 sm:p-7 max-w-xl mx-auto shadow-sm text-right space-y-4"
+                dir="rtl"
+              >
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center justify-start gap-2">
+                    <span className="text-xl">📌</span>
+                    <span>يُخصص يوم السبت للتجهيز والتحضير الأسبوعي ليوم الأحد:</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-bold mt-1">
+                    الموضوع {currentBlock} • الأسبوع {currentWeek} • فصل {currentClass}
+                  </p>
+                </div>
 
-            <div className="space-y-3 sm:space-y-3.5">
-              {/* Item 1: Tomorrow */}
-              <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 sm:p-4 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
-                <span className="text-slate-900 text-base leading-none">•</span>
-                <span className="text-blue-600 font-extrabold" dir="ltr">
-                  (Tomorrow):
-                </span>
-                <span>لتجهيز حقيبة يوم الأحد.</span>
+                {/* Blue accent divider */}
+                <div className="h-[2.5px] bg-blue-600 rounded-full" />
+
+                {/* Special Sunday Notes (e.g. Favorite Toy / Show & Tell) */}
+                {sundayNotes.length > 0 && (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-1.5 text-xs font-black text-amber-900">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span>تنبيهات وملاحظات يوم الأحد (Tomorrow):</span>
+                    </div>
+                    {sundayNotes.map((sn, idx) => (
+                      <div
+                        key={sn.id || idx}
+                        className="bg-amber-50/80 border border-amber-300 rounded-2xl p-3.5 space-y-1.5 text-right shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-amber-200/80 text-amber-950">
+                            {sn.icon || '🧸'} {sn.subject || 'English'}
+                          </span>
+                          {sn.bagItem && (
+                            <span className="text-[11px] font-bold text-amber-800 flex items-center gap-1">
+                              <ShoppingBag className="w-3.5 h-3.5 text-amber-600" />
+                              <span>{sn.bagItem}</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-relaxed">
+                          {sn.arabicNote || sn.note}
+                        </p>
+                        {sn.note && sn.arabicNote && (
+                          <p className="text-[11px] font-medium text-slate-600 italic" dir="ltr">
+                            {sn.note}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-2.5 sm:space-y-3">
+                  {/* Item 1: Tomorrow */}
+                  <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
+                    <span className="text-slate-900 text-base leading-none">•</span>
+                    <span className="text-blue-600 font-extrabold" dir="ltr">
+                      (Tomorrow):
+                    </span>
+                    <span>لتجهيز حقيبة وأدوات يوم الأحد ومتابعة جدول الحصص.</span>
+                  </div>
+
+                  {/* Item 2: Homework */}
+                  <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
+                    <span className="text-slate-900 text-base leading-none">•</span>
+                    <span className="text-blue-600 font-extrabold" dir="ltr">
+                      (Homework):
+                    </span>
+                    <span>لتجهيز ومراجعة مهام الأسبوع والاختبارات والكويزات.</span>
+                  </div>
+                </div>
               </div>
-
-              {/* Item 2: Homework */}
-              <div className="bg-indigo-50/60 border-e-4 border-e-blue-600 rounded-xl p-3.5 sm:p-4 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2">
-                <span className="text-slate-900 text-base leading-none">•</span>
-                <span className="text-blue-600 font-extrabold" dir="ltr">
-                  (Homework):
-                </span>
-                <span>لتجهيز الاختبارات والكويزات.</span>
-              </div>
-
-            </div>
-          </div>
+            );
+          })()
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-xs">
             <div className="w-12 h-12 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3">

@@ -46,18 +46,24 @@ export function getStoredTimetables(): Record<ClassId, Record<SchoolDay, PeriodS
     // Always force KG1D to the latest official code baseline
     parsed.KG1D = CLASS_TIMETABLES.KG1D;
 
-    const finalTimetables = {
-      KG1A: sanitizeSchedule(parsed.KG1A) || baselineAll.KG1A,
-      KG1B: sanitizeSchedule(parsed.KG1B) || baselineAll.KG1B,
-      KG1C: sanitizeSchedule(parsed.KG1C) || baselineAll.KG1C,
-      KG1D: CLASS_TIMETABLES.KG1D, // Force official KG1D
-      KG1E: sanitizeSchedule(parsed.KG1E) || baselineAll.KG1E,
-      G2A: sanitizeSchedule(parsed.G2A) || baselineAll.G2A,
-      G2B: sanitizeSchedule(parsed.G2B) || baselineAll.G2B,
-      G2C: sanitizeSchedule(parsed.G2C) || baselineAll.G2C,
+    const sanitizeOrFallback = (cand: any, fallback: any) => {
+      const sanitized = sanitizeSchedule(cand);
+      if (sanitized && hasAnySlots(sanitized)) return sanitized;
+      return fallback;
     };
 
-    localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(finalTimetables));
+    const finalTimetables = {
+      KG1A: sanitizeOrFallback(parsed.KG1A, baselineAll.KG1A),
+      KG1B: sanitizeOrFallback(parsed.KG1B, baselineAll.KG1B),
+      KG1C: sanitizeOrFallback(parsed.KG1C, baselineAll.KG1C),
+      KG1D: CLASS_TIMETABLES.KG1D, // Force official KG1D
+      KG1E: sanitizeOrFallback(parsed.KG1E, baselineAll.KG1E),
+      G2A: sanitizeOrFallback(parsed.G2A, baselineAll.G2A),
+      G2B: sanitizeOrFallback(parsed.G2B, baselineAll.G2B),
+      G2C: sanitizeOrFallback(parsed.G2C, baselineAll.G2C),
+    };
+
+    try { localStorage.setItem(TIMETABLE_STORAGE_KEY, JSON.stringify(finalTimetables)); } catch {}
     return finalTimetables;
   } catch (e) {
     console.error('Failed to parse stored timetables:', e);
