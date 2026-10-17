@@ -5943,9 +5943,9 @@
       "title": "يميز حرف التاء - يربط بين حرف التاء والصور الخاصة به - يكتب حرف التاء",
       "details": "1- يميز حرف التاء. 2- يربط بين حرف التاء و الصور الخاصة به. 3- يكتب حرف التاء. 4- حل ورقة عمل صفحة 2.",
       "pages": "ورقة عمل ص 2",
-      "completed": false,
       "block": 2,
       "week": 1,
+      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=MBpepTr5E0k&list=RDMBpepTr5E0k&start_radio=1",
       "linkTitle": "فيديو حرف التاء والصور الخاصة به 🎬",
       "links": [
@@ -5964,9 +5964,9 @@
       "title": "يتعرف على أصوات حرف التاء - يربط بين الحرف والصور الخاصة به",
       "details": "1- يتعرف على أصوات حرف التاء. 2- يربط بين الحرف و الصور الخاصة به. 3- حل ورقة عمل صفحة 3.",
       "pages": "ورقة عمل ص 3",
-      "completed": false,
       "block": 2,
       "week": 1,
+      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=B2f7Bn9qOMM&list=RDB2f7Bn9qOMM&start_radio=1",
       "linkTitle": "أصوات وحركات حرف التاء 🎬",
       "links": [
@@ -5985,9 +5985,9 @@
       "title": "التعرف على رقم 3 ومدلوله",
       "details": "1- التعرف على رقم 3 ومدلوله. 2- حل ورقة العمل صفحة 4.",
       "pages": "ورقة العمل ص 4",
-      "completed": false,
       "block": 2,
       "week": 1,
+      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=o43ZteVMQHQ&list=RDo43ZteVMQHQ&start_radio=1",
       "linkTitle": "أنشودة وفيديو الرقم 3 ومدلوله 🔢",
       "links": [
@@ -6006,9 +6006,9 @@
       "title": "التعرف على شجرة العائلة",
       "details": "1- التعرف على شجرة العائلة. 2- حل ورقة عمل صفحة 5 و 6.",
       "pages": "ورقة عمل ص 5 و 6",
-      "completed": false,
       "block": 2,
       "week": 1,
+      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=CcSHmOYVR18",
       "linkTitle": "قصة وفيديو شجرة العائلة 🌳",
       "links": [
@@ -6026,9 +6026,9 @@
       "subject": "Arabic",
       "title": "تسمية ألقاب أفراد العائلة والتعرف على الكلمات الدالة عليه",
       "details": "تسمية ألقاب أفراد العائلة والتعرف على الكلمات الدالة عليه.",
-      "completed": false,
       "block": 2,
       "week": 1,
+      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=rSEGn0_QDk5",
       "linkTitle": "ألقاب وأفراد العائلة 👨‍👩‍👧‍👦",
       "links": [
@@ -6086,19 +6086,6 @@
       "title": "Social Studies Grade 2 B1 Week 5 U1 Homework 5",
       "details": "Social Studies Grade 2 B1 Week 5 U1 Homework 5",
       "pages": "Social Studies Grade 2 B1 Week 5 U1 Homework 5",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-social-sheet-G2B-Monday",
-      "classId": "G2B",
-      "day": "Monday",
-      "period": 1,
-      "subject": "Social Studies",
-      "title": "تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (السلوكيات وقواعد الفصل وتنظيم الوقت) وإحضاره جاهزاً للتسليم في أول حصة غداً الإثنين.",
-      "details": "تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (السلوكيات وقواعد الفصل وتنظيم الوقت) وإحضاره جاهزاً للتسليم في أول حصة غداً الإثنين.",
-      "pages": "شيت واجب الدراسات الاجتماعية المرفق",
       "completed": false,
       "block": 2,
       "week": 1
@@ -6195,19 +6182,6 @@
       "title": "الوحدة الثانية: المجتمع المدرسي (ما هي مدرستي؟)",
       "details": "الوحدة الثانية: المجتمع المدرسي. موضوع: ما هي مدرستي؟ وتطبيقات في أوراق العمل.",
       "pages": "أوراق العمل",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-social-sheet-G2A-Sunday",
-      "classId": "G2A",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "Social Studies",
-      "title": "تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (السلوكيات وقواعد الفصل وتنظيم الوقت) وإحضاره جاهزاً للتسليم في أول حصة غداً الأحد.",
-      "details": "تذكير واجب الدراسات الاجتماعية: حل شيت الواجب المرفق (السلوكيات وقواعد الفصل وتنظيم الوقت) وإحضاره جاهزاً للتسليم في أول حصة غداً الأحد.",
-      "pages": "شيت واجب الدراسات الاجتماعية المرفق",
       "completed": false,
       "block": 2,
       "week": 1
@@ -7164,7 +7138,7 @@
       "id": "cw-b2-w1-eng-sun",
       "classId": "ALL",
       "day": "Sunday",
-      "period": 2,
+      "period": 1,
       "subject": "English",
       "title": "1- I am too absolutely small for school' story & 2- Show and tell talking activity & 3- Number /5/",
       "details": "1- I am too absolutely small for school' story. 2- Show and tell talking activity. 3- number /5/. (Pages: 2 to 9).",
@@ -7210,7 +7184,7 @@
       "id": "cw-b2-w1-eng-tue",
       "classId": "ALL",
       "day": "Tuesday",
-      "period": 2,
+      "period": 3,
       "subject": "English",
       "title": "1- Identify names and register & 2- Introduce brown color / triangle shape & 3- Worksheet",
       "details": "1- Identify their names and register. 2- Introduce brown color / triangle shape. 3- Worksheet. (Pages: 2-11).",
@@ -7260,7 +7234,7 @@
       "id": "cw-b2-w1-eng-thu",
       "classId": "ALL",
       "day": "Thursday",
-      "period": 2,
+      "period": 3,
       "subject": "English",
       "title": "1- Carpet time & 2- Count to ten with fingers & 3- Writing patterns",
       "details": "1- Carpet time. 2- Count to ten with fingers. 3- Writing patterns. (Pages: 2-11).",
@@ -7278,75 +7252,10 @@
       ]
     },
     {
-      "id": "tn-b2-w1-eng-sun-toy-KG1A",
-      "classId": "KG1A",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "English",
-      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-eng-sun-toy-KG1D",
-      "classId": "KG1D",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "English",
-      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-eng-sun-toy-KG1C",
-      "classId": "KG1C",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "English",
-      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-eng-sun-toy-KG1B",
-      "classId": "KG1B",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "English",
-      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
-      "id": "tn-b2-w1-eng-sun-toy-KG1E",
-      "classId": "KG1E",
-      "day": "Sunday",
-      "period": 1,
-      "subject": "English",
-      "title": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "details": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
-      "pages": "اللعبة المفضلة للطفل (Favorite Toy)",
-      "completed": false,
-      "block": 2,
-      "week": 1
-    },
-    {
       "id": "cw-b2-w2-ara-sun",
       "classId": "ALL",
       "day": "Sunday",
-      "period": 1,
+      "period": 4,
       "subject": "Arabic",
       "title": "التعرف على شكل حرف الثاء منفصل و في أول الكلمة (ث - ثــ) وإنجاز ورقة العمل ص 7",
       "details": "1- التعرف على شكل حرف الثاء منفصل و في أول الكلمة (ث - ثــ). 2- إنجاز ورقة العمل ص 7.",
@@ -7413,7 +7322,7 @@
       "id": "cw-b2-w2-ara-wed",
       "classId": "ALL",
       "day": "Wednesday",
-      "period": 1,
+      "period": 5,
       "subject": "Arabic",
       "title": "التعرف على حجرات المنزل ومحتوى كل غرفة وإنجاز ورقة العمل ص 9",
       "details": "1- التعرف على حجرات المنزل ومحتوى كل غرفة. 2- إنجاز ورقة العمل ص 9.",
@@ -7455,6 +7364,123 @@
         {
           "title": "فيديو إضافي للأخلاق والآداب 🌟",
           "url": "https://youtu.be/kWQGRctFvTc?feature=shared"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w2-eng-sun",
+      "classId": "ALL",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- I am too absolutely small for school' story & 2- Show and tell talking activity & 3- Number /5/",
+      "details": "1- I am too absolutely small for school' story. 2- Show and tell talking activity. 3- number /5/. (Pages: 2 to 9).",
+      "pages": "P : 2 to 9",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story",
+      "linkTitle": "I am too absolutely small for school' story 📖",
+      "links": [
+        {
+          "title": "I am too absolutely small for school' story 📖",
+          "url": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story"
+        },
+        {
+          "title": "number 5 🔢",
+          "url": "https://www.youtube.com/watch?v=-6OM_nSyod0"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w2-eng-mon",
+      "classId": "ALL",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "1- Number sheet & 2- Wavy line pattern & 3- Letter sounds starting with <t>",
+      "details": "1- Number sheet. 2) Wavy line pattern. 3) Learn letter sounds in English words, starting with <t>. (Pages: 2-11).",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=sx0vOpp_mfE",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=sx0vOpp_mfE"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w2-eng-tue",
+      "classId": "ALL",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- Identify names and register & 2- Introduce brown color / triangle shape & 3- Worksheet",
+      "details": "1- Identify their names and register. 2- Introduce brown color / triangle shape. 3- Worksheet. (Pages: 2-11).",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=8Js2M6RE9VM",
+      "linkTitle": "Brown color 🎨",
+      "links": [
+        {
+          "title": "Brown color 🎨",
+          "url": "https://www.youtube.com/watch?v=8Js2M6RE9VM"
+        },
+        {
+          "title": "Triangle shape 🔺",
+          "url": "https://www.youtube.com/watch?v=pCNk-pl8img&list=RDpCNk-pl8img&start_radio=1"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w2-eng-wed",
+      "classId": "ALL",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- Writing table & 2- Revise pre-taught sounds & 3- Count family members",
+      "details": "1- Writing table. 2- Revise pre-taught sounds. 3- Count family members. (Pages: 2-11).",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=sx0vOpp_mfE",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=sx0vOpp_mfE"
+        },
+        {
+          "title": "Family members 👨‍👩‍👧‍👦",
+          "url": "https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w2-eng-thu",
+      "classId": "ALL",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- Carpet time & 2- Count to ten with fingers & 3- Writing patterns",
+      "details": "1- Carpet time. 2- Count to ten with fingers. 3- Writing patterns. (Pages: 2-11).",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=xNw1SSz18Gg",
+      "linkTitle": "Count using fingers 🖐️",
+      "links": [
+        {
+          "title": "Count using fingers 🖐️",
+          "url": "https://www.youtube.com/watch?v=xNw1SSz18Gg"
         }
       ]
     }
@@ -12332,6 +12358,124 @@
           "url": "https://youtu.be/U4bfczOvHNA?feature=shared"
         }
       ]
+    },
+    {
+      "id": "hw-b2-w2-eng-sun",
+      "classId": "ALL",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "Pages : 2-11 & Activity book 1 P 3,7 📝",
+      "details": "Pages : 2-11 & Activity book 1 P 3,7. Watch story and number 5 video. Story: I am too absolutely small for school'.",
+      "pages": "Pages : 2-11 & Activity book 1 P 3,7",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story",
+      "linkTitle": "I am too absolutely small for school' story 📖",
+      "links": [
+        {
+          "title": "I am too absolutely small for school' story 📖",
+          "url": "https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story"
+        },
+        {
+          "title": "number 5 🔢",
+          "url": "https://www.youtube.com/watch?v=-6OM_nSyod0"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w2-eng-mon",
+      "classId": "ALL",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "Pages : 2-11 & Jolly phonics song 📝",
+      "details": "Pages : 2-11. Listen to Jolly phonics song.",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=sx0vOpp_mfE",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=sx0vOpp_mfE"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w2-eng-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "English",
+      "task": "Pages : 2-11 & Brown color / Triangle shape 📝",
+      "details": "Pages : 2-11. Watch Brown color and Triangle shape videos.",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=8Js2M6RE9VM",
+      "linkTitle": "Brown color 🎨",
+      "links": [
+        {
+          "title": "Brown color 🎨",
+          "url": "https://www.youtube.com/watch?v=8Js2M6RE9VM"
+        },
+        {
+          "title": "Triangle shape 🔺",
+          "url": "https://www.youtube.com/watch?v=pCNk-pl8img&list=RDpCNk-pl8img&start_radio=1"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w2-eng-wed",
+      "classId": "ALL",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "English",
+      "task": "Pages : 2-11 & Family members song 📝",
+      "details": "Pages : 2-11. Watch Family members song.",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1",
+      "linkTitle": "Family members song 🎵",
+      "links": [
+        {
+          "title": "Family members song 🎵",
+          "url": "https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w2-eng-thu",
+      "classId": "ALL",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "Pages : 2-11 & Count using fingers 📝",
+      "details": "Pages : 2-11. Watch Count using fingers video.",
+      "pages": "Pages : 2-11",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=xNw1SSz18Gg",
+      "linkTitle": "Count using fingers 🖐️",
+      "links": [
+        {
+          "title": "Count using fingers 🖐️",
+          "url": "https://www.youtube.com/watch?v=xNw1SSz18Gg"
+        }
+      ]
     }
   ],
   "tomorrowNotes": [
@@ -12558,6 +12702,20 @@
       "arabicNote": "يرجى حل أوراق العمل المنزلية وإعادة إرسالها إلى المدرسة يوم الأحد 26/10 📋",
       "bagItem": "أوراق العمل المنزلية المكتملة",
       "icon": "📋",
+      "block": 2,
+      "week": 2,
+      "isQuiz": false,
+      "categoryType": "note"
+    },
+    {
+      "id": "tn-b2-w2-eng-sun-toy",
+      "classId": "ALL",
+      "targetDay": "Sunday",
+      "subject": "English",
+      "note": "Kindly send your child's favorite toy with him/her to school to talk about in the show and tell activity 🧸",
+      "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+      "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+      "icon": "🧸",
       "block": 2,
       "week": 2,
       "isQuiz": false,

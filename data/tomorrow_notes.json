@@ -26,5 +26,19 @@
     "week": 2,
     "isQuiz": false,
     "categoryType": "note"
+  },
+  {
+    "id": "tn-b2-w2-eng-sun-toy",
+    "classId": "ALL",
+    "targetDay": "Sunday",
+    "subject": "English",
+    "note": "Kindly send your child's favorite toy with him/her to school to talk about in the show and tell activity 🧸",
+    "arabicNote": "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+    "bagItem": "اللعبة المفضلة للطفل (Favorite Toy)",
+    "icon": "🧸",
+    "block": 2,
+    "week": 2,
+    "isQuiz": false,
+    "categoryType": "note"
   }
 ]

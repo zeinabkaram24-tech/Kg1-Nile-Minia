@@ -5,10 +5,35 @@ export const TOPIC2_WEEK2_CLASSWORK: ClassworkEntry[] = [
   // --- SUNDAY (18-10-2026) ---
   // ==========================================
   {
-    id: 'cw-b2-w2-ara-sun',
+    id: 'cw-b2-w2-eng-sun',
     classId: 'ALL',
     day: 'Sunday',
     period: 1,
+    subject: 'English',
+    title: "1- I am too absolutely small for school' story & 2- Show and tell talking activity & 3- Number /5/",
+    details: "1- I am too absolutely small for school' story. 2- Show and tell talking activity. 3- number /5/. (Pages: 2 to 9).",
+    pages: 'P : 2 to 9',
+    block: 2,
+    week: 2,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
+    linkTitle: "I am too absolutely small for school' story 📖",
+    links: [
+      {
+        title: "I am too absolutely small for school' story 📖",
+        url: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
+      },
+      {
+        title: 'number 5 🔢',
+        url: 'https://www.youtube.com/watch?v=-6OM_nSyod0',
+      },
+    ],
+  },
+  {
+    id: 'cw-b2-w2-ara-sun',
+    classId: 'ALL',
+    day: 'Sunday',
+    period: 4,
     subject: 'Arabic',
     title: 'التعرف على شكل حرف الثاء منفصل و في أول الكلمة (ث - ثــ) وإنجاز ورقة العمل ص 7',
     details: '1- التعرف على شكل حرف الثاء منفصل و في أول الكلمة (ث - ثــ). 2- إنجاز ورقة العمل ص 7.',
@@ -33,6 +58,27 @@ export const TOPIC2_WEEK2_CLASSWORK: ClassworkEntry[] = [
   // ==========================================
   // --- MONDAY (19-10-2026) ---
   // ==========================================
+  {
+    id: 'cw-b2-w2-eng-mon',
+    classId: 'ALL',
+    day: 'Monday',
+    period: 2,
+    subject: 'English',
+    title: '1- Number sheet & 2- Wavy line pattern & 3- Letter sounds starting with <t>',
+    details: '1- Number sheet. 2) Wavy line pattern. 3) Learn letter sounds in English words, starting with <t>. (Pages: 2-11).',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+      },
+    ],
+  },
   {
     id: 'cw-b2-w2-ara-mon',
     classId: 'ALL',
@@ -59,6 +105,31 @@ export const TOPIC2_WEEK2_CLASSWORK: ClassworkEntry[] = [
   // --- TUESDAY (20-10-2026) ---
   // ==========================================
   {
+    id: 'cw-b2-w2-eng-tue',
+    classId: 'ALL',
+    day: 'Tuesday',
+    period: 3,
+    subject: 'English',
+    title: '1- Identify names and register & 2- Introduce brown color / triangle shape & 3- Worksheet',
+    details: '1- Identify their names and register. 2- Introduce brown color / triangle shape. 3- Worksheet. (Pages: 2-11).',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=8Js2M6RE9VM',
+    linkTitle: 'Brown color 🎨',
+    links: [
+      {
+        title: 'Brown color 🎨',
+        url: 'https://www.youtube.com/watch?v=8Js2M6RE9VM',
+      },
+      {
+        title: 'Triangle shape 🔺',
+        url: 'https://www.youtube.com/watch?v=pCNk-pl8img&list=RDpCNk-pl8img&start_radio=1',
+      },
+    ],
+  },
+  {
     id: 'cw-b2-w2-ara-tue',
     classId: 'ALL',
     day: 'Tuesday',
@@ -84,10 +155,35 @@ export const TOPIC2_WEEK2_CLASSWORK: ClassworkEntry[] = [
   // --- WEDNESDAY (21-10-2026) ---
   // ==========================================
   {
-    id: 'cw-b2-w2-ara-wed',
+    id: 'cw-b2-w2-eng-wed',
     classId: 'ALL',
     day: 'Wednesday',
     period: 1,
+    subject: 'English',
+    title: '1- Writing table & 2- Revise pre-taught sounds & 3- Count family members',
+    details: '1- Writing table. 2- Revise pre-taught sounds. 3- Count family members. (Pages: 2-11).',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+      },
+      {
+        title: 'Family members 👨‍👩‍👧‍👦',
+        url: 'https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1',
+      },
+    ],
+  },
+  {
+    id: 'cw-b2-w2-ara-wed',
+    classId: 'ALL',
+    day: 'Wednesday',
+    period: 5,
     subject: 'Arabic',
     title: 'التعرف على حجرات المنزل ومحتوى كل غرفة وإنجاز ورقة العمل ص 9',
     details: '1- التعرف على حجرات المنزل ومحتوى كل غرفة. 2- إنجاز ورقة العمل ص 9.',
@@ -112,6 +208,27 @@ export const TOPIC2_WEEK2_CLASSWORK: ClassworkEntry[] = [
   // ==========================================
   // --- THURSDAY (22-10-2026) ---
   // ==========================================
+  {
+    id: 'cw-b2-w2-eng-thu',
+    classId: 'ALL',
+    day: 'Thursday',
+    period: 3,
+    subject: 'English',
+    title: '1- Carpet time & 2- Count to ten with fingers & 3- Writing patterns',
+    details: '1- Carpet time. 2- Count to ten with fingers. 3- Writing patterns. (Pages: 2-11).',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=xNw1SSz18Gg',
+    linkTitle: 'Count using fingers 🖐️',
+    links: [
+      {
+        title: 'Count using fingers 🖐️',
+        url: 'https://www.youtube.com/watch?v=xNw1SSz18Gg',
+      },
+    ],
+  },
   {
     id: 'cw-b2-w2-ara-thu',
     classId: 'ALL',
@@ -143,6 +260,32 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // --- SUNDAY (18-10-2026) ---
   // ==========================================
   {
+    id: 'hw-b2-w2-eng-sun',
+    classId: 'ALL',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'English',
+    task: 'Pages : 2-11 & Activity book 1 P 3,7 📝',
+    details: "Pages : 2-11 & Activity book 1 P 3,7. Watch story and number 5 video. Story: I am too absolutely small for school'.",
+    pages: 'Pages : 2-11 & Activity book 1 P 3,7',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
+    linkTitle: "I am too absolutely small for school' story 📖",
+    links: [
+      {
+        title: "I am too absolutely small for school' story 📖",
+        url: 'https://www.youtube.com/results?search_query=I+am+too+absolutely+small+for+school+story',
+      },
+      {
+        title: 'number 5 🔢',
+        url: 'https://www.youtube.com/watch?v=-6OM_nSyod0',
+      },
+    ],
+  },
+  {
     id: 'hw-b2-w2-ara-sun',
     classId: 'ALL',
     assignedDay: 'Sunday',
@@ -168,6 +311,28 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ==========================================
   // --- MONDAY (19-10-2026) ---
   // ==========================================
+  {
+    id: 'hw-b2-w2-eng-mon',
+    classId: 'ALL',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'English',
+    task: 'Pages : 2-11 & Jolly phonics song 📝',
+    details: 'Pages : 2-11. Listen to Jolly phonics song.',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=sx0vOpp_mfE',
+      },
+    ],
+  },
   {
     id: 'hw-b2-w2-ara-mon',
     classId: 'ALL',
@@ -195,6 +360,32 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // --- TUESDAY (20-10-2026) ---
   // ==========================================
   {
+    id: 'hw-b2-w2-eng-tue',
+    classId: 'ALL',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'English',
+    task: 'Pages : 2-11 & Brown color / Triangle shape 📝',
+    details: 'Pages : 2-11. Watch Brown color and Triangle shape videos.',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=8Js2M6RE9VM',
+    linkTitle: 'Brown color 🎨',
+    links: [
+      {
+        title: 'Brown color 🎨',
+        url: 'https://www.youtube.com/watch?v=8Js2M6RE9VM',
+      },
+      {
+        title: 'Triangle shape 🔺',
+        url: 'https://www.youtube.com/watch?v=pCNk-pl8img&list=RDpCNk-pl8img&start_radio=1',
+      },
+    ],
+  },
+  {
     id: 'hw-b2-w2-ara-tue',
     classId: 'ALL',
     assignedDay: 'Tuesday',
@@ -220,6 +411,28 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // ==========================================
   // --- WEDNESDAY (21-10-2026) ---
   // ==========================================
+  {
+    id: 'hw-b2-w2-eng-wed',
+    classId: 'ALL',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'English',
+    task: 'Pages : 2-11 & Family members song 📝',
+    details: 'Pages : 2-11. Watch Family members song.',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1',
+    linkTitle: 'Family members song 🎵',
+    links: [
+      {
+        title: 'Family members song 🎵',
+        url: 'https://www.youtube.com/watch?v=0FFCt88rwlc&list=RD0FFCt88rwlc&start_radio=1',
+      },
+    ],
+  },
   {
     id: 'hw-b2-w2-ara-wed',
     classId: 'ALL',
@@ -247,6 +460,28 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
   // --- THURSDAY (22-10-2026) ---
   // ==========================================
   {
+    id: 'hw-b2-w2-eng-thu',
+    classId: 'ALL',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'English',
+    task: 'Pages : 2-11 & Count using fingers 📝',
+    details: 'Pages : 2-11. Watch Count using fingers video.',
+    pages: 'Pages : 2-11',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=xNw1SSz18Gg',
+    linkTitle: 'Count using fingers 🖐️',
+    links: [
+      {
+        title: 'Count using fingers 🖐️',
+        url: 'https://www.youtube.com/watch?v=xNw1SSz18Gg',
+      },
+    ],
+  },
+  {
     id: 'hw-b2-w2-ara-thu',
     classId: 'ALL',
     assignedDay: 'Thursday',
@@ -270,6 +505,20 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
 ];
 
 export const TOPIC2_WEEK2_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+  {
+    id: 'tn-b2-w2-eng-sun-toy',
+    classId: 'ALL',
+    targetDay: 'Sunday',
+    subject: 'English',
+    note: "Kindly send your child's favorite toy with him/her to school to talk about in the show and tell activity 🧸",
+    arabicNote: "برجاء إرسال اللعبة المفضلة لطفلك معه إلى المدرسة للتحدث عنها في نشاط (Show and tell) 🧸",
+    bagItem: "اللعبة المفضلة للطفل (Favorite Toy)",
+    icon: '🧸',
+    block: 2,
+    week: 2,
+    isQuiz: false,
+    categoryType: 'note',
+  },
   {
     id: 'tn-b2-w2-ara-sun-return',
     classId: 'ALL',

@@ -117,6 +117,24 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
       return true;
     }
 
+    // For KG 1 and Topic 2, allow all teacher notes, activity items, and bag preparations
+    if (currentBlock === 2 || currentClass.startsWith('KG1') || !currentClass.startsWith('G2')) {
+      const lower = ((n.note || '') + ' ' + (n.arabicNote || '')).toLowerCase().trim();
+      if (
+        lower.includes('تسليم هوم ورك') ||
+        lower.includes('تسليم الواجب') ||
+        lower.includes('تسليم واجب') ||
+        lower.includes('تسليم بوكلت') ||
+        lower.includes('تذكير: تسليم') ||
+        lower.startsWith('hw:') ||
+        lower.startsWith('homework:') ||
+        lower.startsWith('واجب:')
+      ) {
+        return true;
+      }
+      return false; // Allowed!
+    }
+
     // These rules ONLY apply when we are in Week 3 for Grade 2
     if (currentWeek === 3 && (currentClass.startsWith('G2') || (n.classId && n.classId.startsWith('G2')))) {
       // Strict Mathematics/Math rule: Completely disallow Maths notes/alerts/submissions on any day
