@@ -849,6 +849,21 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       return corrected;
     }
 
+    const isTargetB2Eng =
+      item.subject === 'English' &&
+      (item.block === 2 || (item.id && item.id.includes('b2-'))) &&
+      (!item.task || item.task.includes('Pages : 2-11') || item.task.includes('Jolly phonics') || item.task.includes('Activity book page 3, 7') || item.task === 'Homework sheet' || item.task === 'Activity book 1 P 3,7');
+
+    if (isTargetB2Eng) {
+      const cleanTask = 'Homework page 2, 3, 7, 8, and 11. Activity book page';
+      return {
+        ...item,
+        task: cleanTask,
+        pages: cleanTask,
+        details: cleanTask,
+      };
+    }
+
     return item;
   });
 

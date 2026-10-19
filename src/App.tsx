@@ -150,7 +150,17 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
         const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
           ? baseline.links
           : h.links;
-        map.set(h.id, { ...h, links: mergedLinks });
+        let itemToSet = { ...h, links: mergedLinks };
+        if (
+          itemToSet.subject === 'English' &&
+          (itemToSet.block === 2 || itemToSet.id.includes('b2-'))
+        ) {
+          const exactTask = 'Homework page 2, 3, 7, 8, and 11. Activity book page';
+          itemToSet.task = exactTask;
+          itemToSet.pages = exactTask;
+          itemToSet.details = exactTask;
+        }
+        map.set(h.id, itemToSet);
       }
     });
   }
