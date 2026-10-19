@@ -106,10 +106,22 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     cached.forEach((c) => {
       if (c && c.id) {
         const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
-        const mergedLinks = (!c.links || c.links.length === 0) && baseline?.links && baseline.links.length > 0
-          ? baseline.links
-          : c.links;
-        map.set(c.id, { ...c, links: mergedLinks });
+        const isEnglishW2 = baseline && baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2;
+        if (isEnglishW2) {
+          map.set(c.id, {
+            ...c,
+            title: baseline.title,
+            details: baseline.details,
+            links: baseline.links,
+            linkUrl: baseline.linkUrl,
+            linkTitle: baseline.linkTitle,
+          });
+        } else {
+          const mergedLinks = (!c.links || c.links.length === 0) && baseline?.links && baseline.links.length > 0
+            ? baseline.links
+            : c.links;
+          map.set(c.id, { ...c, links: mergedLinks });
+        }
       }
     });
   }
@@ -147,20 +159,23 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     cached.forEach((h) => {
       if (h && h.id) {
         const baseline = INITIAL_HOMEWORK.find((b) => b.id === h.id);
-        const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
-          ? baseline.links
-          : h.links;
-        let itemToSet = { ...h, links: mergedLinks };
-        if (
-          itemToSet.subject === 'English' &&
-          (itemToSet.block === 2 || itemToSet.id.includes('b2-'))
-        ) {
-          const exactTask = 'Homework page 2, 3, 7, 8, and 11. Activity book page';
-          itemToSet.task = exactTask;
-          itemToSet.pages = exactTask;
-          itemToSet.details = exactTask;
+        const isEnglishW2 = baseline && baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2;
+        if (isEnglishW2) {
+          map.set(h.id, {
+            ...h,
+            task: baseline.task,
+            details: baseline.details,
+            pages: baseline.pages,
+            links: baseline.links,
+            linkUrl: baseline.linkUrl,
+            linkTitle: baseline.linkTitle,
+          });
+        } else {
+          const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
+            ? baseline.links
+            : h.links;
+          map.set(h.id, { ...h, links: mergedLinks });
         }
-        map.set(h.id, itemToSet);
       }
     });
   }

@@ -472,7 +472,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                           )}
                         </div>
                         {cwEntry.details && (
-                          <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
+                          <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed whitespace-pre-line">
                             {cwEntry.details}
                           </p>
                         )}

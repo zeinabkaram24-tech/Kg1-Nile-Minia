@@ -404,8 +404,15 @@ export const appStorage = {
   },
 };
 
-const LOCAL_CUSTOM_HW_KEY = 'homework_planner_custom_entries_v3';
-const LOCAL_CUSTOM_CW_KEY = 'classwork_planner_custom_entries_v3';
+try {
+  if (typeof window !== 'undefined') {
+    window.localStorage?.removeItem('homework_planner_custom_entries_v3');
+    window.localStorage?.removeItem('classwork_planner_custom_entries_v3');
+  }
+} catch {}
+
+const LOCAL_CUSTOM_HW_KEY = 'homework_planner_custom_entries_v4';
+const LOCAL_CUSTOM_CW_KEY = 'classwork_planner_custom_entries_v4';
 
 export function getLocalCustomClasswork(): ClassworkEntry[] {
   try {
@@ -514,7 +521,23 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
 
-  const consolidated = Array.from(map.values());
+  const consolidated = Array.from(map.values()).map((c) => {
+    const isEnglishW2 = c.subject === 'English' && (c.block || 1) === 2 && (c.week || 1) === 2;
+    if (isEnglishW2) {
+      const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
+      if (baseline) {
+        return {
+          ...c,
+          title: baseline.title,
+          details: baseline.details,
+          links: baseline.links,
+          linkUrl: baseline.linkUrl,
+          linkTitle: baseline.linkTitle,
+        };
+      }
+    }
+    return c;
+  });
 
   // Background replication:
   // 1. If Supabase is active, push any item from server/local that is not in Supabase yet
@@ -849,19 +872,24 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
       return corrected;
     }
 
-    const isTargetB2Eng =
+    const isEnglishW2 =
       item.subject === 'English' &&
-      (item.block === 2 || (item.id && item.id.includes('b2-'))) &&
-      (!item.task || item.task.includes('Pages : 2-11') || item.task.includes('Jolly phonics') || item.task.includes('Activity book page 3, 7') || item.task === 'Homework sheet' || item.task === 'Activity book 1 P 3,7');
+      (item.block || 1) === 2 &&
+      (item.week || 1) === 2;
 
-    if (isTargetB2Eng) {
-      const cleanTask = 'Homework page 2, 3, 7, 8, and 11. Activity book page';
-      return {
-        ...item,
-        task: cleanTask,
-        pages: cleanTask,
-        details: cleanTask,
-      };
+    if (isEnglishW2) {
+      const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);
+      if (baseline) {
+        return {
+          ...item,
+          task: baseline.task,
+          details: baseline.details,
+          pages: baseline.pages,
+          links: baseline.links,
+          linkUrl: baseline.linkUrl,
+          linkTitle: baseline.linkTitle,
+        };
+      }
     }
 
     return item;

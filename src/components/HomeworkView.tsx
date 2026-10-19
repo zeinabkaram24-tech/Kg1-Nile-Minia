@@ -313,7 +313,7 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
 
                     {/* Task Description */}
                     <p
-                      className={`text-sm font-black leading-snug pt-0.5 ${
+                      className={`text-sm font-black leading-relaxed pt-0.5 whitespace-pre-line ${
                         hw.completed ? 'line-through text-slate-400' : 'text-slate-950'
                       }`}
                     >
