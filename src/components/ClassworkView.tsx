@@ -115,6 +115,24 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
+  // Helper to check if details just repeats what is already in the bold title
+  const isDetailsRedundant = (title?: string, details?: string): boolean => {
+    if (!details || !details.trim()) return true;
+    if (!title || !title.trim()) return false;
+    const clean = (s: string) =>
+      s
+        .replace(/[\s\d\-–.,،():;\\/]/g, '')
+        .replace(/التعرفعلى/g, '')
+        .replace(/شكل/g, '')
+        .replace(/ورقة|ورق|العمل/g, '')
+        .toLowerCase();
+    const ct = clean(title);
+    const cd = clean(details);
+    if (!cd || ct === cd) return true;
+    if (ct.length > 3 && cd.length > 3 && (ct.includes(cd) || cd.includes(ct))) return true;
+    return false;
+  };
+
   // Helper to check class match
   const isClassMatch = (itemClass: any) => {
     if (!itemClass || itemClass === 'ALL' || itemClass === 'all') return true;
@@ -471,7 +489,7 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
                             </span>
                           )}
                         </div>
-                        {cwEntry.details && (
+                        {cwEntry.details && !isDetailsRedundant(cwEntry.title, cwEntry.details) && (
                           <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed whitespace-pre-line">
                             {cwEntry.details}
                           </p>

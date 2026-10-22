@@ -309,6 +309,12 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                           <span>Dictation list 📝</span>
                         </span>
                       )}
+
+                      {checkText.includes('التحدث مع الطفل بالفصحى') && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-black bg-emerald-50 text-emerald-950 border border-emerald-300 shadow-2xs">
+                          <span>🗣️ التحدث بالفصحى دقيقة يومياً</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* Task Description */}
@@ -319,6 +325,22 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                     >
                       {hw.task}
                     </p>
+
+                    {/* Additional Details if not already fully contained in task */}
+                    {hw.details && (
+                      (() => {
+                        const cleanTask = hw.task.replace(/[\s\d\-–.,،():;\\/•]/g, '').trim();
+                        const cleanDetails = hw.details.replace(/[\s\d\-–.,،():;\\/•]/g, '').trim();
+                        if (cleanDetails && cleanTask !== cleanDetails && !cleanTask.includes(cleanDetails) && !cleanDetails.includes(cleanTask)) {
+                          return (
+                            <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed whitespace-pre-line">
+                              {hw.details}
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()
+                    )}
 
                     {/* Elegant Word Cards Grid for Dictation Lists */}
                     {(hw.task.toLowerCase().includes('dictation list') || hw.task.includes('كلمات الإملاء')) && (() => {

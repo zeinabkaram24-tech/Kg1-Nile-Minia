@@ -106,12 +106,16 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     cached.forEach((c) => {
       if (c && c.id) {
         const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
-        const isEnglishW2 = baseline && baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2;
-        if (isEnglishW2) {
+        const isProtectedBaseline = baseline && (
+          (baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2) ||
+          (baseline.subject === 'Arabic' && (baseline.block || 1) === 2 && (baseline.week || 1) === 3)
+        );
+        if (isProtectedBaseline) {
           map.set(c.id, {
             ...c,
             title: baseline.title,
             details: baseline.details,
+            pages: baseline.pages,
             links: baseline.links,
             linkUrl: baseline.linkUrl,
             linkTitle: baseline.linkTitle,
@@ -159,8 +163,11 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     cached.forEach((h) => {
       if (h && h.id) {
         const baseline = INITIAL_HOMEWORK.find((b) => b.id === h.id);
-        const isEnglishW2 = baseline && baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2;
-        if (isEnglishW2) {
+        const isProtectedBaseline = baseline && (
+          (baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2) ||
+          (baseline.subject === 'Arabic' && (baseline.block || 1) === 2 && (baseline.week || 1) === 3)
+        );
+        if (isProtectedBaseline) {
           map.set(h.id, {
             ...h,
             task: baseline.task,
