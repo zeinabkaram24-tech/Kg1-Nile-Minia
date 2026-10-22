@@ -523,8 +523,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
 
   const consolidated = Array.from(map.values()).map((c) => {
     const isProtectedBaseline =
-      (c.subject === 'English' && (c.block || 1) === 2 && (c.week || 1) === 2) ||
-      (c.subject === 'Arabic' && (c.block || 1) === 2 && (c.week || 1) === 3);
+      (c.block || 1) === 2 && ((c.week || 1) === 2 || (c.week || 1) === 3);
     if (isProtectedBaseline) {
       const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
       if (baseline) {
@@ -876,8 +875,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     }
 
     const isProtectedBaseline =
-      (item.subject === 'English' && (item.block || 1) === 2 && (item.week || 1) === 2) ||
-      (item.subject === 'Arabic' && (item.block || 1) === 2 && (item.week || 1) === 3);
+      (item.block || 1) === 2 && ((item.week || 1) === 2 || (item.week || 1) === 3);
 
     if (isProtectedBaseline) {
       const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);

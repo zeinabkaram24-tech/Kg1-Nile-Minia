@@ -14,6 +14,7 @@ import {
 import { ClassId, ClassworkEntry, HomeworkEntry, ParsedWeeklyPlanResponse } from '../types';
 import { parseWeeklyPlanWithAI } from '../services/aiClassifier';
 import { SUBJECT_METADATA } from '../data/timetables';
+import { isDetailsRedundant } from '../utils/textRedundancy';
 
 interface WeeklyPlanModalProps {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       period: cw.period || (idx % 8) + 1,
       subject: cw.subject || 'English',
       title: cw.title || 'Lesson',
-      details: cw.details,
+      details: isDetailsRedundant(cw.title, cw.details) ? undefined : cw.details,
       pages: cw.pages,
       completed: false,
       block: currentBlock,
@@ -118,7 +119,7 @@ export const WeeklyPlanModal: React.FC<WeeklyPlanModalProps> = ({
       dueDay: hw.dueDay || 'Monday',
       subject: hw.subject || 'English',
       task: hw.task || 'Homework task',
-      details: hw.details,
+      details: isDetailsRedundant(hw.task, hw.details) ? undefined : hw.details,
       pages: hw.pages,
       completed: false,
       priority: hw.priority || 'normal',

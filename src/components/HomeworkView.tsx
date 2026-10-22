@@ -16,6 +16,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
+import { isDetailsRedundant } from '../utils/textRedundancy';
 
 interface HomeworkViewProps {
   currentClass: ClassId;
@@ -326,20 +327,11 @@ export const HomeworkView: React.FC<HomeworkViewProps> = ({
                       {hw.task}
                     </p>
 
-                    {/* Additional Details if not already fully contained in task */}
-                    {hw.details && (
-                      (() => {
-                        const cleanTask = hw.task.replace(/[\s\d\-–.,،():;\\/•]/g, '').trim();
-                        const cleanDetails = hw.details.replace(/[\s\d\-–.,،():;\\/•]/g, '').trim();
-                        if (cleanDetails && cleanTask !== cleanDetails && !cleanTask.includes(cleanDetails) && !cleanDetails.includes(cleanTask)) {
-                          return (
-                            <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed whitespace-pre-line">
-                              {hw.details}
-                            </p>
-                          );
-                        }
-                        return null;
-                      })()
+                    {/* Additional Details only if distinct and not already repeated in the bold task */}
+                    {hw.details && !isDetailsRedundant(hw.task, hw.details) && (
+                      <p className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed whitespace-pre-line">
+                        {hw.details}
+                      </p>
                     )}
 
                     {/* Elegant Word Cards Grid for Dictation Lists */}

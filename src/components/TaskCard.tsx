@@ -5,6 +5,7 @@ import { TaskTypeBadge } from './SubjectBadge';
 import { playChimeSound, triggerTaskDoneConfetti } from '../utils/celebration';
 import { extractFirstUrl, extractAllUrls, getLinkActionLabel, getFriendlyDomain, isVideoUrl } from '../utils/urlHelper';
 import { Edit3, Trash2, BookOpen, Clock, Check, Circle, StickyNote, CheckCircle2, X, ExternalLink, PlayCircle, Headphones } from 'lucide-react';
+import { isDetailsRedundant } from '../utils/textRedundancy';
 
 interface TaskCardProps {
   task: PlanTask;
@@ -158,7 +159,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {task.title}
           </h3>
 
-          {task.details && (
+          {task.details && !isDetailsRedundant(task.title, task.details) && (
             <p
               className={`text-xs sm:text-sm mt-1 leading-relaxed ${
                 task.isDone ? 'line-through text-slate-400' : 'text-slate-600'

@@ -18,6 +18,7 @@ import { SubjectIcon } from './SubjectIcon';
 import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
+import { isDetailsRedundant } from '../utils/textRedundancy';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -115,23 +116,6 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
     }
   }
 
-  // Helper to check if details just repeats what is already in the bold title
-  const isDetailsRedundant = (title?: string, details?: string): boolean => {
-    if (!details || !details.trim()) return true;
-    if (!title || !title.trim()) return false;
-    const clean = (s: string) =>
-      s
-        .replace(/[\s\d\-–.,،():;\\/]/g, '')
-        .replace(/التعرفعلى/g, '')
-        .replace(/شكل/g, '')
-        .replace(/ورقة|ورق|العمل/g, '')
-        .toLowerCase();
-    const ct = clean(title);
-    const cd = clean(details);
-    if (!cd || ct === cd) return true;
-    if (ct.length > 3 && cd.length > 3 && (ct.includes(cd) || cd.includes(ct))) return true;
-    return false;
-  };
 
   // Helper to check class match
   const isClassMatch = (itemClass: any) => {

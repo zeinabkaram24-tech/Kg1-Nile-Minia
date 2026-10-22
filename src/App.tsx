@@ -107,8 +107,7 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
       if (c && c.id) {
         const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
         const isProtectedBaseline = baseline && (
-          (baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2) ||
-          (baseline.subject === 'Arabic' && (baseline.block || 1) === 2 && (baseline.week || 1) === 3)
+          ((baseline.block || 1) === 2 && ((baseline.week || 1) === 2 || (baseline.week || 1) === 3))
         );
         if (isProtectedBaseline) {
           map.set(c.id, {
@@ -164,8 +163,7 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
       if (h && h.id) {
         const baseline = INITIAL_HOMEWORK.find((b) => b.id === h.id);
         const isProtectedBaseline = baseline && (
-          (baseline.subject === 'English' && (baseline.block || 1) === 2 && (baseline.week || 1) === 2) ||
-          (baseline.subject === 'Arabic' && (baseline.block || 1) === 2 && (baseline.week || 1) === 3)
+          ((baseline.block || 1) === 2 && ((baseline.week || 1) === 2 || (baseline.week || 1) === 3))
         );
         if (isProtectedBaseline) {
           map.set(h.id, {

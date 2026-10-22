@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, Link2, FileText, Sparkles, BookOpen, ExternalLink, Calendar, HelpCircle, Mic, MicOff, Loader2 } from 'lucide-react';
 import { ClassId, SchoolDay, SubjectName, ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 import { NEXT_SCHOOL_DAY } from '../data/timetables';
+import { isDetailsRedundant } from '../utils/textRedundancy';
 
 interface InteractiveEditorModalProps {
   isOpen: boolean;
@@ -517,10 +518,11 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         alert('يرجى إدخال عنوان الحصة الدراسية.');
         return;
       }
+      const cleanDetails = isDetailsRedundant(title.trim(), details.trim()) ? undefined : (details.trim() || undefined);
       onSave('classwork', {
         ...baseData,
         title: title.trim(),
-        details: details.trim() || undefined,
+        details: cleanDetails,
         pages: pages.trim() || undefined,
         day,
         period,
@@ -531,10 +533,11 @@ export const InteractiveEditorModal: React.FC<InteractiveEditorModalProps> = ({
         alert('يرجى إدخال تفاصيل الواجب المنزلي.');
         return;
       }
+      const cleanDetails = isDetailsRedundant(title.trim(), details.trim()) ? undefined : (details.trim() || undefined);
       onSave('homework', {
         ...baseData,
         task: title.trim(),
-        details: details.trim() || undefined,
+        details: cleanDetails,
         pages: pages.trim() || undefined,
         assignedDay,
         dueDay,
