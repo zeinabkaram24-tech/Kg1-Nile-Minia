@@ -18623,6 +18623,138 @@
           "url": "https://www.youtube.com/watch?v=QyK4aqld7Qc"
         }
       ]
+    },
+    {
+      "id": "hw-b1-w1-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "واجب لغة عربية: حل ورق العمل ص 3 \\ 4 \\ 5",
+      "details": "التعرف على الروتين اليومي وأنواع الخطوط وحل أوراق العمل ص 3 و 4 و 5، مع استماع الطفل للفيديوهات التعليمية",
+      "pages": "ص 3 \\ 4 \\ 5",
+      "block": 1,
+      "week": 1,
+      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
+      "linkTitle": "فيديو أنواع الخطوط 🎬",
+      "links": [
+        {
+          "title": "فيديو أنواع الخطوط 🎬",
+          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl"
+        },
+        {
+          "title": "فيديو الروتين اليومي 🎬",
+          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz"
+        }
+      ]
+    },
+    {
+      "id": "hw-b1-w2-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "واجب لغة عربية: حل أوراق العمل ص 5",
+      "details": "حل أوراق العمل ص 5 الخاصة بالتعرف على أجزاء الوجه",
+      "pages": "ص 5",
+      "block": 1,
+      "week": 2,
+      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
+      "linkTitle": "فيديو أجزاء الوجه 🎬",
+      "links": [
+        {
+          "title": "فيديو أجزاء الوجه 🎬",
+          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
+        }
+      ]
+    },
+    {
+      "id": "hw-b1-w3-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "حل ورقة عمل صفحة 10",
+      "details": "واجب اللغة العربية: حل ورقة عمل صفحة 10 + استماع لفيديو العدد اثنان",
+      "pages": "ص 10",
+      "block": 1,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
+      "linkTitle": "فيديو العدد اثنان ومدلوله",
+      "links": [
+        {
+          "title": "فيديو العدد اثنان ومدلوله",
+          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
+        }
+      ]
+    },
+    {
+      "id": "hw-b1-w4-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "حل ورقة عمل صفحة ١٦ من شيت الواجب 📝",
+      "details": "حل ورقة عمل صفحة 16",
+      "pages": "ص 16",
+      "block": 1,
+      "week": 4,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0",
+      "links": [
+        {
+          "title": "فيديو الحواس الخمسة 🎬",
+          "url": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0"
+        }
+      ]
+    },
+    {
+      "id": "hw-b1-w5-G2B-Tuesday-arabic",
+      "classId": "G2B",
+      "assignedDay": "Tuesday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "أوراق العمل ص 40 - 41",
+      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
+      "pages": "ص 40 - 41",
+      "completed": true,
+      "priority": "normal",
+      "block": 1,
+      "week": 5,
+      "isLinkTask": false
+    },
+    {
+      "id": "hw-b1-w5-G2C-Tuesday-arabic",
+      "classId": "G2C",
+      "assignedDay": "Tuesday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "أوراق العمل ص 40 - 41",
+      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
+      "pages": "ص 40 - 41",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 5,
+      "isLinkTask": false
+    },
+    {
+      "id": "hw-b1-w5-G2A-Tuesday-arabic",
+      "classId": "G2A",
+      "assignedDay": "Tuesday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "أوراق العمل ص 40 - 41",
+      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
+      "pages": "ص 40 - 41",
+      "completed": false,
+      "priority": "normal",
+      "block": 1,
+      "week": 5,
+      "isLinkTask": false
     }
   ],
   "tomorrowNotes": [
@@ -18897,9 +19029,5 @@
     }
   ],
   "deletedTomorrowNoteIds": [],
-  "deletedPlannerItemIds": [
-    "hw-b2-w3-ara-tue",
-    "hw-b2-w2-ara-tue",
-    "hw-b2-w1-ara-tue"
-  ]
+  "deletedPlannerItemIds": []
 }
