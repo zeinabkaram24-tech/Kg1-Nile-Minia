@@ -7308,7 +7308,6 @@
       "period": 4,
       "subject": "Arabic",
       "title": "التعرف على شكل حرف الثاء منفصل و في أول الكلمة (ث - ثــ) وإنجاز ورقة العمل ص 7",
-      "details": "",
       "pages": "ورقة العمل ص 7",
       "completed": false,
       "block": 2,
@@ -7333,7 +7332,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "التعرف على حرف الثاء بحركاته الثلاثة (ثَ - ثِ - ثُ) وإنجاز ورقة العمل ص 8",
-      "details": "",
       "pages": "ورقة العمل ص 8",
       "completed": false,
       "block": 2,
@@ -7354,7 +7352,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "مراجعة الحروف من الألف الى الثاء وحل الكتاب المدرسي ص 16, 17",
-      "details": "",
       "pages": "الكتاب المدرسي ص 16, 17",
       "completed": false,
       "block": 2,
@@ -7375,7 +7372,6 @@
       "period": 5,
       "subject": "Arabic",
       "title": "التعرف على حجرات المنزل ومحتوى كل غرفة وإنجاز ورقة العمل ص 9",
-      "details": "",
       "pages": "ورقة العمل ص 9",
       "completed": false,
       "block": 2,
@@ -7400,7 +7396,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "التعرف على سلوكيات وآداب الإستئذان",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -7424,7 +7419,6 @@
       "period": 1,
       "subject": "English",
       "title": "1- Story: 'Mummy Do You Love Me?' by Jeanne Willis & 2- Learn /i/ sound & 3- Order numbers up to 5",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -7456,7 +7450,6 @@
       "period": 2,
       "subject": "English",
       "title": "1- Using shapes to decorate plates & 2- Learn zig zag line & 3- Recognize their names & 4- Learn number 6",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -7492,7 +7485,6 @@
       "period": 3,
       "subject": "English",
       "title": "1- Learn purple color / heart shape & 2- Number sheet & 3- Learn about blending sounds to form a word",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -7520,7 +7512,6 @@
       "period": 1,
       "subject": "English",
       "title": "1- Revise home rooms & 2- Sound sheet & 3- Learn /i/ sound words",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -7544,7 +7535,6 @@
       "period": 3,
       "subject": "English",
       "title": "1- Carpet time & 2- Writing table & 3- Solve number problems with a story",
-      "details": "",
       "completed": false,
       "block": 2,
       "week": 2,
@@ -11360,7 +11350,6 @@
       "period": 4,
       "subject": "Arabic",
       "title": "التعرف على شكل حرف الجيم منفصل و في أول الكلمة (ج - جـ) وحل ورق العمل ص 10",
-      "details": "",
       "pages": "ورقة العمل ص 10",
       "completed": false,
       "block": 2,
@@ -11381,7 +11370,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "التعرف على حرف الجيم بحركاته الثلاثة ( جَ - جِ - جُ ) وإنجاز ورق العمل ص 11",
-      "details": "",
       "pages": "ورقة العمل ص 11",
       "completed": false,
       "block": 2,
@@ -11402,7 +11390,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "التعرف على رقم 4 ويربط بين العدد ومدلوله وإنجاز ورق العمل ص 12",
-      "details": "",
       "pages": "ورقة العمل ص 12",
       "completed": false,
       "block": 2,
@@ -11423,12 +11410,10 @@
       "period": 5,
       "subject": "Arabic",
       "title": "التعرف على الجدول الزمني في المدرسة ومناقشة الأنشطة والروتين المدرسي",
-      "details": "",
       "pages": "الجدول الزمني المدرسي",
       "completed": false,
       "block": 2,
-      "week": 3,
-      "links": []
+      "week": 3
     },
     {
       "id": "cw-b2-w3-ara-thu",
@@ -11437,7 +11422,6 @@
       "period": 1,
       "subject": "Arabic",
       "title": "التعرف على أدوات المدرسة وإنجاز ورق العمل ص 13",
-      "details": "",
       "pages": "ورقة العمل ص 13",
       "completed": false,
       "block": 2,
@@ -11450,33 +11434,157 @@
           "url": "https://youtu.be/LSHI_yHjy2I?si=lOkIZdMyd1aET3jT"
         }
       ]
-    }
-  ],
-  "homework": [
+    },
     {
-      "id": "hw-b1-w1-ara-tue",
+      "id": "cw-b2-w3-eng-sun",
       "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "واجب لغة عربية: حل ورق العمل ص 3 \\ 4 \\ 5",
-      "details": "التعرف على الروتين اليومي وأنواع الخطوط وحل أوراق العمل ص 3 و 4 و 5، مع استماع الطفل للفيديوهات التعليمية",
-      "pages": "ص 3 \\ 4 \\ 5",
-      "block": 1,
-      "week": 1,
-      "linkUrl": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl",
-      "linkTitle": "فيديو أنواع الخطوط 🎬",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- Make the engine for the birthday train, using 2D shapes. 2- Learn number 7. 3- \"This Little Puffin\" by Elizabeth Matterson / \"Three little monkeys were jumping on the bed\"",
+      "pages": "Number 7 worksheet",
+      "completed": false,
+      "block": 2,
+      "week": 3,
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
+      "linkTitle": "Jolly phonics song 🎵",
       "links": [
         {
-          "title": "فيديو أنواع الخطوط 🎬",
-          "url": "https://youtu.be/WP8wRNwZmCo?si=OytpY8mViq_V2-Rl"
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc"
         },
         {
-          "title": "فيديو الروتين اليومي 🎬",
-          "url": "https://youtu.be/yPKU5pjBgts?si=y2boOfPVrrTyeLuz"
+          "title": "Count numbers from 1 to 10 🔢",
+          "url": "https://www.youtube.com/watch?v=xjnlymFLSdM"
+        },
+        {
+          "title": "Numbers and counting songs 🎶",
+          "url": "https://www.youtube.com/watch?v=HkkYaj0m6cg"
+        },
+        {
+          "title": "Pink colour 💗",
+          "url": "https://www.youtube.com/watch?v=3VClmeOfE2k"
         }
       ]
     },
+    {
+      "id": "cw-b2-w3-eng-mon",
+      "classId": "ALL",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "1- Introduce Pink colour and rectangle shape 2- Set up the writing table (wavy line/ zigzag) 3- Learn letter sounds in English words, starting with <p>",
+      "pages": "1- Wavy and zigzag worksheet 2- Rectangle shape sheet",
+      "completed": false,
+      "block": 2,
+      "week": 3,
+      "linkUrl": "https://www.youtube.com/watch?v=cW5muVaoK4I",
+      "linkTitle": "Rectangle shape song 🔲",
+      "links": [
+        {
+          "title": "Rectangle shape song 🔲",
+          "url": "https://www.youtube.com/watch?v=cW5muVaoK4I"
+        },
+        {
+          "title": "Shapes' song 1 🔺",
+          "url": "https://www.youtube.com/watch?v=pfRuLS-Vnjs"
+        },
+        {
+          "title": "Shapes' song 2 🟡",
+          "url": "https://www.youtube.com/watch?v=OEbRDtCAFdU"
+        },
+        {
+          "title": "Shapes' song 3 🟩",
+          "url": "https://www.youtube.com/watch?v=gzS78Wc0O5U"
+        },
+        {
+          "title": "Zigzag line song 〰️",
+          "url": "https://www.youtube.com/watch?v=s-Z_LTaXpW8"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w3-eng-tue",
+      "classId": "ALL",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- \"Come on, Daisy\" by Jane Simmons - a story about a duckling that gets lost because she doesn't do as she is told 2- Revise face features (sheet) 3- Identify the sounds at the beginning, middle and end of 'CVC' words. Blend the sounds to make the word",
+      "pages": "Face features sheet",
+      "completed": false,
+      "block": 2,
+      "week": 3,
+      "linkUrl": "https://www.youtube.com/watch?v=2MJEPBOvBkE",
+      "linkTitle": "Come on, Daisy story 🦆",
+      "links": [
+        {
+          "title": "Pink colour 💗",
+          "url": "https://www.youtube.com/watch?v=3VClmeOfE2k"
+        },
+        {
+          "title": "Face features 😊",
+          "url": "https://www.youtube.com/watch?v=ReDdaMOZ5YY"
+        },
+        {
+          "title": "Come on, Daisy by Jane Simmons 🦆",
+          "url": "https://www.youtube.com/watch?v=2MJEPBOvBkE"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w3-eng-wed",
+      "classId": "ALL",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- Number sheet 2- Workbook 3- Learn letter sounds in English words, starting with <p> 4- Full empty-capacity work",
+      "pages": "Number sheet, Workbook",
+      "completed": false,
+      "block": 2,
+      "week": 3,
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc"
+        },
+        {
+          "title": "Full and empty 1 🪣",
+          "url": "https://www.youtube.com/watch?v=V7Ds6-rnvi0"
+        },
+        {
+          "title": "Full and empty 2 🫗",
+          "url": "https://www.youtube.com/watch?v=lviVe6vqR_k"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w3-eng-thu",
+      "classId": "ALL",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- Carpet time 2- Revise and use Group reading using \"PM Alphabet Starters\" <s> 3- Count to 10 with fingers",
+      "pages": "PM Alphabet Starters <s>",
+      "completed": false,
+      "block": 2,
+      "week": 3,
+      "linkUrl": "https://www.youtube.com/watch?v=HkkYaj0m6cg",
+      "linkTitle": "Numbers and counting songs 🔢",
+      "links": [
+        {
+          "title": "Numbers and counting song 1 🔢",
+          "url": "https://www.youtube.com/watch?v=HkkYaj0m6cg"
+        },
+        {
+          "title": "Numbers and counting song 2 🖐️",
+          "url": "https://www.youtube.com/watch?v=QyK4aqld7Qc"
+        }
+      ]
+    }
+  ],
+  "homework": [
     {
       "id": "hw-b1-w1-eng-tue",
       "classId": "ALL",
@@ -11682,26 +11790,6 @@
         {
           "title": "فيديو رقم 2 Number 2 🔢",
           "url": "https://www.youtube.com/watch?v=rnssmovN9o8"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w2-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "واجب لغة عربية: حل أوراق العمل ص 5",
-      "details": "حل أوراق العمل ص 5 الخاصة بالتعرف على أجزاء الوجه",
-      "pages": "ص 5",
-      "block": 1,
-      "week": 2,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
         }
       ]
     },
@@ -12066,29 +12154,6 @@
       "pdfUrl": "/materials/English-Grade2-B1-Week3-Dictation.html"
     },
     {
-      "id": "hw-manual-1790279129957",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Monday",
-      "subject": "Arabic",
-      "task": "حل كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ],
-      "details": ""
-    },
-    {
       "id": "hw-b1-w4-G2A-arabic-Sunday-bqo91",
       "classId": "G2A",
       "assignedDay": "Sunday",
@@ -12110,28 +12175,6 @@
         {
           "title": "فيديو إضافي لحرف الباء 🎬",
           "url": "https://youtu.be/cAQcxGWVi8p?si=FrAVkQoAKQ"
-        }
-      ],
-      "details": ""
-    },
-    {
-      "id": "hw-b1-w4-G2A-arabic-Tuesday-s02kv",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0",
-      "links": [
-        {
-          "title": "فيديو الحواس الخمسة 🎬",
-          "url": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0"
         }
       ],
       "details": ""
@@ -12189,28 +12232,6 @@
       "details": ""
     },
     {
-      "id": "hw-b1-w4-G2C-arabic-Tuesday-rfiw4",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0",
-      "links": [
-        {
-          "title": "فيديو الحواس الخمسة 🎬",
-          "url": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0"
-        }
-      ],
-      "details": ""
-    },
-    {
       "id": "hw-b1-w4-G2A-Mon-math-p92",
       "classId": "G2A",
       "assignedDay": "Monday",
@@ -12257,28 +12278,6 @@
       "week": 4,
       "isLinkTask": false,
       "pdfUrl": "https://umryrjwmlkdbjmgmnbkt.supabase.co/storage/v1/object/public/school_materials/1789483250130_Maths-Grade2-B1-All-Sheet1_-_Main.pdf"
-    },
-    {
-      "id": "hw-b1-w4-G2B-arabic-Tuesday-3xtm4",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة الواجب المنزلي",
-      "pages": "ص 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 4,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0",
-      "links": [
-        {
-          "title": "فيديو الحواس الخمسة 🎬",
-          "url": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0"
-        }
-      ],
-      "details": ""
     },
     {
       "id": "hw-b1-w3-G2C-Wed-math-test-alert",
@@ -12983,29 +12982,6 @@
       "isLinkTask": false
     },
     {
-      "id": "hw-b1-w2-G2B-Tue-arabic-dictation-alert",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w2-G2C-Sun-arabic-poem",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -13025,52 +13001,6 @@
         {
           "title": "فيديو شرح أنواع الخطوط 🎬",
           "url": "https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w2-G2C-Tue-arabic-activity",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w2-G2C-Tue-arabic-dictation-alert",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
         }
       ]
     },
@@ -13098,52 +13028,6 @@
       ]
     },
     {
-      "id": "hw-b1-w3-G2A-Tue-arabic-activity",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-G2A-Tue-arabic-dictation-alert",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w3-G2B-Sun-arabic-poem",
       "classId": "G2B",
       "assignedDay": "Sunday",
@@ -13167,52 +13051,6 @@
       ]
     },
     {
-      "id": "hw-b1-w3-G2B-Tue-arabic-activity",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-G2B-Tue-arabic-dictation-alert",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w3-G2C-Sun-arabic-poem",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -13232,52 +13070,6 @@
         {
           "title": "فيديو تدريب حرف الألف (قائمة تشغيل)",
           "url": "https://www.youtube.com/watch?v=Aiyk90h3Qg5&list=PLOMi8RDHOyGp5QGzBjTLk8HEoaRUo7w1"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-G2C-Tue-arabic-activity",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-G2C-Tue-arabic-dictation-alert",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
         }
       ]
     },
@@ -13641,52 +13433,6 @@
       ]
     },
     {
-      "id": "hw-b1-w2-G2A-Tue-arabic-activity",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w2-G2A-Tue-arabic-dictation-alert",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w2-G2B-Sun-arabic-poem",
       "classId": "G2B",
       "assignedDay": "Sunday",
@@ -13706,29 +13452,6 @@
         {
           "title": "فيديو شرح أنواع الخطوط 🎬",
           "url": "https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w2-G2B-Tue-arabic-activity",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
         }
       ]
     },
@@ -13902,28 +13625,6 @@
         {
           "title": "فيديو أصوات وكتابة حرف الألف",
           "url": "https://youtu.be/biWQsbDq4uqOLAoiX0?si=BGnDnk0"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل ورقة عمل صفحة 10",
-      "details": "واجب اللغة العربية: حل ورقة عمل صفحة 10 + استماع لفيديو العدد اثنان",
-      "pages": "ص 10",
-      "block": 1,
-      "week": 3,
-      "completed": false,
-      "priority": "normal",
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
         }
       ]
     },
@@ -14106,27 +13807,6 @@
       ]
     },
     {
-      "id": "hw-b1-w4-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل ورقة عمل صفحة ١٦ من شيت الواجب 📝",
-      "details": "حل ورقة عمل صفحة 16",
-      "pages": "ص 16",
-      "block": 1,
-      "week": 4,
-      "completed": false,
-      "priority": "normal",
-      "linkUrl": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0",
-      "links": [
-        {
-          "title": "فيديو الحواس الخمسة 🎬",
-          "url": "https://youtu.be/KbRaQtTUBUO?si=ts0m_0"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w4-ara-wed",
       "classId": "ALL",
       "assignedDay": "Wednesday",
@@ -14277,21 +13957,6 @@
       "task": "ICT: Homework W5 (استثنائي بمناسبة إجازة الخميس)",
       "details": "Block 1 Week 5: Homework W5 (Working with text / Working from notes). تم تعيينه يوم الثلاثاء استثنائياً بسبب إجازة يوم الخميس.",
       "pages": "Homework W5",
-      "completed": true,
-      "priority": "normal",
-      "block": 1,
-      "week": 5,
-      "isLinkTask": false
-    },
-    {
-      "id": "hw-b1-w5-G2B-Tuesday-arabic",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Sunday",
-      "subject": "Arabic",
-      "task": "أوراق العمل ص 40 - 41",
-      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
-      "pages": "ص 40 - 41",
       "completed": true,
       "priority": "normal",
       "block": 1,
@@ -14500,21 +14165,6 @@
       "isLinkTask": false
     },
     {
-      "id": "hw-b1-w5-G2C-Tuesday-arabic",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Sunday",
-      "subject": "Arabic",
-      "task": "أوراق العمل ص 40 - 41",
-      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
-      "pages": "ص 40 - 41",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 5,
-      "isLinkTask": false
-    },
-    {
       "id": "hw-b1-w5-G2C-Sunday-arabic",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -14523,21 +14173,6 @@
       "task": "كراسة الواجب المنزلي ص 46 - 50",
       "details": "حل تدريبات كراسة الواجب المنزلي من صفحة 46 إلى صفحة 50.",
       "pages": "ص 46 - 50",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 5,
-      "isLinkTask": false
-    },
-    {
-      "id": "hw-b1-w5-G2A-Tuesday-arabic",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Sunday",
-      "subject": "Arabic",
-      "task": "أوراق العمل ص 40 - 41",
-      "details": "حل تدريبات أوراق العمل صفحة 40 وصفحة 41.",
-      "pages": "ص 40 - 41",
       "completed": false,
       "priority": "normal",
       "block": 1,
@@ -15161,29 +14796,6 @@
       ]
     },
     {
-      "id": "hw-b1-w3-G2A-arabic-tue-p37",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Thursday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى ص 37-38",
-      "details": "حل تدريبات وتطبيقات ظرف الزمان وظرف المكان والمفردات في كراسة النشاط صفحة 37 وصفحة 38.",
-      "pages": "كراسة النشاط ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w3-G2A-arabic-wed-imlaa",
       "classId": "G2A",
       "assignedDay": "Wednesday",
@@ -15473,29 +15085,6 @@
         {
           "title": "فيديو تدريب حرف الألف (قائمة تشغيل)",
           "url": "https://www.youtube.com/watch?v=Aiyk90h3Qg5&list=PLOMi8RDHOyGp5QGzBjTLk8HEoaRUo7w1"
-        }
-      ]
-    },
-    {
-      "id": "hw-b1-w3-G2B-arabic-tue-p37",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Thursday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى ص 37-38",
-      "details": "حل تدريبات وتطبيقات ظرف الزمان وظرف المكان والمفردات في كراسة النشاط صفحة 37 وصفحة 38.",
-      "pages": "كراسة النشاط ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
         }
       ]
     },
@@ -15793,29 +15382,6 @@
       ]
     },
     {
-      "id": "hw-b1-w3-G2C-arabic-tue-p37",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Thursday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى ص 37-38",
-      "details": "حل تدريبات وتطبيقات ظرف الزمان وظرف المكان والمفردات في كراسة النشاط صفحة 37 وصفحة 38.",
-      "pages": "كراسة النشاط ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 3,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7",
-      "linkTitle": "فيديو العدد اثنان ومدلوله",
-      "links": [
-        {
-          "title": "فيديو العدد اثنان ومدلوله",
-          "url": "https://youtu.be/pYW5dddgCXw?si=dn3jDKKMotTmVxL7"
-        }
-      ]
-    },
-    {
       "id": "hw-b1-w3-G2C-arabic-wed-imlaa",
       "classId": "G2C",
       "assignedDay": "Wednesday",
@@ -16044,28 +15610,6 @@
       ]
     },
     {
-      "id": "hw-b2-w1-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل ورقة العمل صفحة 4 والاستماع لفيديو رقم 3 📝",
-      "details": "حل ورقة العمل صفحة 4 ومتابعة الاستماع لفيديو الرقم 3 لتنمية مهارة الاستماع.",
-      "pages": "ورقة العمل ص 4",
-      "block": 2,
-      "week": 1,
-      "completed": false,
-      "priority": "normal",
-      "linkUrl": "https://www.youtube.com/watch?v=bJYnofzhXc9",
-      "linkTitle": "أغنية الرقم ثلاثة ومدلوله 🎵",
-      "links": [
-        {
-          "title": "أغنية الرقم ثلاثة ومدلوله 🎵",
-          "url": "https://www.youtube.com/watch?v=bJYnofzhXc9"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w1-ara-wed",
       "classId": "ALL",
       "assignedDay": "Wednesday",
@@ -16271,28 +15815,6 @@
         {
           "title": "فيديو حرف الثاء بالحركات 🎥",
           "url": "https://youtu.be/N7J4NhaXWPE?si=wNR14wJ5IQfnS2G"
-        }
-      ]
-    },
-    {
-      "id": "hw-b2-w2-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل الكتاب المدرسي ص 16, 17 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة",
-      "details": "",
-      "pages": "الكتاب ص 16, 17",
-      "block": 2,
-      "week": 2,
-      "completed": false,
-      "priority": "normal",
-      "linkUrl": "https://youtu.be/7iRTXkvDr5s?feature=shared",
-      "linkTitle": "فيديو مراجعة الحروف 📚",
-      "links": [
-        {
-          "title": "فيديو مراجعة الحروف 📚",
-          "url": "https://youtu.be/7iRTXkvDr5s?feature=shared"
         }
       ]
     },
@@ -16543,29 +16065,6 @@
       "isLinkTask": false
     },
     {
-      "id": "hw-b2-w2-G2B-Tue-arabic-task_b1",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w2-G2B-Tuesday-math_b1",
       "classId": "G2B",
       "assignedDay": "Tuesday",
@@ -16791,29 +16290,6 @@
       "isLinkTask": false
     },
     {
-      "id": "hw-b2-w2-G2C-Tue-arabic-task_b1",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w2-G2C-Sun-arabic-task_b1",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -17009,52 +16485,6 @@
       ]
     },
     {
-      "id": "hw-b2-w2-G2A-Tue-arabic-task",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": false,
-      "priority": "normal",
-      "block": 2,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/7iRTXkvDr5s?feature=shared",
-      "linkTitle": "فيديو مراجعة الحروف 📚",
-      "links": [
-        {
-          "title": "فيديو مراجعة الحروف 📚",
-          "url": "https://youtu.be/7iRTXkvDr5s?feature=shared"
-        }
-      ]
-    },
-    {
-      "id": "hw-b2-w2-G2B-Tue-arabic-task",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": true,
-      "priority": "normal",
-      "block": 2,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/7iRTXkvDr5s?feature=shared",
-      "linkTitle": "فيديو مراجعة الحروف 📚",
-      "links": [
-        {
-          "title": "فيديو مراجعة الحروف 📚",
-          "url": "https://youtu.be/7iRTXkvDr5s?feature=shared"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w2-G2C-Sun-arabic-task",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -17097,29 +16527,6 @@
         {
           "title": "فيديو شرح أنواع الخطوط 🎬",
           "url": "https://youtu.be/2vqZmpnTjbI?si=Zuqi9taDp61lTBEh"
-        }
-      ]
-    },
-    {
-      "id": "hw-b2-w2-G2A-Tue-arabic-task_b1",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
         }
       ]
     },
@@ -17343,29 +16750,6 @@
       "week": 2,
       "isLinkTask": false,
       "pdfUrl": "/materials/SocialStudies-Grade2-B2-W1-U2-HomeWork1 - Extra- (Minia).pdf"
-    },
-    {
-      "id": "hw-b2-w2-G2C-Tue-arabic-task",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل كراسة التكليفات المنزلية ص 57",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 57",
-      "completed": false,
-      "priority": "normal",
-      "block": 2,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/7iRTXkvDr5s?feature=shared",
-      "linkTitle": "فيديو مراجعة الحروف 📚",
-      "links": [
-        {
-          "title": "فيديو مراجعة الحروف 📚",
-          "url": "https://youtu.be/7iRTXkvDr5s?feature=shared"
-        }
-      ]
     },
     {
       "id": "hw-b2-w1-G2A-Monday-math",
@@ -17797,29 +17181,6 @@
       ]
     },
     {
-      "id": "hw-b2-w1-G2A-Tuesday-arabic",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة التكليفات المنزلية ص 56",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 56",
-      "completed": false,
-      "priority": "normal",
-      "block": 2,
-      "week": 1,
-      "isLinkTask": false,
-      "linkUrl": "https://www.youtube.com/watch?v=bJYnofzhXc9",
-      "linkTitle": "أغنية الرقم ثلاثة ومدلوله 🎵",
-      "links": [
-        {
-          "title": "أغنية الرقم ثلاثة ومدلوله 🎵",
-          "url": "https://www.youtube.com/watch?v=bJYnofzhXc9"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w1-G2B-Sunday-arabic",
       "classId": "G2B",
       "assignedDay": "Sunday",
@@ -17847,29 +17208,6 @@
       ]
     },
     {
-      "id": "hw-b2-w1-G2B-Tuesday-arabic",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة التكليفات المنزلية ص 56",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 56",
-      "completed": false,
-      "priority": "normal",
-      "block": 2,
-      "week": 1,
-      "isLinkTask": false,
-      "linkUrl": "https://www.youtube.com/watch?v=bJYnofzhXc9",
-      "linkTitle": "أغنية الرقم ثلاثة ومدلوله 🎵",
-      "links": [
-        {
-          "title": "أغنية الرقم ثلاثة ومدلوله 🎵",
-          "url": "https://www.youtube.com/watch?v=bJYnofzhXc9"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w1-G2C-Sunday-arabic",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -17893,29 +17231,6 @@
         {
           "title": "أنشودة حرف التاء 🎵",
           "url": "https://www.youtube.com/watch?v=5iRTXkvDr7s&list=RD5iRTXkvDr7s&start_radio=1"
-        }
-      ]
-    },
-    {
-      "id": "hw-b2-w1-G2C-Tuesday-arabic",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "كراسة التكليفات المنزلية ص 56",
-      "details": "",
-      "pages": "كراسة التكليفات المنزلية ص 56",
-      "completed": false,
-      "priority": "normal",
-      "block": 2,
-      "week": 1,
-      "isLinkTask": false,
-      "linkUrl": "https://www.youtube.com/watch?v=bJYnofzhXc9",
-      "linkTitle": "أغنية الرقم ثلاثة ومدلوله 🎵",
-      "links": [
-        {
-          "title": "أغنية الرقم ثلاثة ومدلوله 🎵",
-          "url": "https://www.youtube.com/watch?v=bJYnofzhXc9"
         }
       ]
     },
@@ -18572,144 +17887,6 @@
       "isLinkTask": false
     },
     {
-      "id": "hw-w2-ar-tue-g2c-dict-alert",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-w2-ar-tue-g2b-dict-alert",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-w2-ar-tue-g2a-dict-alert",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "🔔 إنذار وتنبيه هام: إملاء لغة عربية غداً الأربعاء في كراسة الطالب",
-      "details": "",
-      "pages": "كراسة الطالب",
-      "completed": false,
-      "priority": "urgent",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-w2-ar-tue-g2c-wb",
-      "classId": "G2C",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-w2-ar-tue-g2b-wb",
-      "classId": "G2B",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
-      "id": "hw-w2-ar-tue-g2a-wb",
-      "classId": "G2A",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "حل تدريبات كراسة نشاط الوحدة الأولى صفحة 37-38",
-      "details": "",
-      "pages": "كراسة نشاط الوحدة الأولى ص 37-38",
-      "completed": false,
-      "priority": "normal",
-      "block": 1,
-      "week": 2,
-      "isLinkTask": false,
-      "linkUrl": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H",
-      "linkTitle": "فيديو أجزاء الوجه 🎬",
-      "links": [
-        {
-          "title": "فيديو أجزاء الوجه 🎬",
-          "url": "https://youtu.be/n2PMY58-Sfk?si=Rk0eC3O83ToLKj5H"
-        }
-      ]
-    },
-    {
       "id": "hw-w2-ar-sun-g2c",
       "classId": "G2C",
       "assignedDay": "Sunday",
@@ -19253,28 +18430,6 @@
       ]
     },
     {
-      "id": "hw-b2-w3-ara-tue",
-      "classId": "ALL",
-      "assignedDay": "Tuesday",
-      "dueDay": "Wednesday",
-      "subject": "Arabic",
-      "task": "إنجاز ورق العمل ص 13 + مراجعة رقم 4 ومدلوله 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة",
-      "details": "",
-      "pages": "ورقة العمل ص 13",
-      "block": 2,
-      "week": 3,
-      "completed": false,
-      "priority": "normal",
-      "linkUrl": "https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW",
-      "linkTitle": "فيديو رقم 4 ومدلوله 🔢",
-      "links": [
-        {
-          "title": "فيديو رقم 4 ومدلوله 🔢",
-          "url": "https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW"
-        }
-      ]
-    },
-    {
       "id": "hw-b2-w3-ara-wed",
       "classId": "ALL",
       "assignedDay": "Wednesday",
@@ -19308,6 +18463,164 @@
         {
           "title": "فيديو أدوات المدرسة 🎒",
           "url": "https://youtu.be/LSHI_yHjy2I?si=mU-nRQBewfTHBP_b"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-eng-sun",
+      "classId": "ALL",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22)\nActivity book /i/ sound",
+      "details": "",
+      "pages": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22), Activity book /i/ sound",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc"
+        },
+        {
+          "title": "Count numbers from 1 to 10 🔢",
+          "url": "https://www.youtube.com/watch?v=xjnlymFLSdM"
+        },
+        {
+          "title": "Numbers and counting songs 🎶",
+          "url": "https://www.youtube.com/watch?v=HkkYaj0m6cg"
+        },
+        {
+          "title": "Pink colour 💗",
+          "url": "https://www.youtube.com/watch?v=3VClmeOfE2k"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-eng-mon",
+      "classId": "ALL",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22)\nActivity book /i/ sound",
+      "details": "",
+      "pages": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22), Activity book /i/ sound",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=cW5muVaoK4I",
+      "linkTitle": "Rectangle shape song 🔲",
+      "links": [
+        {
+          "title": "Rectangle shape song 🔲",
+          "url": "https://www.youtube.com/watch?v=cW5muVaoK4I"
+        },
+        {
+          "title": "Shapes' song 1 🔺",
+          "url": "https://www.youtube.com/watch?v=pfRuLS-Vnjs"
+        },
+        {
+          "title": "Shapes' song 2 🟡",
+          "url": "https://www.youtube.com/watch?v=OEbRDtCAFdU"
+        },
+        {
+          "title": "Shapes' song 3 🟩",
+          "url": "https://www.youtube.com/watch?v=gzS78Wc0O5U"
+        },
+        {
+          "title": "Zigzag line song 〰️",
+          "url": "https://www.youtube.com/watch?v=s-Z_LTaXpW8"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-eng-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "English",
+      "task": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22)\nActivity book /i/ sound",
+      "details": "",
+      "pages": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22), Activity book /i/ sound",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=2MJEPBOvBkE",
+      "linkTitle": "Come on, Daisy story 🦆",
+      "links": [
+        {
+          "title": "Pink colour 💗",
+          "url": "https://www.youtube.com/watch?v=3VClmeOfE2k"
+        },
+        {
+          "title": "Face features 😊",
+          "url": "https://www.youtube.com/watch?v=ReDdaMOZ5YY"
+        },
+        {
+          "title": "Come on, Daisy by Jane Simmons 🦆",
+          "url": "https://www.youtube.com/watch?v=2MJEPBOvBkE"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-eng-wed",
+      "classId": "ALL",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "English",
+      "task": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22)\nActivity book /i/ sound",
+      "details": "",
+      "pages": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22), Activity book /i/ sound",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc"
+        },
+        {
+          "title": "Full and empty 1 🪣",
+          "url": "https://www.youtube.com/watch?v=V7Ds6-rnvi0"
+        },
+        {
+          "title": "Full and empty 2 🫗",
+          "url": "https://www.youtube.com/watch?v=lviVe6vqR_k"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-eng-thu",
+      "classId": "ALL",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22)\nActivity book /i/ sound",
+      "details": "",
+      "pages": "Week 3 homework sheets (pages 12 – 13 - 14 -15 –18 – 19 - 21 – 22), Activity book /i/ sound",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=HkkYaj0m6cg",
+      "linkTitle": "Numbers and counting songs 🔢",
+      "links": [
+        {
+          "title": "Numbers and counting song 1 🔢",
+          "url": "https://www.youtube.com/watch?v=HkkYaj0m6cg"
+        },
+        {
+          "title": "Numbers and counting song 2 🖐️",
+          "url": "https://www.youtube.com/watch?v=QyK4aqld7Qc"
         }
       ]
     }
@@ -19584,5 +18897,9 @@
     }
   ],
   "deletedTomorrowNoteIds": [],
-  "deletedPlannerItemIds": []
+  "deletedPlannerItemIds": [
+    "hw-b2-w3-ara-tue",
+    "hw-b2-w2-ara-tue",
+    "hw-b2-w1-ara-tue"
+  ]
 }

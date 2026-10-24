@@ -482,9 +482,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
           );
 
           if (planClass !== 'ALL') {
-            fc = fc.filter((c: any) => c.classId === planClass);
-            fh = fh.filter((h: any) => h.classId === planClass);
-            ft = ft.filter((n: any) => n.classId === planClass);
+            fc = fc.filter((c: any) => c.classId === planClass || c.classId === 'ALL');
+            fh = fh.filter((h: any) => h.classId === planClass || h.classId === 'ALL');
+            ft = ft.filter((n: any) => n.classId === planClass || n.classId === 'ALL');
           }
 
           setParsedResult({

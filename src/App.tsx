@@ -336,7 +336,7 @@ export default function App() {
       }
 
       // Apply classwork
-      if (cwData && cwData.length > 0) {
+      if (Array.isArray(cwData)) {
         const uniqueCwMap = new Map<string, ClassworkEntry>();
         cwData.forEach((c) => uniqueCwMap.set(c.id, c));
         const dedupedCw = Array.from(uniqueCwMap.values());
@@ -352,7 +352,7 @@ export default function App() {
       }
 
       // Apply homework
-      if (hwData && hwData.length > 0) {
+      if (Array.isArray(hwData)) {
         const uniqueHwMap = new Map<string, HomeworkEntry>();
         hwData.forEach((h) => uniqueHwMap.set(h.id, h));
         const dedupedHw = Array.from(uniqueHwMap.values());

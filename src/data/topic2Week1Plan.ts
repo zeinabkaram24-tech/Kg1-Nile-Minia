@@ -377,28 +377,6 @@ export const TOPIC2_WEEK1_HOMEWORK: HomeworkEntry[] = [
       },
     ],
   },
-  {
-    id: 'hw-b2-w1-ara-tue',
-    classId: 'ALL',
-    assignedDay: 'Tuesday',
-    dueDay: 'Wednesday',
-    subject: 'Arabic',
-    task: 'حل ورقة العمل صفحة 4 والاستماع لفيديو رقم 3 📝',
-    details: 'حل ورقة العمل صفحة 4 ومتابعة الاستماع لفيديو الرقم 3 لتنمية مهارة الاستماع.',
-    pages: 'ورقة العمل ص 4',
-    block: 2,
-    week: 1,
-    completed: false,
-    priority: 'normal',
-    linkUrl: 'https://www.youtube.com/watch?v=bJYnofzhXc9',
-    linkTitle: 'أغنية الرقم ثلاثة ومدلوله 🎵',
-    links: [
-      {
-        title: 'أغنية الرقم ثلاثة ومدلوله 🎵',
-        url: 'https://www.youtube.com/watch?v=bJYnofzhXc9',
-      },
-    ],
-  },
 
   // ==========================================
   // --- WEDNESDAY (14-10-2026) ---
