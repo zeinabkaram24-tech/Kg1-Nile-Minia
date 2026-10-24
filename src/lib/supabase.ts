@@ -834,30 +834,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
 
-  const consolidated = Array.from(map.values()).map((item) => {
-    const isTargetArabicHw =
-      item.id === 'hw-w2-ar-tue-kg1a-wb' ||
-      item.id === 'hw-w2-ar-tue-kg1b-wb' ||
-      item.id === 'hw-w2-ar-tue-kg1c-wb' ||
-      (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
-
-    const has46 =
-      Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
-      Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
-      Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
-
-    if (isTargetArabicHw && has46) {
-      const corrected: HomeworkEntry = {
-        ...item,
-        task: item.task ? item.task.replace(/46/g, '47') : item.task,
-        pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
-        details: item.details ? item.details.replace(/46/g, '47') : item.details,
-      };
-      return corrected;
-    }
-
-    return item;
-  });
+  const consolidated = Array.from(map.values());
 
   // Background replication:
   // 1. If Supabase is active, push missing items to Supabase

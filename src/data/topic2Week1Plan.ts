@@ -377,6 +377,28 @@ export const TOPIC2_WEEK1_HOMEWORK: HomeworkEntry[] = [
       },
     ],
   },
+  {
+    id: 'hw-b2-w1-ara-tue',
+    classId: 'ALL',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Arabic',
+    task: 'حل أوراق العمل ص 5 + مشاهدة فيديو حركات حرف التاء 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة',
+    details: '',
+    pages: 'ورقة العمل ص 5',
+    block: 2,
+    week: 1,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://youtu.be/BiwQsbDQ4uQ?si=BGnDnk0',
+    linkTitle: 'فيديو حركات حرف التاء 🎬',
+    links: [
+      {
+        title: 'فيديو حركات حرف التاء 🎬',
+        url: 'https://youtu.be/BiwQsbDQ4uQ?si=BGnDnk0',
+      },
+    ],
+  },
 
   // ==========================================
   // --- WEDNESDAY (14-10-2026) ---

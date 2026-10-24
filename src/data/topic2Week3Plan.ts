@@ -431,6 +431,28 @@ export const TOPIC2_WEEK3_HOMEWORK: HomeworkEntry[] = [
       },
     ],
   },
+  {
+    id: 'hw-b2-w3-ara-tue',
+    classId: 'ALL',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Arabic',
+    task: 'إنجاز ورق العمل ص 13 + مراجعة رقم 4 ومدلوله 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة',
+    details: '',
+    pages: 'ورقة العمل ص 13',
+    block: 2,
+    week: 3,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW',
+    linkTitle: 'فيديو رقم 4 ومدلوله 🔢',
+    links: [
+      {
+        title: 'فيديو رقم 4 ومدلوله 🔢',
+        url: 'https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW',
+      },
+    ],
+  },
 
   // ==========================================
   // --- WEDNESDAY (28-10-2026) ---

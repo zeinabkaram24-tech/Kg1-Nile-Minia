@@ -444,6 +444,28 @@ export const TOPIC2_WEEK2_HOMEWORK: HomeworkEntry[] = [
       },
     ],
   },
+  {
+    id: 'hw-b2-w2-ara-tue',
+    classId: 'ALL',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'Arabic',
+    task: 'حل الكتاب المدرسي ص 16, 17 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة',
+    details: '',
+    pages: 'الكتاب ص 16, 17',
+    block: 2,
+    week: 2,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://youtu.be/7iRTXkvDr5s?feature=shared',
+    linkTitle: 'فيديو مراجعة الحروف 📚',
+    links: [
+      {
+        title: 'فيديو مراجعة الحروف 📚',
+        url: 'https://youtu.be/7iRTXkvDr5s?feature=shared',
+      },
+    ],
+  },
 
   // ==========================================
   // --- WEDNESDAY (21-10-2026) ---

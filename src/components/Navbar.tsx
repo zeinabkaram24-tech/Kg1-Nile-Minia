@@ -13,6 +13,7 @@ import {
   FolderOpen,
   Database,
   RefreshCw,
+  Pencil,
 } from 'lucide-react';
 import { ClassId, SchoolDay, UserProfile } from '../types';
 import { SCHOOL_DAYS, BLOCK_WEEK_DATES } from '../data/timetables';
@@ -35,9 +36,8 @@ interface NavbarProps {
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
   onOpenSupabaseConfig?: () => void;
-  supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
-  onSyncNow?: () => void;
-  isSyncing?: boolean;
+  isAdminEditMode?: boolean;
+  onToggleAdminEditMode?: (enabled: boolean) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -60,6 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   supabaseStatus = 'unconfigured',
   onSyncNow,
   isSyncing = false,
+  isAdminEditMode = false,
+  onToggleAdminEditMode,
 }) => {
   const tabs = [
     {
@@ -153,15 +155,41 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </button>
 
-              {/* Admin Button directly inside the top blue bar without any separation */}
+              {/* Direct Control Toggle Button (التحكم المباشر في الصفحة) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (onToggleAdminEditMode) {
+                    onToggleAdminEditMode(!isAdminEditMode);
+                  } else if (onOpenAdminAuth) {
+                    onOpenAdminAuth();
+                  }
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border active:scale-95 shrink-0 ${
+                  isAdminEditMode
+                    ? 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold shadow-md'
+                    : 'bg-white/10 hover:bg-white/20 text-white hover:text-amber-300 border-white/25'
+                }`}
+                title="تفعيل أو إيقاف التحكم المباشر وتعديل الصفحة فوراً لجميع الأجهزة"
+              >
+                <Pencil className={`w-3.5 h-3.5 ${isAdminEditMode ? 'text-slate-950 animate-bounce' : 'text-amber-300'}`} />
+                <span>{isAdminEditMode ? 'التحكم المباشر (مُفعل)' : 'التحكم المباشر'}</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isAdminEditMode ? 'bg-emerald-600 animate-ping' : 'bg-amber-400'
+                  }`}
+                />
+              </button>
+
+              {/* Admin Button directly inside the top blue bar */}
               <button
                 type="button"
                 onClick={onOpenAdminAuth}
                 className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:bg-white/30 text-white hover:text-amber-300 px-3 py-1.5 rounded-xl text-xs font-black shadow-xs cursor-pointer transition-all border border-white/25 active:scale-95 shrink-0"
-                title="لوحة الأدمن / Admin Mode"
+                title="لوحة الأدمن / Admin Dashboard"
               >
                 <Shield className="w-3.5 h-3.5 text-amber-300" />
-                <span>أدمن</span>
+                <span>لوحة الأدمن</span>
               </button>
             </div>
           </div>
