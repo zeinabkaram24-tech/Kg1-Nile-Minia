@@ -91,8 +91,8 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
 
   // Weekly Plan Upload State (Set to true by default so all controls are immediately visible!)
   const [showPlanUploadForm, setShowPlanUploadForm] = useState(true);
-  const [planBlock, setPlanBlock] = useState<number>(1);
-  const [planWeek, setPlanWeek] = useState<number>(2);
+  const [planBlock, setPlanBlock] = useState<number>(2);
+  const [planWeek, setPlanWeek] = useState<number>(3);
   const [planClass, setPlanClass] = useState<ClassId | 'ALL'>('ALL');
   const [planFile, setPlanFile] = useState<File | null>(null);
   const [planTextInput, setPlanTextInput] = useState<string>('');
@@ -513,9 +513,9 @@ export const AdminDashboardModal: React.FC<AdminDashboardModalProps> = ({
         try {
           const localCw = getLocalCustomClasswork();
           const localHw = getLocalCustomHomework();
-          const defaultCw = w === 2 ? WEEK2_CLASSWORK : INITIAL_CLASSWORK;
-          const defaultHw = w === 2 ? ALL_LINK_AND_WEEK2_HOMEWORK : INITIAL_HOMEWORK;
-          const defaultTn = w === 2 ? WEEK2_SPECIAL_NOTES : SPECIAL_TEACHER_NOTES;
+          const defaultCw = INITIAL_CLASSWORK;
+          const defaultHw = INITIAL_HOMEWORK;
+          const defaultTn = SPECIAL_TEACHER_NOTES;
 
           const cwMap = new Map<string, any>();
           defaultCw.forEach((c) => cwMap.set(c.id, c));

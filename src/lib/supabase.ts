@@ -521,25 +521,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
 
-  const consolidated = Array.from(map.values()).map((c) => {
-    const isProtectedBaseline =
-      (c.block || 1) === 2 && ((c.week || 1) === 2 || (c.week || 1) === 3);
-    if (isProtectedBaseline) {
-      const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
-      if (baseline) {
-        return {
-          ...c,
-          title: baseline.title,
-          details: baseline.details,
-          pages: baseline.pages,
-          links: baseline.links,
-          linkUrl: baseline.linkUrl,
-          linkTitle: baseline.linkTitle,
-        };
-      }
-    }
-    return c;
-  });
+  const consolidated = Array.from(map.values());
 
   // Background replication:
   // 1. If Supabase is active, push any item from server/local that is not in Supabase yet
@@ -872,24 +854,6 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         details: item.details ? item.details.replace(/46/g, '47') : item.details,
       };
       return corrected;
-    }
-
-    const isProtectedBaseline =
-      (item.block || 1) === 2 && ((item.week || 1) === 2 || (item.week || 1) === 3);
-
-    if (isProtectedBaseline) {
-      const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);
-      if (baseline) {
-        return {
-          ...item,
-          task: baseline.task,
-          details: baseline.details,
-          pages: baseline.pages,
-          links: baseline.links,
-          linkUrl: baseline.linkUrl,
-          linkTitle: baseline.linkTitle,
-        };
-      }
     }
 
     return item;
