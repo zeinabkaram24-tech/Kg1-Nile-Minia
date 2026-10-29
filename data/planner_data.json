@@ -11582,6 +11582,115 @@
           "url": "https://www.youtube.com/watch?v=QyK4aqld7Qc"
         }
       ]
+    },
+    {
+      "id": "cw-b2-w4-ara-sun",
+      "classId": "ALL",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على شكل حرف الحاء منفصل وفي أول الكلمة (ح - حـ) وانجاز ورقة العمل ص 14",
+      "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع - أستاذة ألاء علي محمد",
+      "pages": "ورقة العمل ص 14",
+      "completed": false,
+      "block": 2,
+      "week": 4,
+      "linkUrl": "https://youtu.be/DoRPZFvfhCc?si=46uId58bF6fJ7V8Y",
+      "linkTitle": "فيديو شكل حرف الحاء (ح - حـ) 🎬",
+      "links": [
+        {
+          "title": "فيديو التعرف على شكل حرف الحاء منفصل وفي أول الكلمة (ح - حـ) 🎬",
+          "url": "https://youtu.be/DoRPZFvfhCc?si=46uId58bF6fJ7V8Y"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w4-ara-mon",
+      "classId": "ALL",
+      "day": "Monday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التعرف على حرف الحاء بحركاته الثلاثة ( حَ - حُ - حِ ) وبطاقات مصورة لكلمات حرف الحاء",
+      "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع",
+      "pages": "بطاقات مصورة لكلمات حرف الحاء",
+      "completed": false,
+      "block": 2,
+      "week": 4,
+      "linkUrl": "https://youtu.be/_VYhrZkj04?si=JbyGtCbN6oG_tq7U",
+      "linkTitle": "فيديو بطاقات مصورة لكلمات حرف الحاء 🎬",
+      "links": [
+        {
+          "title": "فيديو بطاقات مصورة لكلمات حرف الحاء 🎬",
+          "url": "https://youtu.be/_VYhrZkj04?si=JbyGtCbN6oG_tq7U"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w4-ara-tue",
+      "classId": "ALL",
+      "day": "Tuesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "مراجعة الحروف من الثاء إلى الحاء وإنجاز ورق العمل ص 15",
+      "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع",
+      "pages": "ورقة العمل ص 15",
+      "completed": false,
+      "block": 2,
+      "week": 4,
+      "linkUrl": "https://youtu.be/7iRTXkvDr5s?si=Zez1Hh0D9gjb_RaI",
+      "linkTitle": "فيديو مراجعة الحروف من الثاء إلى الحاء 🎬",
+      "links": [
+        {
+          "title": "فيديو مراجعة الحروف من الثاء إلى الحاء 🎬",
+          "url": "https://youtu.be/7iRTXkvDr5s?si=Zez1Hh0D9gjb_RaI"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w4-ara-wed",
+      "classId": "ALL",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "التميز بين المنزل والمدرسة وانجاز أوراق العمل ص 16",
+      "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع",
+      "pages": "ورقة العمل ص 16",
+      "completed": false,
+      "block": 2,
+      "week": 4,
+      "linkUrl": "https://youtu.be/dJ-qBgIZMeo?si=AZ480Lh3iLpSt6Dq",
+      "linkTitle": "فيديو التميز بين المنزل والمدرسة 🎬",
+      "links": [
+        {
+          "title": "فيديو التميز بين المنزل والمدرسة 1 🎬",
+          "url": "https://youtu.be/dJ-qBgIZMeo?si=AZ480Lh3iLpSt6Dq"
+        },
+        {
+          "title": "فيديو التميز بين المنزل والمدرسة 2 🎬",
+          "url": "https://youtu.be/-1wiM1uO74o?si=58SvKcJ6injlb4XE"
+        }
+      ]
+    },
+    {
+      "id": "cw-b2-w4-ara-thu",
+      "classId": "ALL",
+      "day": "Thursday",
+      "period": 1,
+      "subject": "Arabic",
+      "title": "سلوكيات احترام الكبير وقصة احترام الكبير",
+      "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع",
+      "pages": "قصة احترام الكبير",
+      "completed": false,
+      "block": 2,
+      "week": 4,
+      "linkUrl": "https://youtu.be/GOeksgOMrIg?si=CrBrpv6yrXljz6y4",
+      "linkTitle": "فيديو قصة احترام الكبير 🎬",
+      "links": [
+        {
+          "title": "فيديو قصة احترام الكبير 🎬",
+          "url": "https://youtu.be/GOeksgOMrIg?si=CrBrpv6yrXljz6y4"
+        }
+      ]
     }
   ],
   "homework": [
@@ -18755,6 +18864,160 @@
       "block": 1,
       "week": 5,
       "isLinkTask": false
+    },
+    {
+      "id": "hw-b2-w1-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "حل أوراق العمل ص 5 + مشاهدة فيديو حركات حرف التاء 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة",
+      "details": "",
+      "pages": "ورقة العمل ص 5",
+      "block": 2,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/BiwQsbDQ4uQ?si=BGnDnk0",
+      "linkTitle": "فيديو حركات حرف التاء 🎬",
+      "links": [
+        {
+          "title": "فيديو حركات حرف التاء 🎬",
+          "url": "https://youtu.be/BiwQsbDQ4uQ?si=BGnDnk0"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w2-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "حل الكتاب المدرسي ص 16, 17 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة",
+      "details": "",
+      "pages": "الكتاب ص 16, 17",
+      "block": 2,
+      "week": 2,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/7iRTXkvDr5s?feature=shared",
+      "linkTitle": "فيديو مراجعة الحروف 📚",
+      "links": [
+        {
+          "title": "فيديو مراجعة الحروف 📚",
+          "url": "https://youtu.be/7iRTXkvDr5s?feature=shared"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w3-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "إنجاز ورق العمل ص 13 + مراجعة رقم 4 ومدلوله 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقة",
+      "details": "",
+      "pages": "ورقة العمل ص 13",
+      "block": 2,
+      "week": 3,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW",
+      "linkTitle": "فيديو رقم 4 ومدلوله 🔢",
+      "links": [
+        {
+          "title": "فيديو رقم 4 ومدلوله 🔢",
+          "url": "https://youtu.be/PaZHtfNHj1o?si=R8VYwvCSPDVer5NW"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w4-ara-sun",
+      "classId": "ALL",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "Arabic",
+      "task": "حل أوراق العمل ص 15 + مشاهدة الفيديو 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقتين يومياً 🗣️",
+      "details": "حل ص 15 + مشاهدة الفيديو + التحدث مع الطفل بالفصحى لمدة دقيقتين يومياً",
+      "pages": "ورقة العمل ص 15",
+      "block": 2,
+      "week": 4,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/DoRPZFvfhCc?si=46uId58bF6fJ7V8Y",
+      "linkTitle": "فيديو حرف الحاء 🎥",
+      "links": [
+        {
+          "title": "فيديو حرف الحاء 🎥",
+          "url": "https://youtu.be/DoRPZFvfhCc?si=46uId58bF6fJ7V8Y"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w4-ara-mon",
+      "classId": "ALL",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "Arabic",
+      "task": "مشاهدة الفيديو ومتابعة كلمات حرف الحاء 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقتين يومياً 🗣️",
+      "details": "مشاهدة الفيديو + التحدث مع الطفل بالفصحى لمدة دقيقتين يومياً",
+      "pages": "مشاهدة الفيديو",
+      "block": 2,
+      "week": 4,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/OWU8f6YpRQI?si=xs0SQdGytFyCC9uZ",
+      "linkTitle": "فيديو كلمات وحركات حرف الحاء 🎥",
+      "links": [
+        {
+          "title": "فيديو كلمات وحركات حرف الحاء 🎥",
+          "url": "https://youtu.be/OWU8f6YpRQI?si=xs0SQdGytFyCC9uZ"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w4-ara-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "Arabic",
+      "task": "حل أوراق العمل ص 16 + مشاهدة فيديو المراجعة 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقتين يومياً 🗣️",
+      "details": "حل ص 16 + التحدث مع الطفل بالفصحى لمدة دقيقتين يومياً",
+      "pages": "ورقة العمل ص 16",
+      "block": 2,
+      "week": 4,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/07J5iNy835c?si=7npgV2KrLSKqFWIq",
+      "linkTitle": "فيديو مراجعة الحروف من الثاء إلى الحاء 🎥",
+      "links": [
+        {
+          "title": "فيديو مراجعة الحروف من الثاء إلى الحاء 🎥",
+          "url": "https://youtu.be/07J5iNy835c?si=7npgV2KrLSKqFWIq"
+        }
+      ]
+    },
+    {
+      "id": "hw-b2-w4-ara-thu",
+      "classId": "ALL",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "Arabic",
+      "task": "مشاهدة فيديو احترام الكبير وتطبيق سلوكيات الاحترام 📝\n• التحدث مع الطفل بالفصحى داخل المنزل لمدة دقيقتين يومياً 🗣️\n(يرجى حل أوراق العمل المنزلية وإعادة إرسالها يوم الأحد 8/11)",
+      "details": "مشاهدة الفيديو وتطبيق سلوكيات احترام الكبير + التحدث بالفصحى دقيقتين يومياً",
+      "pages": "أوراق العمل المنزلية",
+      "block": 2,
+      "week": 4,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://youtu.be/PZ5JBzZjFLM?si=MPkJHA-jNPCD07bH",
+      "linkTitle": "فيديو قصة احترام الكبير 🎥",
+      "links": [
+        {
+          "title": "فيديو قصة احترام الكبير 🎥",
+          "url": "https://youtu.be/PZ5JBzZjFLM?si=MPkJHA-jNPCD07bH"
+        }
+      ]
     }
   ],
   "tomorrowNotes": [
@@ -19029,5 +19292,7 @@
     }
   ],
   "deletedTomorrowNoteIds": [],
-  "deletedPlannerItemIds": []
+  "deletedPlannerItemIds": [
+    "hw-b2-w4-ara-wed"
+  ]
 }
