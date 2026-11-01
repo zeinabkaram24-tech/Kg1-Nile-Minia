@@ -5,10 +5,43 @@ export const TOPIC2_WEEK4_CLASSWORK: ClassworkEntry[] = [
   // --- SUNDAY (1-11-2026) ---
   // ==========================================
   {
-    id: 'cw-b2-w4-ara-sun',
+    id: 'cw-b2-w4-eng-sun',
     classId: 'ALL',
     day: 'Sunday',
     period: 1,
+    subject: 'English',
+    title: '1- The Bear Under the Stairs by Helen 2- Which container holds the most 3- Learn letter sounds in English words, starting with <n>',
+    details: 'Topic: Home and school (Week 4) - Teacher Eman Fady',
+    pages: 'Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+      },
+      {
+        title: 'The bear under the stairs 🐻',
+        url: 'https://www.youtube.com/watch?v=m2jYTXK6g4E&t=47s',
+      },
+      {
+        title: 'Which container holds the most 🫙',
+        url: 'https://www.youtube.com/watch?v=MAXyhjqqFIU',
+      },
+      {
+        title: '<n> sound song 🎵',
+        url: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+      },
+    ],
+  },
+  {
+    id: 'cw-b2-w4-ara-sun',
+    classId: 'ALL',
+    day: 'Sunday',
+    period: 2,
     subject: 'Arabic',
     title: 'التعرف على شكل حرف الحاء منفصل وفي أول الكلمة (ح - حـ) وانجاز ورقة العمل ص 14',
     details: 'الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع - أستاذة ألاء علي محمد',
@@ -29,6 +62,35 @@ export const TOPIC2_WEEK4_CLASSWORK: ClassworkEntry[] = [
   // ==========================================
   // --- MONDAY (2-11-2026) ---
   // ==========================================
+  {
+    id: 'cw-b2-w4-eng-mon',
+    classId: 'ALL',
+    day: 'Monday',
+    period: 2,
+    subject: 'English',
+    title: '1- Talk about grey color / sides of the shapes 2- Set up the writing table 3- Learn number 8',
+    details: 'Topic: Home and school (Week 4) - Teacher Eman Fady',
+    pages: 'Writing sheet / Number 8',
+    block: 2,
+    week: 4,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=pfRuLS-Vnjs',
+    linkTitle: "Shapes' songs 🔲",
+    links: [
+      {
+        title: "Shapes' songs 🔲",
+        url: 'https://www.youtube.com/watch?v=pfRuLS-Vnjs',
+      },
+      {
+        title: 'Talk about grey color / sides of the shapes 🪙',
+        url: 'https://www.youtube.com/watch?v=28QYr8eqTqc',
+      },
+      {
+        title: 'Learn number 8 🔢',
+        url: 'https://www.youtube.com/watch?v=mu6mw8aqDCQ&t=39s',
+      },
+    ],
+  },
   {
     id: 'cw-b2-w4-ara-mon',
     classId: 'ALL',
@@ -55,6 +117,27 @@ export const TOPIC2_WEEK4_CLASSWORK: ClassworkEntry[] = [
   // --- TUESDAY (3-11-2026) ---
   // ==========================================
   {
+    id: 'cw-b2-w4-eng-tue',
+    classId: 'ALL',
+    day: 'Tuesday',
+    period: 3,
+    subject: 'English',
+    title: '1- Make carriages for the birthday train, with photos for each carriage 2- Revise body parts 3- Play a matching game with the first learnt letter sounds learned',
+    details: 'Topic: Home and school (Week 4) - Teacher Eman Fady',
+    pages: 'Carriages sheet & Body parts sheet',
+    block: 2,
+    week: 4,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=BwHMMZQGFoM',
+    linkTitle: 'Body parts 🧍',
+    links: [
+      {
+        title: 'Body parts 🧍',
+        url: 'https://www.youtube.com/watch?v=BwHMMZQGFoM',
+      },
+    ],
+  },
+  {
     id: 'cw-b2-w4-ara-tue',
     classId: 'ALL',
     day: 'Tuesday',
@@ -80,10 +163,31 @@ export const TOPIC2_WEEK4_CLASSWORK: ClassworkEntry[] = [
   // --- WEDNESDAY (4-11-2026) ---
   // ==========================================
   {
-    id: 'cw-b2-w4-ara-wed',
+    id: 'cw-b2-w4-eng-wed',
     classId: 'ALL',
     day: 'Wednesday',
     period: 1,
+    subject: 'English',
+    title: '1- Recognise and order the numerals 1 to 5 (extend up to 8 and 10) 2- Workbook 3- Number sheet (write numbers up to 8) 4- Guess and measure how many cups a jug of water will fill',
+    details: 'Topic: Home and school (Week 4) - Teacher Eman Fady',
+    pages: 'Workbook, Number sheet (numbers up to 8)',
+    block: 2,
+    week: 4,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+      },
+    ],
+  },
+  {
+    id: 'cw-b2-w4-ara-wed',
+    classId: 'ALL',
+    day: 'Wednesday',
+    period: 2,
     subject: 'Arabic',
     title: 'التميز بين المنزل والمدرسة وانجاز أوراق العمل ص 16',
     details: 'الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع',
@@ -108,6 +212,31 @@ export const TOPIC2_WEEK4_CLASSWORK: ClassworkEntry[] = [
   // ==========================================
   // --- THURSDAY (5-11-2026) ---
   // ==========================================
+  {
+    id: 'cw-b2-w4-eng-thu',
+    classId: 'ALL',
+    day: 'Thursday',
+    period: 3,
+    subject: 'English',
+    title: '1- Carpet time 2- Learn letter sounds in English words, starting with <n> 3- Count to ten with fingers',
+    details: 'Topic: Home and school (Week 4) - Teacher Eman Fady',
+    pages: 'Carpet time sheet',
+    block: 2,
+    week: 4,
+    completed: false,
+    linkUrl: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+    linkTitle: '<n> sound song 🎵',
+    links: [
+      {
+        title: '<n> sound song 🎵',
+        url: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+      },
+      {
+        title: 'Count to ten with fingers 🖐️',
+        url: 'https://www.youtube.com/watch?v=DR-cfDsHCGA',
+      },
+    ],
+  },
   {
     id: 'cw-b2-w4-ara-thu',
     classId: 'ALL',
@@ -136,6 +265,40 @@ export const TOPIC2_WEEK4_HOMEWORK: HomeworkEntry[] = [
   // --- SUNDAY (1-11-2026) ---
   // ==========================================
   {
+    id: 'hw-b2-w4-eng-sun',
+    classId: 'ALL',
+    assignedDay: 'Sunday',
+    dueDay: 'Monday',
+    subject: 'English',
+    task: 'Homework sheets pages from (23 to 29)\nActivity book Sounds { p - n }',
+    details: 'Homework sheets pages (23 to 29) + Activity book Sounds { p - n }',
+    pages: 'Homework sheets (pages 23-29), Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+      },
+      {
+        title: 'The bear under the stairs 🐻',
+        url: 'https://www.youtube.com/watch?v=m2jYTXK6g4E&t=47s',
+      },
+      {
+        title: 'Which container holds the most 🫙',
+        url: 'https://www.youtube.com/watch?v=MAXyhjqqFIU',
+      },
+      {
+        title: '<n> sound song 🎵',
+        url: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+      },
+    ],
+  },
+  {
     id: 'hw-b2-w4-ara-sun',
     classId: 'ALL',
     assignedDay: 'Sunday',
@@ -161,6 +324,36 @@ export const TOPIC2_WEEK4_HOMEWORK: HomeworkEntry[] = [
   // ==========================================
   // --- MONDAY (2-11-2026) ---
   // ==========================================
+  {
+    id: 'hw-b2-w4-eng-mon',
+    classId: 'ALL',
+    assignedDay: 'Monday',
+    dueDay: 'Tuesday',
+    subject: 'English',
+    task: 'Homework sheets pages from (23 to 29)\nActivity book Sounds { p - n }',
+    details: 'Homework sheets pages (23 to 29) + Activity book Sounds { p - n }',
+    pages: 'Homework sheets (pages 23-29), Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=pfRuLS-Vnjs',
+    linkTitle: "Shapes' songs 🔲",
+    links: [
+      {
+        title: "Shapes' songs 🔲",
+        url: 'https://www.youtube.com/watch?v=pfRuLS-Vnjs',
+      },
+      {
+        title: 'Talk about grey color / sides of the shapes 🪙',
+        url: 'https://www.youtube.com/watch?v=28QYr8eqTqc',
+      },
+      {
+        title: 'Learn number 8 🔢',
+        url: 'https://www.youtube.com/watch?v=mu6mw8aqDCQ&t=39s',
+      },
+    ],
+  },
   {
     id: 'hw-b2-w4-ara-mon',
     classId: 'ALL',
@@ -188,6 +381,28 @@ export const TOPIC2_WEEK4_HOMEWORK: HomeworkEntry[] = [
   // --- TUESDAY (3-11-2026) ---
   // ==========================================
   {
+    id: 'hw-b2-w4-eng-tue',
+    classId: 'ALL',
+    assignedDay: 'Tuesday',
+    dueDay: 'Wednesday',
+    subject: 'English',
+    task: 'Homework sheets pages from (23 to 29)\nActivity book Sounds { p - n }',
+    details: 'Homework sheets pages (23 to 29) + Activity book Sounds { p - n }',
+    pages: 'Homework sheets (pages 23-29), Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=BwHMMZQGFoM',
+    linkTitle: 'Body parts 🧍',
+    links: [
+      {
+        title: 'Body parts 🧍',
+        url: 'https://www.youtube.com/watch?v=BwHMMZQGFoM',
+      },
+    ],
+  },
+  {
     id: 'hw-b2-w4-ara-tue',
     classId: 'ALL',
     assignedDay: 'Tuesday',
@@ -211,8 +426,60 @@ export const TOPIC2_WEEK4_HOMEWORK: HomeworkEntry[] = [
   },
 
   // ==========================================
+  // --- WEDNESDAY (4-11-2026) ---
+  // ==========================================
+  {
+    id: 'hw-b2-w4-eng-wed',
+    classId: 'ALL',
+    assignedDay: 'Wednesday',
+    dueDay: 'Thursday',
+    subject: 'English',
+    task: 'Homework sheets pages from (23 to 29)\nActivity book Sounds { p - n }',
+    details: 'Homework sheets pages (23 to 29) + Activity book Sounds { p - n }',
+    pages: 'Homework sheets (pages 23-29), Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+    linkTitle: 'Jolly phonics song 🎵',
+    links: [
+      {
+        title: 'Jolly phonics song 🎵',
+        url: 'https://www.youtube.com/watch?v=Nv28ddzc9Oc',
+      },
+    ],
+  },
+
+  // ==========================================
   // --- THURSDAY (5-11-2026) ---
   // ==========================================
+  {
+    id: 'hw-b2-w4-eng-thu',
+    classId: 'ALL',
+    assignedDay: 'Thursday',
+    dueDay: 'Sunday',
+    subject: 'English',
+    task: 'Homework sheets pages from (23 to 29)\nActivity book Sounds { p - n }',
+    details: 'Homework sheets pages (23 to 29) + Activity book Sounds { p - n }',
+    pages: 'Homework sheets (pages 23-29), Activity book Sounds { p - n }',
+    block: 2,
+    week: 4,
+    completed: false,
+    priority: 'normal',
+    linkUrl: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+    linkTitle: '<n> sound song 🎵',
+    links: [
+      {
+        title: '<n> sound song 🎵',
+        url: 'https://www.youtube.com/watch?v=E56ldJ55n7g',
+      },
+      {
+        title: 'Count to ten with fingers 🖐️',
+        url: 'https://www.youtube.com/watch?v=DR-cfDsHCGA',
+      },
+    ],
+  },
   {
     id: 'hw-b2-w4-ara-thu',
     classId: 'ALL',
