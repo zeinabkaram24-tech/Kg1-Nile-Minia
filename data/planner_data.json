@@ -11587,7 +11587,7 @@
       "id": "cw-b2-w4-ara-sun",
       "classId": "ALL",
       "day": "Sunday",
-      "period": 1,
+      "period": 2,
       "subject": "Arabic",
       "title": "التعرف على شكل حرف الحاء منفصل وفي أول الكلمة (ح - حـ) وانجاز ورقة العمل ص 14",
       "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع - أستاذة ألاء علي محمد",
@@ -11650,7 +11650,7 @@
       "id": "cw-b2-w4-ara-wed",
       "classId": "ALL",
       "day": "Wednesday",
-      "period": 1,
+      "period": 2,
       "subject": "Arabic",
       "title": "التميز بين المنزل والمدرسة وانجاز أوراق العمل ص 16",
       "details": "الموضوع الثاني: المنزل والمدرسة - الأسبوع الرابع",
@@ -11701,9 +11701,9 @@
       "title": "1- The Bear Under the Stairs by Helen 2- Which container holds the most 3- Learn letter sounds in English words, starting with <n>",
       "details": "Topic: Home and school (Week 4) - Teacher Eman Fady",
       "pages": "Activity book Sounds { p - n }",
+      "completed": false,
       "block": 2,
       "week": 4,
-      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
       "linkTitle": "Jolly phonics song 🎵",
       "links": [
@@ -11734,9 +11734,9 @@
       "title": "1- Talk about grey color / sides of the shapes 2- Set up the writing table 3- Learn number 8",
       "details": "Topic: Home and school (Week 4) - Teacher Eman Fady",
       "pages": "Writing sheet / Number 8",
+      "completed": false,
       "block": 2,
       "week": 4,
-      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=pfRuLS-Vnjs",
       "linkTitle": "Shapes' songs 🔲",
       "links": [
@@ -11763,9 +11763,9 @@
       "title": "1- Make carriages for the birthday train, with photos for each carriage 2- Revise body parts 3- Play a matching game with the first learnt letter sounds learned",
       "details": "Topic: Home and school (Week 4) - Teacher Eman Fady",
       "pages": "Carriages sheet & Body parts sheet",
+      "completed": false,
       "block": 2,
       "week": 4,
-      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=BwHMMZQGFoM",
       "linkTitle": "Body parts 🧍",
       "links": [
@@ -11784,9 +11784,9 @@
       "title": "1- Recognise and order the numerals 1 to 5 (extend up to 8 and 10) 2- Workbook 3- Number sheet (write numbers up to 8) 4- Guess and measure how many cups a jug of water will fill",
       "details": "Topic: Home and school (Week 4) - Teacher Eman Fady",
       "pages": "Workbook, Number sheet (numbers up to 8)",
+      "completed": false,
       "block": 2,
       "week": 4,
-      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc",
       "linkTitle": "Jolly phonics song 🎵",
       "links": [
@@ -11805,9 +11805,9 @@
       "title": "1- Carpet time 2- Learn letter sounds in English words, starting with <n> 3- Count to ten with fingers",
       "details": "Topic: Home and school (Week 4) - Teacher Eman Fady",
       "pages": "Carpet time sheet",
+      "completed": false,
       "block": 2,
       "week": 4,
-      "completed": false,
       "linkUrl": "https://www.youtube.com/watch?v=E56ldJ55n7g",
       "linkTitle": "<n> sound song 🎵",
       "links": [
@@ -11830,9 +11830,9 @@
       "title": "التعرف على شكل حرف الخاء متصل و منفصل (خ - خـ) وصوت الحرف والكلمات الدالة عليه",
       "details": "الموضوع الثالث: ليلة مليئة بالنجوم - الأسبوع الأول - أستاذة أماني سعد كامل",
       "pages": "حل الكتاب المدرسي + حل ورق العمل ص 2",
+      "completed": false,
       "block": 3,
       "week": 1,
-      "completed": false,
       "linkUrl": "https://youtu.be/zBIU5T55Meo?si=LH5Ra7eW03lAQ9hD",
       "linkTitle": "فيديو التعرف على شكل حرف الخاء (خ - خـ) 🎬",
       "links": [
@@ -11855,9 +11855,9 @@
       "title": "التعرف على أصوات حرف الخاء ( خَ - خُ - خِ ) وكتابة الحرف",
       "details": "الموضوع الثالث: ليلة مليئة بالنجوم - الأسبوع الأول",
       "pages": "حل الكتاب المدرسي",
+      "completed": false,
       "block": 3,
       "week": 1,
-      "completed": false,
       "linkUrl": "https://youtu.be/aUnBHlRIYYg?si=xuJSTeLD2jJ4JWWx",
       "linkTitle": "فيديو أصوات حرف الخاء ( خَ - خُ - خِ ) 🎬",
       "links": [
@@ -11876,9 +11876,9 @@
       "title": "مراجعة الحروف ( ج - ح - خ )",
       "details": "الموضوع الثالث: ليلة مليئة بالنجوم - الأسبوع الأول",
       "pages": "حل الكتاب المدرسي + حل ورق العمل ص 3",
+      "completed": false,
       "block": 3,
       "week": 1,
-      "completed": false,
       "linkUrl": "https://youtu.be/84ILUDTDeKo?si=1phjkB_rp38bbtmR",
       "linkTitle": "فيديو مراجعة الحروف (ج - ح - خ) 🎬",
       "links": [
@@ -11897,9 +11897,9 @@
       "title": "التعرف على الرقم 5 ومدلولاته",
       "details": "الموضوع الثالث: ليلة مليئة بالنجوم - الأسبوع الأول",
       "pages": "حل ورق العمل ص 4",
+      "completed": false,
       "block": 3,
       "week": 1,
-      "completed": false,
       "linkUrl": "https://youtu.be/kP0lg1sSZcU?si=p20-e2sd_4SJdex0",
       "linkTitle": "فيديو الرقم 5 ومدلولاته 🔢",
       "links": [
@@ -11918,15 +11918,144 @@
       "title": "الليل والنهار ووقت النوم",
       "details": "الموضوع الثالث: ليلة مليئة بالنجوم - الأسبوع الأول",
       "pages": "حل ورق العمل ص 5",
+      "completed": false,
       "block": 3,
       "week": 1,
-      "completed": false,
       "linkUrl": "https://youtu.be/YDoErDg7DYg?si=Mi51k1e10ufK7NM3",
       "linkTitle": "فيديو الليل والنهار ووقت النوم 🌙☀️",
       "links": [
         {
           "title": "فيديو الليل والنهار ووقت النوم 🌙☀️",
           "url": "https://youtu.be/YDoErDg7DYg?si=Mi51k1e10ufK7NM3"
+        }
+      ]
+    },
+    {
+      "id": "cw-b3-w1-eng-sun",
+      "classId": "ALL",
+      "day": "Sunday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- Introduce silver color and pentagon shape 2- Learn /c/ sound 3- Names on the writing table for children to trace or write",
+      "details": "Topic: Starry Starry Night (Week 1) - Teacher Eman Fady",
+      "pages": "Activity book Sounds { p - n }",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s"
+        },
+        {
+          "title": "Pentagon shape ⬠",
+          "url": "https://www.youtube.com/watch?v=WhzcyYP6jYM"
+        }
+      ]
+    },
+    {
+      "id": "cw-b3-w1-eng-mon",
+      "classId": "ALL",
+      "day": "Monday",
+      "period": 2,
+      "subject": "English",
+      "title": "1- Learn number 9 2- Count to twenty using fingers and toes 3- Why do we have day and night?",
+      "details": "Topic: Starry Starry Night (Week 1) - Teacher Eman Fady",
+      "pages": "Writing sheet / Number 8",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=pfRuLS-Vnjs",
+      "linkTitle": "Shapes' songs 🔲",
+      "links": [
+        {
+          "title": "Shapes' songs 🔲",
+          "url": "https://www.youtube.com/watch?v=pfRuLS-Vnjs"
+        },
+        {
+          "title": "Talk about grey color / sides of the shapes 🪙",
+          "url": "https://www.youtube.com/watch?v=28QYr8eqTqc"
+        },
+        {
+          "title": "Learn number 8 🔢",
+          "url": "https://www.youtube.com/watch?v=mu6mw8aqDCQ&t=39s"
+        }
+      ]
+    },
+    {
+      "id": "cw-b3-w1-eng-tue",
+      "classId": "ALL",
+      "day": "Tuesday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- Peace at Last by Jill Murphy 2- Learn /k/ sound 3- Revise pre-taught numbers",
+      "details": "Topic: Starry Starry Night (Week 1) - Teacher Eman Fady",
+      "pages": "N/A",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=9U9y35kWBvM",
+      "linkTitle": "Peace at Last story 🧸",
+      "links": [
+        {
+          "title": "Peace at Last story 🧸",
+          "url": "https://www.youtube.com/watch?v=9U9y35kWBvM"
+        },
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s"
+        }
+      ]
+    },
+    {
+      "id": "cw-b3-w1-eng-wed",
+      "classId": "ALL",
+      "day": "Wednesday",
+      "period": 1,
+      "subject": "English",
+      "title": "1- Test letter actions and names 2- Share the story ‘Roaring Rockets’ 3- Number sheet 4- Show the correct number of fingers (Order the numbers 1-10)",
+      "details": "Topic: Starry Starry Night (Week 1) - Teacher Eman Fady",
+      "pages": "Number sheet",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=ko306WcHRns",
+      "linkTitle": "Roaring Rockets story 🚀",
+      "links": [
+        {
+          "title": "Roaring Rockets story 🚀",
+          "url": "https://www.youtube.com/watch?v=ko306WcHRns"
+        },
+        {
+          "title": "Counting using fingers and toes 🖐️",
+          "url": "https://www.youtube.com/watch?v=xNw1SSz18Gg"
+        }
+      ]
+    },
+    {
+      "id": "cw-b3-w1-eng-thu",
+      "classId": "ALL",
+      "day": "Thursday",
+      "period": 3,
+      "subject": "English",
+      "title": "1- Carpet time 2- Child of the day, days of the week 3- Blend sounds",
+      "details": "Topic: Starry Starry Night (Week 1) - Teacher Eman Fady",
+      "pages": "N/A",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "linkUrl": "https://www.youtube.com/watch?v=loINl3Ln6Ck",
+      "linkTitle": "Days of the week songs 🗓️",
+      "links": [
+        {
+          "title": "Days of the week songs 🗓️",
+          "url": "https://www.youtube.com/watch?v=loINl3Ln6Ck"
+        },
+        {
+          "title": "Blending sounds 🎶",
+          "url": "https://www.youtube.com/watch?v=8MvFB_Lw4Uss"
         }
       ]
     }
@@ -19510,6 +19639,132 @@
         {
           "title": "فيديو الليل والنهار ووقت النوم 🌙☀️",
           "url": "https://youtu.be/Lin0t1Um640?si=pEFrRSNJ0lc6Ol7s"
+        }
+      ]
+    },
+    {
+      "id": "hw-b3-w1-eng-sun",
+      "classId": "ALL",
+      "assignedDay": "Sunday",
+      "dueDay": "Monday",
+      "subject": "English",
+      "task": "Topic 3 week 1 homework pages 2,3,4,5,6,7\nActivity book Sounds { p - n }",
+      "details": "Pages (2-7), Activity book sounds { p - n }",
+      "pages": "2,3,4,5,6,7",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s"
+        },
+        {
+          "title": "Pentagon shape ⬠",
+          "url": "https://www.youtube.com/watch?v=WhzcyYP6jYM"
+        }
+      ]
+    },
+    {
+      "id": "hw-b3-w1-eng-mon",
+      "classId": "ALL",
+      "assignedDay": "Monday",
+      "dueDay": "Tuesday",
+      "subject": "English",
+      "task": "Topic 3 week 1 homework pages 2,3,4,5,6,7\nActivity book Sounds { p - n }",
+      "details": "Pages (2-7), Activity book sounds { p - n }",
+      "pages": "2,3,4,5,6,7",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=pfRuLS-Vnjs",
+      "linkTitle": "Shapes' songs 🔲",
+      "links": [
+        {
+          "title": "Shapes' songs 🔲",
+          "url": "https://www.youtube.com/watch?v=pfRuLS-Vnjs"
+        },
+        {
+          "title": "Talk about grey color / sides of the shapes 🪙",
+          "url": "https://www.youtube.com/watch?v=28QYr8eqTqc"
+        },
+        {
+          "title": "Learn number 8 🔢",
+          "url": "https://www.youtube.com/watch?v=mu6mw8aqDCQ&t=39s"
+        }
+      ]
+    },
+    {
+      "id": "hw-b3-w1-eng-tue",
+      "classId": "ALL",
+      "assignedDay": "Tuesday",
+      "dueDay": "Wednesday",
+      "subject": "English",
+      "task": "Topic 3 week 1 homework pages 2,3,4,5,6,7\nActivity book Sounds { p - n }",
+      "details": "Pages (2-7), Activity book sounds { p - n }",
+      "pages": "2,3,4,5,6,7",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=BwHMMZQGFoM",
+      "linkTitle": "Body parts 🧍",
+      "links": [
+        {
+          "title": "Body parts 🧍",
+          "url": "https://www.youtube.com/watch?v=BwHMMZQGFoM"
+        }
+      ]
+    },
+    {
+      "id": "hw-b3-w1-eng-wed",
+      "classId": "ALL",
+      "assignedDay": "Wednesday",
+      "dueDay": "Thursday",
+      "subject": "English",
+      "task": "Topic 3 week 1 homework pages 2,3,4,5,6,7\nActivity book Sounds { p - n }",
+      "details": "Pages (2-7), Activity book sounds { p - n }",
+      "pages": "2,3,4,5,6,7",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s",
+      "linkTitle": "Jolly phonics song 🎵",
+      "links": [
+        {
+          "title": "Jolly phonics song 🎵",
+          "url": "https://www.youtube.com/watch?v=Nv28ddzc9Oc&t=22s"
+        }
+      ]
+    },
+    {
+      "id": "hw-b3-w1-eng-thu",
+      "classId": "ALL",
+      "assignedDay": "Thursday",
+      "dueDay": "Sunday",
+      "subject": "English",
+      "task": "Topic 3 week 1 homework pages 2,3,4,5,6,7\nActivity book Sounds { p - n }",
+      "details": "Pages (2-7), Activity book sounds { p - n }",
+      "pages": "2,3,4,5,6,7",
+      "block": 3,
+      "week": 1,
+      "completed": false,
+      "priority": "normal",
+      "linkUrl": "https://www.youtube.com/watch?v=E56ldJ55n7g",
+      "linkTitle": "<n> sound song 🎵",
+      "links": [
+        {
+          "title": "<n> sound song 🎵",
+          "url": "https://www.youtube.com/watch?v=E56ldJ55n7g"
+        },
+        {
+          "title": "Count to ten with fingers 🖐️",
+          "url": "https://www.youtube.com/watch?v=DR-cfDsHCGA"
         }
       ]
     }

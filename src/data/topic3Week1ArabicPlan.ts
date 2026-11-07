@@ -1,6 +1,6 @@
 import { ClassworkEntry, HomeworkEntry, TomorrowSpecialNote } from '../types';
 
-export const TOPIC3_WEEK1_CLASSWORK: ClassworkEntry[] = [
+export const TOPIC3_WEEK1_ARABIC_CLASSWORK: ClassworkEntry[] = [
   // ==========================================
   // --- SUNDAY (8-11-2026) ---
   // ==========================================
@@ -131,7 +131,7 @@ export const TOPIC3_WEEK1_CLASSWORK: ClassworkEntry[] = [
   },
 ];
 
-export const TOPIC3_WEEK1_HOMEWORK: HomeworkEntry[] = [
+export const TOPIC3_WEEK1_ARABIC_HOMEWORK: HomeworkEntry[] = [
   // ==========================================
   // --- SUNDAY (8-11-2026) ---
   // ==========================================
@@ -275,7 +275,7 @@ export const TOPIC3_WEEK1_HOMEWORK: HomeworkEntry[] = [
   },
 ];
 
-export const TOPIC3_WEEK1_SPECIAL_NOTES: TomorrowSpecialNote[] = [
+export const TOPIC3_WEEK1_ARABIC_SPECIAL_NOTES: TomorrowSpecialNote[] = [
   {
     id: 'tn-b3-w1-ara-speaking',
     classId: 'ALL',
