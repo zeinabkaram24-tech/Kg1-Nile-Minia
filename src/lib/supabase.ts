@@ -521,7 +521,26 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
   });
 
-  const consolidated = Array.from(map.values());
+  const consolidated = Array.from(map.values()).map((c) => {
+    const isProtectedBaseline =
+      ((c.block || 1) === 2 && ((c.week || 1) === 2 || (c.week || 1) === 3)) ||
+      ((c.block || 1) === 3 && (c.week || 1) === 2);
+    if (isProtectedBaseline) {
+      const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
+      if (baseline) {
+        return {
+          ...c,
+          title: baseline.title,
+          details: baseline.details,
+          pages: baseline.pages,
+          links: baseline.links,
+          linkUrl: baseline.linkUrl,
+          linkTitle: baseline.linkTitle,
+        };
+      }
+    }
+    return c;
+  });
 
   // Background replication:
   // 1. If Supabase is active, push any item from server/local that is not in Supabase yet
@@ -834,7 +853,49 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
   });
 
-  const consolidated = Array.from(map.values());
+  const consolidated = Array.from(map.values()).map((item) => {
+    const isTargetArabicHw =
+      item.id === 'hw-w2-ar-tue-kg1a-wb' ||
+      item.id === 'hw-w2-ar-tue-kg1b-wb' ||
+      item.id === 'hw-w2-ar-tue-kg1c-wb' ||
+      (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
+
+    const has46 =
+      Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
+      Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
+      Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
+
+    if (isTargetArabicHw && has46) {
+      const corrected: HomeworkEntry = {
+        ...item,
+        task: item.task ? item.task.replace(/46/g, '47') : item.task,
+        pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
+        details: item.details ? item.details.replace(/46/g, '47') : item.details,
+      };
+      return corrected;
+    }
+
+    const isProtectedBaseline =
+      ((item.block || 1) === 2 && ((item.week || 1) === 2 || (item.week || 1) === 3)) ||
+      ((item.block || 1) === 3 && (item.week || 1) === 2);
+
+    if (isProtectedBaseline) {
+      const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);
+      if (baseline) {
+        return {
+          ...item,
+          task: baseline.task,
+          details: baseline.details,
+          pages: baseline.pages,
+          links: baseline.links,
+          linkUrl: baseline.linkUrl,
+          linkTitle: baseline.linkTitle,
+        };
+      }
+    }
+
+    return item;
+  });
 
   // Background replication:
   // 1. If Supabase is active, push missing items to Supabase

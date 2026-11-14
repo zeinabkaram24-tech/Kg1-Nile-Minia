@@ -58,7 +58,7 @@ import {
   saveLocalCustomHomework,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
-import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon, Wifi, WifiOff, Pencil, Plus, X } from 'lucide-react';
+import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon, Wifi, WifiOff } from 'lucide-react';
 import { getAutoDetectedToday } from './utils/academicCalendar';
 import { subscribeToLiveSync, subscribeToLiveSyncStatus, LiveSyncStatus } from './services/liveSyncService';
 
@@ -106,10 +106,26 @@ function getProfileClasswork(profile: UserProfile | null): ClassworkEntry[] {
     cached.forEach((c) => {
       if (c && c.id) {
         const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
-        const mergedLinks = (!c.links || c.links.length === 0) && baseline?.links && baseline.links.length > 0
-          ? baseline.links
-          : c.links;
-        map.set(c.id, { ...c, links: mergedLinks });
+        const isProtectedBaseline = baseline && (
+          ((baseline.block || 1) === 2 && ((baseline.week || 1) === 2 || (baseline.week || 1) === 3)) ||
+          ((baseline.block || 1) === 3 && (baseline.week || 1) === 2)
+        );
+        if (isProtectedBaseline) {
+          map.set(c.id, {
+            ...c,
+            title: baseline.title,
+            details: baseline.details,
+            pages: baseline.pages,
+            links: baseline.links,
+            linkUrl: baseline.linkUrl,
+            linkTitle: baseline.linkTitle,
+          });
+        } else {
+          const mergedLinks = (!c.links || c.links.length === 0) && baseline?.links && baseline.links.length > 0
+            ? baseline.links
+            : c.links;
+          map.set(c.id, { ...c, links: mergedLinks });
+        }
       }
     });
   }
@@ -147,10 +163,26 @@ function getProfileHomework(profile: UserProfile | null): HomeworkEntry[] {
     cached.forEach((h) => {
       if (h && h.id) {
         const baseline = INITIAL_HOMEWORK.find((b) => b.id === h.id);
-        const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
-          ? baseline.links
-          : h.links;
-        map.set(h.id, { ...h, links: mergedLinks });
+        const isProtectedBaseline = baseline && (
+          ((baseline.block || 1) === 2 && ((baseline.week || 1) === 2 || (baseline.week || 1) === 3)) ||
+          ((baseline.block || 1) === 3 && (baseline.week || 1) === 2)
+        );
+        if (isProtectedBaseline) {
+          map.set(h.id, {
+            ...h,
+            task: baseline.task,
+            details: baseline.details,
+            pages: baseline.pages,
+            links: baseline.links,
+            linkUrl: baseline.linkUrl,
+            linkTitle: baseline.linkTitle,
+          });
+        } else {
+          const mergedLinks = (!h.links || h.links.length === 0) && baseline?.links && baseline.links.length > 0
+            ? baseline.links
+            : h.links;
+          map.set(h.id, { ...h, links: mergedLinks });
+        }
       }
     });
   }
@@ -336,7 +368,7 @@ export default function App() {
       }
 
       // Apply classwork
-      if (Array.isArray(cwData)) {
+      if (cwData && cwData.length > 0) {
         const uniqueCwMap = new Map<string, ClassworkEntry>();
         cwData.forEach((c) => uniqueCwMap.set(c.id, c));
         const dedupedCw = Array.from(uniqueCwMap.values());
@@ -352,7 +384,7 @@ export default function App() {
       }
 
       // Apply homework
-      if (Array.isArray(hwData)) {
+      if (hwData && hwData.length > 0) {
         const uniqueHwMap = new Map<string, HomeworkEntry>();
         hwData.forEach((h) => uniqueHwMap.set(h.id, h));
         const dedupedHw = Array.from(uniqueHwMap.values());
@@ -989,15 +1021,6 @@ export default function App() {
         supabaseStatus={supabaseStatus}
         onSyncNow={() => refreshAllData(true)}
         isSyncing={isSyncing}
-        isAdminEditMode={isAdminEditMode}
-        onToggleAdminEditMode={(enabled) => {
-          setIsAdminEditMode(enabled);
-          if (enabled) {
-            showToast('🛠️ تم تفعيل زرار التحكم المباشر في الصفحة! يمكنك إضافة وتعديل وحذف أي شيء مباشرة مع المزامنة الفورية.');
-          } else {
-            showToast('تم إيقاف التحكم المباشر وتثبيت الشاشة.');
-          }
-        }}
       />
 
       {/* Main Container */}
@@ -1015,78 +1038,6 @@ export default function App() {
             >
               Dismiss
             </button>
-          </div>
-        )}
-
-        {/* Admin Direct Control Banner & Action Bar */}
-        {isAdminEditMode && (
-          <div className="mb-5 p-4 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 text-slate-950 rounded-2xl shadow-lg border-2 border-amber-300 print:hidden animate-fade-in">
-            <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center shrink-0 shadow-md">
-                  <Pencil className="w-5 h-5 animate-bounce" />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-950 flex items-center gap-2">
-                    <span>🛠️ التحكم المباشر في الصفحة (مُفعل)</span>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-950 text-amber-300">
-                      مباشر وحي
-                    </span>
-                  </h3>
-                  <p className="text-xs font-bold text-slate-900 mt-0.5">
-                    أي إضافة، تعديل، أو حذف تقوم به هنا يتفاعل ويظهر فوراً على جميع أجهزة الموبايل واللابتوب وصغار الطلاب!
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Action Buttons for Admin */}
-              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 w-full sm:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={() => handleOpenAddModal('classwork')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 text-amber-400" />
-                  <span>+ إضافة حصة</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenAddModal('homework')}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-950 hover:bg-indigo-900 text-white rounded-xl text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 text-indigo-300" />
-                  <span>+ إضافة واجب</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleOpenAddModal('tomorrow', { targetDay: NEXT_SCHOOL_DAY[selectedDay] || 'Sunday' })}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-white rounded-xl text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>+ إضافة تنبيه</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsAdminAuthOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/30 hover:bg-white/40 text-slate-950 rounded-xl text-xs font-black shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer border border-amber-900/30"
-                >
-                  <Shield className="w-3.5 h-3.5 text-slate-900" />
-                  <span>لوحة الأدمن</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsAdminEditMode(false)}
-                  className="p-1.5 bg-amber-700/30 hover:bg-amber-800/40 text-slate-950 rounded-xl transition-all cursor-pointer"
-                  title="إغلاق التحكم المباشر"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
           </div>
         )}
 
