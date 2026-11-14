@@ -40,12 +40,21 @@ function getStoredSupabaseConfig(): { url: string; key: string; geminiKey?: stri
   return null;
 }
 
-const storedSbConfig = getStoredSupabaseConfig();
+const DEFAULT_KG1_SUPABASE_URL = 'https://elcczvazlgxbgnioxfaf.supabase.co';
+const DEFAULT_KG1_SUPABASE_KEY = 'sb_publishable_5DUTdClGKYJ_PI4GYRf07g_RFkxguqA';
+const STALE_GRADE2_HOST = 'umryrjwmlkdbjmgmnbkt.supabase.co';
+
+const rawStoredSbConfig = getStoredSupabaseConfig();
+const storedSbConfig =
+  rawStoredSbConfig?.url && !rawStoredSbConfig.url.includes(STALE_GRADE2_HOST)
+    ? rawStoredSbConfig
+    : null;
+
 let activeSbUrl = (
   storedSbConfig?.url ||
   process.env.VITE_SUPABASE_URL ||
   process.env.SUPABASE_URL ||
-  'https://umryrjwmlkdbjmgmnbkt.supabase.co'
+  DEFAULT_KG1_SUPABASE_URL
 ).trim();
 
 if (activeSbUrl.endsWith('/rest/v1/')) {
@@ -61,7 +70,7 @@ let activeSbKey = (
   storedSbConfig?.key ||
   process.env.VITE_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag'
+  DEFAULT_KG1_SUPABASE_KEY
 ).trim();
 
 if (storedSbConfig?.geminiKey) {
@@ -376,20 +385,22 @@ app.get('/api/materials', async (req, res) => {
     const { data, error } = await serverSupabase
       .from('materials')
       .select('id, file_name, file_size, block, section, class_id, file_url, uploaded_at')
-      .order('uploaded_at', { ascending: false });
+      .order('uploaded_at', { ascending: false })
+      .range(0, 999);
 
     if (!error && Array.isArray(data)) {
       const items = data.map((row: any) => {
+        const effectiveUrl = row.file_url || row.storage_url;
         const isPdf = Boolean(
           (row.file_name && row.file_name.toLowerCase().endsWith('.pdf')) ||
-          (row.file_url && row.file_url.toLowerCase().endsWith('.pdf')) ||
-          (row.file_url && row.file_url.includes('/api/materials/')) ||
+          (effectiveUrl && effectiveUrl.toLowerCase().endsWith('.pdf')) ||
+          (effectiveUrl && effectiveUrl.includes('/api/materials/')) ||
           (row.file_size && row.file_size > 0)
         );
         const isLink = !isPdf && Boolean(
-          row.file_url &&
-          (row.file_url.startsWith('http://') || row.file_url.startsWith('https://')) &&
-          !row.file_url.includes('/api/materials/')
+          effectiveUrl &&
+          (effectiveUrl.startsWith('http://') || effectiveUrl.startsWith('https://')) &&
+          !effectiveUrl.includes('/api/materials/')
         );
 
         return {
@@ -399,14 +410,17 @@ app.get('/api/materials', async (req, res) => {
           block: row.block,
           section: row.section,
           classId: row.class_id || 'ALL',
-          storageUrl: row.file_url || `/api/materials/${row.id}/file`,
-          linkUrl: isLink ? row.file_url : undefined,
+          storageUrl: effectiveUrl || `/api/materials/${row.id}/file`,
+          linkUrl: isLink ? effectiveUrl : undefined,
           type: isLink ? 'link' : 'pdf',
           fileData: row.file_data || undefined,
           uploadedAt: row.uploaded_at,
         };
       });
       return res.json(items);
+    }
+    if (error) {
+      console.warn('[Server Supabase] Materials fetch warning:', error.message || error);
     }
   } catch (err: any) {
     console.error('[Server Supabase] Materials fetch error:', err);
@@ -446,8 +460,11 @@ app.post('/api/materials', async (req, res) => {
       }
     }
 
-    // 3. Upsert directly into Supabase 'materials' table
+    // 3. Upsert directly into Supabase 'materials' table (uses file_url)
     try {
+      const effectiveUrl = item.type === 'link'
+        ? (item.linkUrl || item.storageUrl || null)
+        : (item.storageUrl || item.linkUrl || `/api/materials/${item.id}/file`);
       const row = {
         id: item.id,
         file_name: item.fileName,
@@ -455,19 +472,17 @@ app.post('/api/materials', async (req, res) => {
         block: typeof item.block === 'number' ? item.block : Number(item.block) || 1,
         section: item.section || 'Main sheet',
         class_id: item.classId || 'ALL',
-        file_url: item.storageUrl || item.linkUrl || `/api/materials/${item.id}/file`,
+        file_url: effectiveUrl,
         file_data: item.fileData || null,
         uploaded_at: item.uploadedAt || new Date().toISOString(),
       };
 
-      await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
+      const { error } = await serverSupabase.from('materials').upsert(row, { onConflict: 'id' });
+      if (error) {
+        console.warn('[Server Supabase] Upsert into materials table warning:', error.message);
+      }
     } catch (sbErr: any) {
       console.warn('[Server Supabase] Upsert into materials table notice:', sbErr.message);
-    }
-
-    // 4. LiveSync Broadcast!
-    if (typeof (global as any).broadcastLiveUpdate === 'function') {
-      (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', item);
     }
 
     res.json({ success: true, item });
@@ -566,11 +581,6 @@ app.delete('/api/materials/:id', async (req, res) => {
     console.warn('[Server Supabase] Error deleting material from materials table:', err);
   }
 
-  // 4. LiveSync Broadcast!
-  if (typeof (global as any).broadcastLiveUpdate === 'function') {
-    (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', { deletedId: id });
-  }
-
   res.json({ success: true });
 });
 
@@ -588,10 +598,6 @@ app.post('/api/materials/clear', async (req, res) => {
       await serverSupabase.from('materials').delete().neq('id', '___dummy___');
     } catch {}
 
-    if (typeof (global as any).broadcastLiveUpdate === 'function') {
-      (global as any).broadcastLiveUpdate('MATERIALS_UPDATE', { cleared: true });
-    }
-    
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error clearing materials' });
@@ -631,9 +637,472 @@ app.get('/api/planner-data', (req, res) => {
   }
 });
 
+// Cloud mirroring helpers for /api/planner-data mutations
+function packDetailsMetaServer(
+  details: any,
+  meta: { pdfUrl?: string; links?: any[]; linkTitle?: string }
+): string | null {
+  let base = typeof details === 'string' ? details : '';
+  base = base
+    .replace(/\|\|LINKS_JSON:\[[\s\S]*?\](?=\|\||$)/g, '')
+    .replace(/\|\|LINK_TITLE:[\s\S]*?(?=\|\||$)/g, '')
+    .replace(/\|\|PDF_URL:[\s\S]*?(?=\|\||$)/g, '')
+    .trim();
+  let res = base;
+  if (meta.pdfUrl && String(meta.pdfUrl).trim()) {
+    res += ` ||PDF_URL:${String(meta.pdfUrl).trim()}`;
+  }
+  if (meta.linkTitle && String(meta.linkTitle).trim()) {
+    res += ` ||LINK_TITLE:${String(meta.linkTitle).trim()}`;
+  }
+  if (Array.isArray(meta.links) && meta.links.length > 0) {
+    res += ` ||LINKS_JSON:${JSON.stringify(meta.links)}`;
+  }
+  return res.trim() || null;
+}
+
+async function upsertInChunksServer(table: string, rows: any[], chunkSize = 50): Promise<void> {
+  if (!serverSupabase || rows.length === 0) return;
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    const { error } = await serverSupabase.from(table).upsert(chunk, { onConflict: 'id' });
+    if (error) {
+      console.warn(`[Server Cloud Mirror] Chunk upsert warning on ${table}:`, error.message);
+      for (const row of chunk) {
+        const { error: singleErr } = await serverSupabase.from(table).upsert(row, { onConflict: 'id' });
+        if (singleErr) {
+          console.warn(`[Server Cloud Mirror] Row upsert warning on ${table} (${row.id}):`, singleErr.message);
+        }
+      }
+    }
+  }
+}
+
+async function readServerGlobalPlannerSettings(): Promise<{
+  id: string;
+  current_block?: number;
+  current_week?: number;
+  active_term?: string;
+  settings: Record<string, any>;
+} | null> {
+  if (!serverSupabase) return null;
+  const { data, error } = await serverSupabase
+    .from('planner_settings')
+    .select('id, current_block, current_week, active_term, settings')
+    .eq('id', 'global')
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    ...data,
+    settings: data.settings && typeof data.settings === 'object' ? data.settings : {},
+  };
+}
+
+async function patchServerGlobalPlannerSettings(settingsPatch: Record<string, any>): Promise<void> {
+  if (!serverSupabase) return;
+  const existing = await readServerGlobalPlannerSettings();
+  const row = {
+    id: 'global',
+    current_block: existing?.current_block ?? 1,
+    current_week: existing?.current_week ?? 2,
+    active_term: existing?.active_term ?? 'Term 2',
+    settings: {
+      ...(existing?.settings || {}),
+      ...settingsPatch,
+    },
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await serverSupabase.from('planner_settings').upsert(row, { onConflict: 'id' });
+  if (error) {
+    console.warn('[Server Cloud Mirror] Global planner_settings upsert warning:', error.message);
+  }
+}
+
+async function mirrorPlannerDataToSupabase(payload: {
+  classwork?: any[];
+  homework?: any[];
+  tomorrowNotes?: any[];
+  mode?: string;
+}): Promise<void> {
+  if (!serverSupabase) return;
+  try {
+    if (Array.isArray(payload.classwork) && payload.classwork.length > 0) {
+      const cwRows = payload.classwork
+        .filter((c) => c && c.id && c.classId && c.day && c.subject && c.title !== undefined)
+        .map((c) => ({
+          id: c.id,
+          class_id: c.classId,
+          day: c.day,
+          period: Number(c.period ?? 1),
+          subject: c.subject,
+          title: c.title,
+          details: packDetailsMetaServer(c.details, {
+            pdfUrl: c.pdfUrl,
+            links: Array.isArray(c.links) ? c.links : undefined,
+          }),
+          pages: c.pages ?? null,
+          completed: Boolean(c.completed),
+          block: Number(c.block ?? 1),
+          week: Number(c.week ?? 1),
+          link_url: c.linkUrl ?? null,
+          link_title: c.linkTitle ?? null,
+          links: Array.isArray(c.links) ? c.links : [],
+        }));
+      await upsertInChunksServer('classwork', cwRows, 50);
+    }
+
+    if (Array.isArray(payload.homework) && payload.homework.length > 0) {
+      const hwRows = payload.homework
+        .filter((h) => h && h.id && h.classId && h.assignedDay && h.dueDay && h.subject && h.task !== undefined)
+        .map((h) => ({
+          id: h.id,
+          class_id: h.classId,
+          assigned_day: h.assignedDay,
+          due_day: h.dueDay,
+          subject: h.subject,
+          task: h.task,
+          details: packDetailsMetaServer(h.details, {
+            pdfUrl: h.pdfUrl,
+            links: Array.isArray(h.links) ? h.links : undefined,
+            linkTitle: h.linkTitle,
+          }),
+          pages: h.pages ?? null,
+          completed: Boolean(h.completed),
+          priority: h.priority || 'normal',
+          block: Number(h.block ?? 1),
+          week: Number(h.week ?? 1),
+          link_url: h.linkUrl ?? null,
+          link_title: h.linkTitle ?? null,
+          links: Array.isArray(h.links) ? h.links : [],
+        }));
+      await upsertInChunksServer('homework', hwRows, 50);
+    }
+
+    if (Array.isArray(payload.tomorrowNotes) && payload.tomorrowNotes.length > 0) {
+      // 1. Upsert into tomorrow_notes table
+      const tnRows = payload.tomorrowNotes
+        .filter((n) => n && n.targetDay && n.subject)
+        .map((n) => ({
+          id: n.id || `tn-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          class_id: n.classId || 'ALL',
+          target_day: n.targetDay,
+          subject: n.subject,
+          note: n.note || n.arabicNote || '',
+          arabic_note: n.arabicNote || n.note || '',
+          bag_item: n.bagItem ?? null,
+          block: Number(n.block ?? 1),
+          week: Number(n.week ?? 1),
+        }));
+      if (tnRows.length > 0) {
+        await upsertInChunksServer('tomorrow_notes', tnRows, 50);
+      }
+
+      // 2. Also merge into global planner_settings.settings.tomorrow_special_notes
+      const existingGlobal = await readServerGlobalPlannerSettings();
+      const existingNotes: any[] = Array.isArray(existingGlobal?.settings?.tomorrow_special_notes)
+        ? existingGlobal!.settings.tomorrow_special_notes
+        : [];
+      const getKey = (n: any) =>
+        n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 25)}`;
+      const mergedMap = new Map<string, any>();
+      existingNotes.forEach((n) => {
+        if (!n) return;
+        if (payload.mode === 'replace' && payload.tomorrowNotes!.length > 0) {
+          const first = payload.tomorrowNotes![0];
+          if (
+            Number(n.block || 1) === Number(first.block || 1) &&
+            Number(n.week || 1) === Number(first.week || 1) &&
+            (first.classId === 'ALL' || n.classId === first.classId)
+          ) {
+            return;
+          }
+        }
+        mergedMap.set(getKey(n), n);
+      });
+      payload.tomorrowNotes.forEach((n) => {
+        if (n) mergedMap.set(getKey(n), n);
+      });
+      await patchServerGlobalPlannerSettings({
+        tomorrow_special_notes: Array.from(mergedMap.values()),
+      });
+    }
+  } catch (err: any) {
+    console.warn('[Server Cloud Mirror] Non-fatal mirror error:', err?.message || err);
+  }
+}
+
+async function mirrorPlannerDeleteToSupabase(targetIds: string[], type: string): Promise<void> {
+  if (!serverSupabase || targetIds.length === 0) return;
+  try {
+    const existingGlobal = await readServerGlobalPlannerSettings();
+    const settingsObj = existingGlobal?.settings || {};
+
+    if (type === 'classwork') {
+      await serverSupabase.from('classwork').delete().in('id', targetIds);
+      const existing: string[] = Array.isArray(settingsObj.deleted_planner_item_ids)
+        ? settingsObj.deleted_planner_item_ids
+        : [];
+      const merged = Array.from(new Set([...existing, ...targetIds]));
+      await patchServerGlobalPlannerSettings({ deleted_planner_item_ids: merged });
+    } else if (type === 'homework') {
+      await serverSupabase.from('homework').delete().in('id', targetIds);
+      const existing: string[] = Array.isArray(settingsObj.deleted_planner_item_ids)
+        ? settingsObj.deleted_planner_item_ids
+        : [];
+      const merged = Array.from(new Set([...existing, ...targetIds]));
+      await patchServerGlobalPlannerSettings({ deleted_planner_item_ids: merged });
+    } else if (type === 'tomorrowNotes') {
+      await serverSupabase.from('tomorrow_notes').delete().in('id', targetIds);
+      const existingDel: string[] = Array.isArray(settingsObj.deleted_tomorrow_note_ids)
+        ? settingsObj.deleted_tomorrow_note_ids
+        : [];
+      const mergedDel = Array.from(new Set([...existingDel, ...targetIds]));
+      const existingNotes: any[] = Array.isArray(settingsObj.tomorrow_special_notes)
+        ? settingsObj.tomorrow_special_notes
+        : [];
+      const targetSet = new Set(targetIds);
+      const filteredNotes = existingNotes.filter((n) => !n || !targetSet.has(n.id));
+      await patchServerGlobalPlannerSettings({
+        deleted_tomorrow_note_ids: mergedDel,
+        tomorrow_special_notes: filteredNotes,
+      });
+    }
+  } catch (err: any) {
+    console.warn('[Server Cloud Mirror] Non-fatal delete mirror error:', err?.message || err);
+  }
+}
+
+async function fetchAllTableRowsServer(table: string, selectCols = '*'): Promise<any[] | null> {
+  if (!serverSupabase) return null;
+  const pageSize = 1000;
+  const maxPages = 25;
+  const allRows: any[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error } = await serverSupabase.from(table).select(selectCols).range(from, to);
+    if (error) {
+      if (page === 0) return null;
+      break;
+    }
+    const batch = Array.isArray(data) ? data : [];
+    allRows.push(...batch);
+    if (batch.length < pageSize) break;
+  }
+  return allRows;
+}
+
+function unpackDetailsMetaServer(detailsStr: any): {
+  details?: string;
+  pdfUrl?: string;
+  links?: any[];
+  linkTitle?: string;
+} {
+  if (!detailsStr) return {};
+  let text = String(detailsStr);
+  let pdfUrl: string | undefined;
+  let links: any[] | undefined;
+  let linkTitle: string | undefined;
+
+  const linksMatch = text.match(/\|\|LINKS_JSON:(\[[\s\S]*?\])(?=\|\||$)/);
+  if (linksMatch) {
+    try {
+      const parsed = JSON.parse(linksMatch[1]);
+      if (Array.isArray(parsed) && parsed.length > 0) links = parsed;
+    } catch {}
+    text = text.replace(linksMatch[0], '');
+  }
+  const linkTitleMatch = text.match(/\|\|LINK_TITLE:([\s\S]*?)(?=\|\||$)/);
+  if (linkTitleMatch) {
+    linkTitle = linkTitleMatch[1]?.trim() || undefined;
+    text = text.replace(linkTitleMatch[0], '');
+  }
+  const pdfMatch = text.match(/\|\|PDF_URL:([\s\S]*?)(?=\|\||$)/);
+  if (pdfMatch) {
+    pdfUrl = pdfMatch[1]?.trim() || undefined;
+    text = text.replace(pdfMatch[0], '');
+  }
+  return {
+    details: text.trim() || undefined,
+    pdfUrl,
+    links,
+    linkTitle,
+  };
+}
+
+async function reconcilePlannerDataWithSupabase(): Promise<void> {
+  if (!serverSupabase) return;
+  try {
+    const localData = getStoredPlannerData();
+    const globalRow = await readServerGlobalPlannerSettings();
+    const settingsObj = globalRow?.settings || {};
+
+    const deletedItems = Array.from(new Set([
+      ...(Array.isArray(localData.deletedPlannerItemIds) ? localData.deletedPlannerItemIds : []),
+      ...(Array.isArray(settingsObj.deleted_planner_item_ids) ? settingsObj.deleted_planner_item_ids : []),
+    ]));
+    const deletedItemSet = new Set(deletedItems);
+
+    const deletedTomorrow = Array.from(new Set([
+      ...(Array.isArray(localData.deletedTomorrowNoteIds) ? localData.deletedTomorrowNoteIds : []),
+      ...(Array.isArray(settingsObj.deleted_tomorrow_note_ids) ? settingsObj.deleted_tomorrow_note_ids : []),
+    ]));
+    const deletedTomorrowSet = new Set(deletedTomorrow);
+
+    const [dbCw, dbHw, dbTn] = await Promise.all([
+      fetchAllTableRowsServer('classwork', '*'),
+      fetchAllTableRowsServer('homework', '*'),
+      fetchAllTableRowsServer('tomorrow_notes', '*'),
+    ]);
+
+    let localChanged = false;
+
+    // 1. Classwork bidirectional reconciliation
+    if (Array.isArray(dbCw)) {
+      const dbCwIds = new Set(dbCw.map((r: any) => r.id));
+      const localCw = (localData.classwork || []).filter((c: any) => c && c.id && !deletedItemSet.has(c.id));
+      const missingInDbCw = localCw.filter((c: any) => !dbCwIds.has(c.id));
+      if (missingInDbCw.length > 0) {
+        await mirrorPlannerDataToSupabase({ classwork: missingInDbCw });
+      }
+      const localCwIds = new Set(localCw.map((c: any) => c.id));
+      const extraFromDbCw = dbCw
+        .filter((r: any) => r && r.id && !deletedItemSet.has(r.id) && !localCwIds.has(r.id))
+        .map((r: any) => {
+          const meta = unpackDetailsMetaServer(r.details);
+          return {
+            id: r.id,
+            classId: r.class_id,
+            day: r.day,
+            period: r.period,
+            subject: r.subject,
+            title: r.title,
+            details: meta.details,
+            pages: r.pages || undefined,
+            completed: Boolean(r.completed),
+            block: r.block || 1,
+            week: r.week || 1,
+            linkUrl: r.link_url || undefined,
+            linkTitle: r.link_title || meta.linkTitle || undefined,
+            links: Array.isArray(r.links) && r.links.length > 0 ? r.links : meta.links,
+            pdfUrl: meta.pdfUrl,
+          };
+        });
+      if (extraFromDbCw.length > 0) {
+        localData.classwork = [...localCw, ...extraFromDbCw];
+        localChanged = true;
+      }
+    }
+
+    // 2. Homework bidirectional reconciliation
+    if (Array.isArray(dbHw)) {
+      const dbHwIds = new Set(dbHw.map((r: any) => r.id));
+      const localHw = (localData.homework || []).filter((h: any) => h && h.id && !deletedItemSet.has(h.id));
+      const missingInDbHw = localHw.filter((h: any) => !dbHwIds.has(h.id));
+      if (missingInDbHw.length > 0) {
+        await mirrorPlannerDataToSupabase({ homework: missingInDbHw });
+      }
+      const localHwIds = new Set(localHw.map((h: any) => h.id));
+      const extraFromDbHw = dbHw
+        .filter((r: any) => r && r.id && !deletedItemSet.has(r.id) && !localHwIds.has(r.id))
+        .map((r: any) => {
+          const meta = unpackDetailsMetaServer(r.details);
+          const links = Array.isArray(r.links) && r.links.length > 0 ? r.links : meta.links;
+          return {
+            id: r.id,
+            classId: r.class_id,
+            assignedDay: r.assigned_day,
+            dueDay: r.due_day,
+            subject: r.subject,
+            task: r.task,
+            details: meta.details,
+            pages: r.pages || undefined,
+            completed: Boolean(r.completed),
+            priority: r.priority || 'normal',
+            block: r.block || 1,
+            week: r.week || 1,
+            isLinkTask: Boolean(r.link_url || (Array.isArray(links) && links.length > 0)),
+            linkUrl: r.link_url || undefined,
+            linkTitle: r.link_title || meta.linkTitle || undefined,
+            links,
+            pdfUrl: meta.pdfUrl,
+          };
+        });
+      if (extraFromDbHw.length > 0) {
+        localData.homework = [...localHw, ...extraFromDbHw];
+        localChanged = true;
+      }
+    }
+
+    // 3. Tomorrow notes bidirectional reconciliation
+    const localTn = (localData.tomorrowNotes || []).filter((n: any) => n && !deletedTomorrowSet.has(n.id));
+    const jsonTn: any[] = Array.isArray(settingsObj.tomorrow_special_notes)
+      ? settingsObj.tomorrow_special_notes.filter((n: any) => n && !deletedTomorrowSet.has(n.id))
+      : [];
+    const tableTn: any[] = Array.isArray(dbTn)
+      ? dbTn
+          .filter((r: any) => r && !deletedTomorrowSet.has(r.id))
+          .map((tn: any) => {
+            const combined = ((tn.note || '') + ' ' + (tn.arabic_note || '')).toLowerCase();
+            const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(combined);
+            return {
+              id: tn.id,
+              classId: tn.class_id,
+              targetDay: tn.target_day,
+              subject: tn.subject,
+              note: tn.note,
+              arabicNote: tn.arabic_note || tn.note,
+              bagItem: tn.bag_item || undefined,
+              block: tn.block || 1,
+              week: tn.week || 1,
+              isQuiz,
+              categoryType: isQuiz ? 'quiz' : 'note',
+            };
+          })
+      : [];
+
+    const tnMap = new Map<string, any>();
+    const getTnKey = (n: any) =>
+      n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 25)}`;
+    [...tableTn, ...jsonTn, ...localTn].forEach((n) => {
+      if (!n) return;
+      const k = getTnKey(n);
+      tnMap.set(k, { ...(tnMap.get(k) || {}), ...n });
+    });
+    const mergedTn = Array.from(tnMap.values());
+    const dbTnIds = new Set((dbTn || []).map((r: any) => r.id));
+    const jsonTnKeys = new Set(jsonTn.map(getTnKey));
+    const missingTnForCloud = mergedTn.filter((n) => (n.id && !dbTnIds.has(n.id)) || !jsonTnKeys.has(getTnKey(n)));
+    if (missingTnForCloud.length > 0) {
+      await mirrorPlannerDataToSupabase({ tomorrowNotes: mergedTn, mode: 'merge' });
+    }
+    if (mergedTn.length !== localTn.length) {
+      localData.tomorrowNotes = mergedTn;
+      localChanged = true;
+    }
+
+    if (deletedItems.length !== (localData.deletedPlannerItemIds?.length || 0)) {
+      localData.deletedPlannerItemIds = deletedItems;
+      localChanged = true;
+    }
+    if (deletedTomorrow.length !== (localData.deletedTomorrowNoteIds?.length || 0)) {
+      localData.deletedTomorrowNoteIds = deletedTomorrow;
+      localChanged = true;
+    }
+
+    if (localChanged) {
+      saveStoredPlannerData(localData);
+    }
+    console.log('[Server Cloud Sync] Startup reconciliation complete.');
+  } catch (err: any) {
+    console.warn('[Server Cloud Sync] Non-fatal startup reconciliation notice:', err?.message || err);
+  }
+}
+
 app.post('/api/planner-data', (req, res) => {
   try {
     const { classwork, homework, tomorrowNotes, mode = 'merge' } = req.body;
+    const skipCloudMirror = req.headers['x-skip-cloud-mirror'] === '1';
     let current = getStoredPlannerData();
 
     if (mode === 'replace') {
@@ -734,6 +1203,9 @@ app.post('/api/planner-data', (req, res) => {
     }
 
     saveStoredPlannerData(current);
+    if (!skipCloudMirror) {
+      mirrorPlannerDataToSupabase({ classwork, homework, tomorrowNotes, mode }).catch(() => {});
+    }
     res.json({ success: true, count: { classwork: current.classwork.length, homework: current.homework.length } });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error saving planner data' });
@@ -743,6 +1215,7 @@ app.post('/api/planner-data', (req, res) => {
 app.post('/api/planner-data/delete', (req, res) => {
   try {
     const { id, ids, type } = req.body; // type: 'classwork' | 'homework' | 'tomorrowNotes'
+    const skipCloudMirror = req.headers['x-skip-cloud-mirror'] === '1';
     const targetIds: string[] = Array.isArray(ids) ? ids : id ? [id] : [];
     let current = getStoredPlannerData();
     if (!current.deletedPlannerItemIds) current.deletedPlannerItemIds = [];
@@ -751,26 +1224,29 @@ app.post('/api/planner-data/delete', (req, res) => {
     if (type === 'classwork') {
       current.classwork = current.classwork.filter((c: any) => !targetIds.includes(c.id));
       targetIds.forEach((tId) => {
-        if (!current.deletedPlannerItemIds.includes(tId)) {
-          current.deletedPlannerItemIds.push(tId);
+        if (!current.deletedPlannerItemIds!.includes(tId)) {
+          current.deletedPlannerItemIds!.push(tId);
         }
       });
     } else if (type === 'homework') {
       current.homework = current.homework.filter((h: any) => !targetIds.includes(h.id));
       targetIds.forEach((tId) => {
-        if (!current.deletedPlannerItemIds.includes(tId)) {
-          current.deletedPlannerItemIds.push(tId);
+        if (!current.deletedPlannerItemIds!.includes(tId)) {
+          current.deletedPlannerItemIds!.push(tId);
         }
       });
     } else if (type === 'tomorrowNotes') {
       current.tomorrowNotes = current.tomorrowNotes.filter((n: any) => !targetIds.includes(n.id));
       targetIds.forEach((tId) => {
-        if (!current.deletedTomorrowNoteIds.includes(tId)) {
-          current.deletedTomorrowNoteIds.push(tId);
+        if (!current.deletedTomorrowNoteIds!.includes(tId)) {
+          current.deletedTomorrowNoteIds!.push(tId);
         }
       });
     }
     saveStoredPlannerData(current);
+    if (!skipCloudMirror) {
+      mirrorPlannerDeleteToSupabase(targetIds, type).catch(() => {});
+    }
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Error deleting planner item' });
@@ -2263,6 +2739,14 @@ app.post('/api/extract-weekly-plan', async (req, res) => {
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api') && (req.path === '/' || req.path.endsWith('.html') || req.headers.accept?.includes('text/html'))) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+      next();
+    });
     const vite = await createViteServer({
       server: {
         middlewareMode: true,
@@ -2296,6 +2780,7 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    reconcilePlannerDataWithSupabase().catch(() => {});
   });
 }
 

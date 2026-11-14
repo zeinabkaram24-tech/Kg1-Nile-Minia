@@ -19,6 +19,7 @@ import { triggerDoneCelebration } from '../utils/celebrate';
 import { getSubjectTheme } from '../data/subjectThemes';
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { isDetailsRedundant } from '../utils/textRedundancy';
+import { getDeletedTomorrowNoteIdsSync, isDisallowedMathNote } from '../utils/tomorrowNotesStorage';
 
 interface ClassworkViewProps {
   currentClass: ClassId;
@@ -271,12 +272,15 @@ export const ClassworkView: React.FC<ClassworkViewProps> = ({
       {visibleSlots.length === 0 ? (
         selectedDay === 'Saturday' ? (
           (() => {
+            const deletedNoteSet = new Set(getDeletedTomorrowNoteIdsSync());
             const sundayNotes = SPECIAL_TEACHER_NOTES.filter(
               (n) =>
                 (n.classId === currentClass || (n.classId as any) === 'ALL') &&
                 n.targetDay === 'Sunday' &&
                 (n.block || 1) === currentBlock &&
-                (n.week === currentWeek || (!n.week && currentWeek === 1))
+                (n.week === currentWeek || (!n.week && currentWeek === 1)) &&
+                !isDisallowedMathNote(n) &&
+                !(n.id && deletedNoteSet.has(n.id))
             );
 
             return (

@@ -10,14 +10,14 @@ dotenv.config();
 const router = express.Router();
 
 // Supabase server-side configuration (safe from browser exposure)
-let rawSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://umryrjwmlkdbjmgmnbkt.supabase.co').trim();
+let rawSbUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://elcczvazlgxbgnioxfaf.supabase.co').trim();
 if (rawSbUrl.endsWith('/rest/v1/')) {
   rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 9);
 } else if (rawSbUrl.endsWith('/rest/v1')) {
   rawSbUrl = rawSbUrl.substring(0, rawSbUrl.length - 8);
 }
 const SB_URL = rawSbUrl;
-const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag').trim();
+const SB_KEY = (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_5DUTdClGKYJ_PI4GYRf07g_RFkxguqA').trim();
 
 const isConfigured = Boolean(
   SB_URL &&
@@ -64,6 +64,131 @@ function writeJsonFile<T>(filePath: string, data: T): void {
   }
 }
 
+// Shared helpers for Supabase schema safety & pagination (>1000 rows)
+async function fetchAllFromSupabasePaginated(table: string, selectCols = '*'): Promise<{ data: any[] | null; error: any }> {
+  if (!supabase) return { data: null, error: null };
+  const pageSize = 1000;
+  const maxPages = 25;
+  const allRows: any[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+    const { data, error } = await supabase.from(table).select(selectCols).range(from, to);
+    if (error) {
+      if (page === 0) return { data: null, error };
+      break;
+    }
+    const batch = Array.isArray(data) ? data : [];
+    allRows.push(...batch);
+    if (batch.length < pageSize) break;
+  }
+  return { data: allRows, error: null };
+}
+
+function packDetailsMetaForDb(
+  details: any,
+  meta: { pdfUrl?: string; links?: any[]; linkTitle?: string }
+): string | null {
+  let base = typeof details === 'string' ? details : '';
+  base = base
+    .replace(/\|\|LINKS_JSON:\[[\s\S]*?\](?=\|\||$)/g, '')
+    .replace(/\|\|LINK_TITLE:[\s\S]*?(?=\|\||$)/g, '')
+    .replace(/\|\|PDF_URL:[\s\S]*?(?=\|\||$)/g, '')
+    .trim();
+  let res = base;
+  if (meta.pdfUrl && String(meta.pdfUrl).trim()) {
+    res += ` ||PDF_URL:${String(meta.pdfUrl).trim()}`;
+  }
+  if (meta.linkTitle && String(meta.linkTitle).trim()) {
+    res += ` ||LINK_TITLE:${String(meta.linkTitle).trim()}`;
+  }
+  if (Array.isArray(meta.links) && meta.links.length > 0) {
+    res += ` ||LINKS_JSON:${JSON.stringify(meta.links)}`;
+  }
+  return res.trim() || null;
+}
+
+function sanitizeClassworkRowForDb(entry: any) {
+  return {
+    id: entry.id,
+    class_id: entry.class_id ?? entry.classId,
+    day: entry.day,
+    period: Number(entry.period ?? 1),
+    subject: entry.subject,
+    title: entry.title,
+    details: packDetailsMetaForDb(entry.details, {
+      pdfUrl: entry.pdf_url ?? entry.pdfUrl,
+      links: Array.isArray(entry.links) ? entry.links : undefined,
+    }),
+    pages: entry.pages ?? null,
+    completed: Boolean(entry.completed),
+    block: Number(entry.block ?? 1),
+    week: Number(entry.week ?? 1),
+    link_url: entry.link_url ?? entry.linkUrl ?? null,
+    link_title: entry.link_title ?? entry.linkTitle ?? null,
+    links: Array.isArray(entry.links) ? entry.links : [],
+  };
+}
+
+function sanitizeHomeworkRowForDb(entry: any) {
+  return {
+    id: entry.id,
+    class_id: entry.class_id ?? entry.classId,
+    assigned_day: entry.assigned_day ?? entry.assignedDay,
+    due_day: entry.due_day ?? entry.dueDay,
+    subject: entry.subject,
+    task: entry.task,
+    details: packDetailsMetaForDb(entry.details, {
+      pdfUrl: entry.pdf_url ?? entry.pdfUrl,
+      links: Array.isArray(entry.links) ? entry.links : undefined,
+      linkTitle: entry.link_title ?? entry.linkTitle,
+    }),
+    pages: entry.pages ?? null,
+    completed: Boolean(entry.completed),
+    priority: entry.priority || 'normal',
+    block: Number(entry.block ?? 1),
+    week: Number(entry.week ?? 1),
+    link_url: entry.link_url ?? entry.linkUrl ?? null,
+    link_title: entry.link_title ?? entry.linkTitle ?? null,
+    links: Array.isArray(entry.links) ? entry.links : [],
+  };
+}
+
+async function readGlobalSettingsRow() {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('planner_settings')
+    .select('id, current_block, current_week, active_term, settings')
+    .eq('id', 'global')
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    ...data,
+    settings: data.settings && typeof data.settings === 'object' ? data.settings : {},
+  };
+}
+
+async function patchGlobalSettings(
+  settingsPatch: Record<string, any>,
+  topLevel?: { current_block?: number; current_week?: number; active_term?: string }
+) {
+  if (!supabase) return;
+  const existing = await readGlobalSettingsRow();
+  const row = {
+    id: 'global',
+    current_block: topLevel?.current_block ?? existing?.current_block ?? 1,
+    current_week: topLevel?.current_week ?? existing?.current_week ?? 2,
+    active_term: topLevel?.active_term ?? existing?.active_term ?? 'Term 2',
+    settings: {
+      ...(existing?.settings || {}),
+      ...settingsPatch,
+    },
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase.from('planner_settings').upsert(row, { onConflict: 'id' });
+  if (error) console.error('Supabase global planner_settings upsert warning:', error.message);
+}
+
 // ----------------------------------------------------
 // CLASSWORK CONTROLLERS
 // ----------------------------------------------------
@@ -72,7 +197,7 @@ router.get('/api/db/classwork', async (req, res) => {
     let list = readJsonFile<any[]>(FILE_PATHS.classwork, []);
     
     if (supabase) {
-      const { data, error } = await supabase.from('classwork').select('*');
+      const { data, error } = await fetchAllFromSupabasePaginated('classwork', '*');
       if (!error && data) {
         list = data;
         writeJsonFile(FILE_PATHS.classwork, data);
@@ -99,7 +224,8 @@ router.post('/api/db/classwork/upsert', async (req, res) => {
     writeJsonFile(FILE_PATHS.classwork, list);
 
     if (supabase) {
-      const { error } = await supabase.from('classwork').upsert(entry);
+      const row = sanitizeClassworkRowForDb(entry);
+      const { error } = await supabase.from('classwork').upsert(row, { onConflict: 'id' });
       if (error) console.error('Supabase classwork upsert sync warning:', error);
     }
     res.json({ success: true });
@@ -127,8 +253,12 @@ router.post('/api/db/classwork/batch', async (req, res) => {
     writeJsonFile(FILE_PATHS.classwork, list);
 
     if (supabase) {
-      const { error } = await supabase.from('classwork').upsert(entries);
-      if (error) console.error('Supabase classwork batch sync warning:', error);
+      const rows = entries.map(sanitizeClassworkRowForDb);
+      for (let i = 0; i < rows.length; i += 50) {
+        const chunk = rows.slice(i, i + 50);
+        const { error } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
+        if (error) console.error('Supabase classwork batch sync warning:', error);
+      }
     }
     res.json({ success: true, count: entries.length });
   } catch (err: any) {
@@ -208,7 +338,7 @@ router.get('/api/db/homework', async (req, res) => {
     let list = readJsonFile<any[]>(FILE_PATHS.homework, []);
     
     if (supabase) {
-      const { data, error } = await supabase.from('homework').select('*');
+      const { data, error } = await fetchAllFromSupabasePaginated('homework', '*');
       if (!error && data) {
         list = data;
         writeJsonFile(FILE_PATHS.homework, data);
@@ -234,7 +364,8 @@ router.post('/api/db/homework/upsert', async (req, res) => {
     writeJsonFile(FILE_PATHS.homework, list);
 
     if (supabase) {
-      const { error } = await supabase.from('homework').upsert(entry);
+      const row = sanitizeHomeworkRowForDb(entry);
+      const { error } = await supabase.from('homework').upsert(row, { onConflict: 'id' });
       if (error) console.error('Supabase homework upsert sync warning:', error);
     }
     res.json({ success: true });
@@ -262,8 +393,12 @@ router.post('/api/db/homework/batch', async (req, res) => {
     writeJsonFile(FILE_PATHS.homework, list);
 
     if (supabase) {
-      const { error } = await supabase.from('homework').upsert(entries);
-      if (error) console.error('Supabase homework batch sync warning:', error);
+      const rows = entries.map(sanitizeHomeworkRowForDb);
+      for (let i = 0; i < rows.length; i += 50) {
+        const chunk = rows.slice(i, i + 50);
+        const { error } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
+        if (error) console.error('Supabase homework batch sync warning:', error);
+      }
     }
     res.json({ success: true, count: entries.length });
   } catch (err: any) {
@@ -341,34 +476,26 @@ router.post('/api/db/homework/clear', async (req, res) => {
 router.get('/api/db/timetables', async (req, res) => {
   try {
     let map = readJsonFile<Record<string, any>>(FILE_PATHS.timetables, {});
-    
-    if (supabase) {
-      // First try planner_settings custom_timetables
-      const { data: settingData } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'custom_timetables')
-        .maybeSingle();
 
-      if (settingData && settingData.value) {
-        try {
-          const parsed = JSON.parse(settingData.value);
-          if (parsed && typeof parsed === 'object') {
-            map = parsed;
-            writeJsonFile(FILE_PATHS.timetables, parsed);
-          }
-        } catch {}
-      } else {
-        const { data, error } = await supabase.from('timetables').select('*');
-        if (!error && data) {
-          const parsedMap: Record<string, any> = {};
-          for (const row of data) {
+    if (supabase) {
+      const { data, error } = await supabase.from('timetables').select('*');
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const parsedMap: Record<string, any> = {};
+        for (const row of data) {
+          if (row.class_id && row.schedule) {
             parsedMap[row.class_id] = typeof row.schedule === 'string' ? JSON.parse(row.schedule) : row.schedule;
           }
-          if (Object.keys(parsedMap).length > 0) {
-            map = parsedMap;
-            writeJsonFile(FILE_PATHS.timetables, parsedMap);
-          }
+        }
+        if (Object.keys(parsedMap).length > 0) {
+          map = parsedMap;
+          writeJsonFile(FILE_PATHS.timetables, parsedMap);
+        }
+      } else {
+        const globalRow = await readGlobalSettingsRow();
+        const customTt = globalRow?.settings?.custom_timetables;
+        if (customTt && typeof customTt === 'object' && Object.keys(customTt).length > 0) {
+          map = customTt;
+          writeJsonFile(FILE_PATHS.timetables, customTt);
         }
       }
     }
@@ -391,11 +518,14 @@ router.get('/api/db/timetables', async (req, res) => {
       writeJsonFile(FILE_PATHS.timetables, map);
       if (supabase) {
         try {
-          await supabase.from('planner_settings').upsert({
-            key: 'custom_timetables',
-            value: JSON.stringify(map),
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'key' });
+          const nowIso = new Date().toISOString();
+          const rows = Object.entries(map).map(([classId, schedule]) => ({
+            class_id: classId,
+            schedule,
+            updated_at: nowIso,
+          }));
+          await supabase.from('timetables').upsert(rows, { onConflict: 'class_id' });
+          await patchGlobalSettings({ custom_timetables: map });
         } catch {}
       }
     }
@@ -412,25 +542,21 @@ router.post('/api/db/timetables/save', async (req, res) => {
     writeJsonFile(FILE_PATHS.timetables, timetablesMap);
 
     if (supabase) {
-      // 1. Save to planner_settings for reliable cloud persistence
       try {
-        await supabase.from('planner_settings').upsert({
-          key: 'custom_timetables',
-          value: JSON.stringify(timetablesMap),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'key' });
-      } catch (sbErr) {
-        console.warn('Supabase planner_settings custom_timetables sync error:', sbErr);
-      }
-
-      // 2. Also try timetables table if exists
-      try {
+        const nowIso = new Date().toISOString();
         const rows = Object.entries(timetablesMap).map(([classId, schedule]) => ({
           class_id: classId,
           schedule,
+          updated_at: nowIso,
         }));
-        await supabase.from('timetables').upsert(rows);
-      } catch {}
+        if (rows.length > 0) {
+          const { error } = await supabase.from('timetables').upsert(rows, { onConflict: 'class_id' });
+          if (error) console.warn('Supabase timetables table save warning:', error.message);
+        }
+        await patchGlobalSettings({ custom_timetables: timetablesMap });
+      } catch (sbErr) {
+        console.warn('Supabase timetables save sync warning:', sbErr);
+      }
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -447,11 +573,12 @@ router.post('/api/db/timetables/save-class', async (req, res) => {
 
     if (supabase) {
       try {
-        await supabase.from('planner_settings').upsert({
-          key: 'custom_timetables',
-          value: JSON.stringify(map),
+        await supabase.from('timetables').upsert({
+          class_id: classId,
+          schedule,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'key' });
+        }, { onConflict: 'class_id' });
+        await patchGlobalSettings({ custom_timetables: map });
       } catch {}
     }
     res.json({ success: true });
@@ -465,7 +592,8 @@ router.post('/api/db/timetables/clear', async (req, res) => {
     writeJsonFile(FILE_PATHS.timetables, {});
     if (supabase) {
       try {
-        await supabase.from('planner_settings').delete().eq('key', 'custom_timetables');
+        await supabase.from('timetables').delete().neq('class_id', '___non_existent___');
+        await patchGlobalSettings({ custom_timetables: {} });
       } catch {}
     }
     res.json({ success: true });
@@ -480,14 +608,14 @@ router.post('/api/db/timetables/clear', async (req, res) => {
 router.get('/api/db/planner-settings', async (req, res) => {
   try {
     let settings = readJsonFile<any>(FILE_PATHS.settings, { currentBlock: 1, currentWeek: 2 });
-    
+
     if (supabase) {
-      const { data, error } = await supabase.from('planner_settings').select('*').eq('id', 'global').maybeSingle();
-      if (!error && data) {
+      const globalRow = await readGlobalSettingsRow();
+      if (globalRow) {
         const parsed = {
-          currentBlock: Number(data.current_block || 1),
-          currentWeek: Number(data.current_week || 2),
-          activeTerm: data.active_term || 'Term 1',
+          currentBlock: Number(globalRow.current_block || settings.currentBlock || 1),
+          currentWeek: Number(globalRow.current_week || settings.currentWeek || 2),
+          activeTerm: globalRow.active_term || settings.activeTerm || 'Term 2',
         };
         settings = parsed;
         writeJsonFile(FILE_PATHS.settings, parsed);
@@ -507,26 +635,11 @@ router.post('/api/db/planner-settings', async (req, res) => {
     writeJsonFile(FILE_PATHS.settings, merged);
 
     if (supabase) {
-      // Dynamic column handling is fully operational here
-      const row: any = { id: 'global' };
-      if (payload.currentBlock !== undefined) row.current_block = payload.currentBlock;
-      if (payload.currentWeek !== undefined) row.current_week = payload.currentWeek;
-      if (payload.activeTerm !== undefined) row.active_term = payload.activeTerm;
-
-      const { error } = await supabase.from('planner_settings').upsert(row);
-      if (error) {
-        // If PGRST204 missing columns, handle it
-        if (error.code === 'PGRST204') {
-          const match = error.message.match(/column '([^']+)'/);
-          const colName = match ? match[1] : null;
-          if (colName && colName in row) {
-            delete row[colName];
-            await supabase.from('planner_settings').upsert(row);
-          }
-        } else {
-          console.error('Supabase planner settings save sync warning:', error);
-        }
-      }
+      await patchGlobalSettings({}, {
+        current_block: payload.currentBlock !== undefined ? Number(payload.currentBlock) : undefined,
+        current_week: payload.currentWeek !== undefined ? Number(payload.currentWeek) : undefined,
+        active_term: payload.activeTerm !== undefined ? String(payload.activeTerm) : undefined,
+      });
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -535,31 +648,52 @@ router.post('/api/db/planner-settings', async (req, res) => {
 });
 
 // ----------------------------------------------------
-// TOMORROW SPECIAL NOTES CONTROLLERS
+// TOMORROW SPECIAL NOTES CONTROLLERS (tomorrow_notes table + planner_settings.settings.tomorrow_special_notes)
 // ----------------------------------------------------
+function mapDbTomorrowNoteRow(tn: any) {
+  const combined = ((tn.note || '') + ' ' + (tn.arabic_note || '')).toLowerCase();
+  const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(combined);
+  return {
+    id: tn.id,
+    classId: tn.class_id,
+    targetDay: tn.target_day,
+    subject: tn.subject,
+    note: tn.note,
+    arabicNote: tn.arabic_note || tn.note,
+    bagItem: tn.bag_item || undefined,
+    block: tn.block || 1,
+    week: tn.week || 1,
+    isQuiz,
+    categoryType: isQuiz ? 'quiz' : 'note',
+    isCustom: true,
+  };
+}
+
 router.get('/api/db/tomorrow-notes', async (req, res) => {
   try {
     let list = readJsonFile<any[]>(FILE_PATHS.tomorrow_notes, []);
-    
-    if (supabase) {
-      // Clean up week 2 tomorrow notes from Supabase as requested by the user
-      await supabase.from('tomorrow_notes').delete().eq('week', 2);
 
-      const { data, error } = await supabase.from('tomorrow_notes').select('*');
-      if (!error && data) {
-        const parsed = data.map((row) => ({
-          classId: row.class_id,
-          targetDay: row.target_day,
-          subject: row.subject,
-          note: row.note,
-          arabicNote: row.arabic_note,
-          bagItem: row.bag_item,
-          block: row.block,
-          week: row.week,
-          id: row.id,
-        }));
-        list = parsed;
-        writeJsonFile(FILE_PATHS.tomorrow_notes, parsed);
+    if (supabase) {
+      const [tnRes, globalRow] = await Promise.all([
+        fetchAllFromSupabasePaginated('tomorrow_notes', '*'),
+        readGlobalSettingsRow(),
+      ]);
+      const tableNotes = Array.isArray(tnRes?.data) ? tnRes.data.map(mapDbTomorrowNoteRow) : [];
+      const jsonNotes = Array.isArray(globalRow?.settings?.tomorrow_special_notes)
+        ? globalRow!.settings.tomorrow_special_notes
+        : [];
+
+      const map = new Map<string, any>();
+      const getKey = (n: any) =>
+        n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      [...tableNotes, ...jsonNotes].forEach((n) => {
+        if (!n) return;
+        const k = getKey(n);
+        map.set(k, { ...(map.get(k) || {}), ...n });
+      });
+      if (map.size > 0) {
+        list = Array.from(map.values());
+        writeJsonFile(FILE_PATHS.tomorrow_notes, list);
       }
     }
     res.json({ success: true, data: list });
@@ -574,24 +708,45 @@ router.post('/api/db/tomorrow-notes', async (req, res) => {
     if (!Array.isArray(notes)) {
       return res.status(400).json({ success: false, error: 'Expected an array' });
     }
-    
-    writeJsonFile(FILE_PATHS.tomorrow_notes, notes);
+
+    let existing = readJsonFile<any[]>(FILE_PATHS.tomorrow_notes, []);
+    if (supabase) {
+      try {
+        const globalRow = await readGlobalSettingsRow();
+        if (Array.isArray(globalRow?.settings?.tomorrow_special_notes)) {
+          existing = globalRow!.settings.tomorrow_special_notes;
+        }
+      } catch {}
+    }
+
+    const noteMap = new Map<string, any>();
+    const getKey = (n: any) =>
+      n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+    existing.forEach((n) => { if (n) noteMap.set(getKey(n), n); });
+    notes.forEach((n) => { if (n) noteMap.set(getKey(n), n); });
+    const merged = Array.from(noteMap.values());
+
+    writeJsonFile(FILE_PATHS.tomorrow_notes, merged);
 
     if (supabase) {
-      const rows = notes.map((item) => ({
-        id: item.id || `${item.classId}-${item.targetDay}-${item.subject}-${item.week}`,
-        class_id: item.classId,
-        target_day: item.targetDay,
-        subject: item.subject,
-        note: item.note,
-        arabic_note: item.arabicNote,
-        bag_item: item.bagItem,
-        block: item.block,
-        week: item.week,
-      }));
-      
-      const { error } = await supabase.from('tomorrow_notes').upsert(rows);
-      if (error) console.error('Supabase tomorrow notes save sync warning:', error);
+      const tnRows = notes
+        .filter((n) => n && n.targetDay && n.subject)
+        .map((n) => ({
+          id: n.id || `tn-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          class_id: n.classId || 'ALL',
+          target_day: n.targetDay,
+          subject: n.subject,
+          note: n.note || n.arabicNote || '',
+          arabic_note: n.arabicNote || n.note || '',
+          bag_item: n.bagItem ?? null,
+          block: Number(n.block ?? 1),
+          week: Number(n.week ?? 1),
+        }));
+      if (tnRows.length > 0) {
+        const { error: tnErr } = await supabase.from('tomorrow_notes').upsert(tnRows, { onConflict: 'id' });
+        if (tnErr) console.error('Supabase tomorrow_notes table save warning:', tnErr.message);
+      }
+      await patchGlobalSettings({ tomorrow_special_notes: merged });
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -603,7 +758,15 @@ router.post('/api/db/tomorrow-notes/delete-scope', async (req, res) => {
   try {
     const { classId, block, week, subject, day } = req.body;
     let list = readJsonFile<any[]>(FILE_PATHS.tomorrow_notes, []);
-    
+    if (supabase) {
+      try {
+        const globalRow = await readGlobalSettingsRow();
+        if (Array.isArray(globalRow?.settings?.tomorrow_special_notes)) {
+          list = globalRow!.settings.tomorrow_special_notes;
+        }
+      } catch {}
+    }
+
     list = list.filter((item) => {
       const match =
         item.classId === classId &&
@@ -620,12 +783,10 @@ router.post('/api/db/tomorrow-notes/delete-scope', async (req, res) => {
         .eq('class_id', classId)
         .eq('block', block)
         .eq('week', week);
-      
       if (subject) query = query.eq('subject', subject);
       if (day) query = query.eq('target_day', day);
-      
-      const { error } = await query;
-      if (error) console.error('Supabase tomorrow-notes delete-scope sync warning:', error);
+      await query;
+      await patchGlobalSettings({ tomorrow_special_notes: list });
     }
     res.json({ success: true });
   } catch (err: any) {
@@ -637,12 +798,20 @@ router.delete('/api/db/tomorrow-notes/:id', async (req, res) => {
   try {
     const { id } = req.params;
     let list = readJsonFile<any[]>(FILE_PATHS.tomorrow_notes, []);
+    if (supabase) {
+      try {
+        const globalRow = await readGlobalSettingsRow();
+        if (Array.isArray(globalRow?.settings?.tomorrow_special_notes)) {
+          list = globalRow!.settings.tomorrow_special_notes;
+        }
+      } catch {}
+    }
     list = list.filter((x) => x.id !== id);
     writeJsonFile(FILE_PATHS.tomorrow_notes, list);
 
     if (supabase) {
-      const { error } = await supabase.from('tomorrow_notes').delete().eq('id', id);
-      if (error) console.error('Supabase tomorrow note delete sync warning:', error);
+      await supabase.from('tomorrow_notes').delete().eq('id', id);
+      await patchGlobalSettings({ tomorrow_special_notes: list });
     }
     res.json({ success: true });
   } catch (err: any) {

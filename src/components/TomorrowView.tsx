@@ -10,7 +10,15 @@ import {
 import { SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { SubjectIcon } from './SubjectIcon';
-import { getTomorrowNotesForDay, subscribeToTomorrowNotes, getDeletedTomorrowNoteIds, getDeletedTomorrowNoteIdsSync, saveDeletedTomorrowNoteId } from '../utils/tomorrowNotesStorage';
+import {
+  getTomorrowNotesForDay,
+  subscribeToTomorrowNotes,
+  getDeletedTomorrowNoteIds,
+  getDeletedTomorrowNoteIdsSync,
+  saveDeletedTomorrowNoteId,
+  getLocalCustomTomorrowNotes,
+  isDisallowedMathNote,
+} from '../utils/tomorrowNotesStorage';
 import { AttachmentPdfCard } from './AttachmentPdfCard';
 
 interface TomorrowViewProps {
@@ -324,7 +332,33 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
               (n.week === currentWeek || !n.week)
           );
 
-    return base.filter((n) => !isDisallowedTomorrowItem(n));
+    const localCustom = getLocalCustomTomorrowNotes().filter(
+      (n) =>
+        (n.classId === currentClass || (n.classId as any) === 'ALL') &&
+        n.targetDay === tomorrowDay &&
+        (n.block || 1) === currentBlock &&
+        (n.week || 1) === currentWeek
+    );
+    const deletedSet = new Set(getDeletedTomorrowNoteIdsSync());
+    const initMap = new Map<string, TomorrowSpecialNote>();
+    base.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      initMap.set(key, n);
+    });
+    localCustom.forEach((n) => {
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      initMap.set(key, { ...n, isCustom: true });
+    });
+
+    return Array.from(initMap.values()).filter((n) => {
+      if (isDisallowedMathNote(n) || isDisallowedTomorrowItem(n)) return false;
+      const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+      const semKey = getSemanticKey(n);
+      if (deletedSet.has(key) || (n.id && deletedSet.has(n.id)) || (semKey && deletedSet.has(semKey))) {
+        return false;
+      }
+      return true;
+    });
   });
 
   useEffect(() => {
@@ -548,7 +582,7 @@ export const TomorrowView: React.FC<TomorrowViewProps> = ({
     });
 
     return alerts;
-  }, [homeworkList, classworkList, currentClass, tomorrowDay, currentWeek, currentBlock]);
+  }, [homeworkList, classworkList, currentClass, tomorrowDay, currentWeek, currentBlock, deletedNoteIds]);
 
   // Merge tomorrowNotes with linkedAlerts without duplicates
   const mergedNotes = useMemo<TomorrowSpecialNote[]>(() => {

@@ -2,7 +2,20 @@ import { ClassId, SchoolDay } from '../types';
 import { TomorrowSpecialNote, SPECIAL_TEACHER_NOTES } from '../data/defaultWeeklyPlan';
 import { WEEK2_SPECIAL_NOTES } from '../data/week2Plan';
 import { WEEK3_SPECIAL_NOTES } from '../data/week3Plan';
-import { supabase, isSupabaseConfigured, unpackHomeworkDetails, appStorage } from '../lib/supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  unpackHomeworkDetails,
+  unpackClassworkDetails,
+  packHomeworkDetails,
+  packClassworkDetails,
+  fetchServerPlannerDataShared,
+  invalidateServerPlannerDataCache,
+  readGlobalPlannerSettingsRow,
+  patchGlobalPlannerSettings,
+  withTimeout,
+  appStorage,
+} from '../lib/supabase';
 
 export { WEEK3_SPECIAL_NOTES };
 
@@ -143,48 +156,74 @@ export async function getTomorrowNotesForDay(
   }
 
   try {
-    // 1. Fetch from classwork table
-    const { data: cwList, error: cwErr } = await supabase
+    // 1. Fetch from classwork table (include both classId and 'ALL')
+    const cwQuery = supabase
       .from('classwork')
       .select('*')
-      .eq('class_id', classId)
+      .in('class_id', [classId, 'ALL'])
       .eq('block', block)
       .eq('week', week)
       .eq('day', targetDay);
 
-    if (cwErr) console.warn('Error fetching classwork for tomorrow view:', cwErr);
-
-    // 2. Fetch from homework table (due tomorrow)
-    const { data: hwList, error: hwErr } = await supabase
+    // 2. Fetch from homework table (due tomorrow, include both classId and 'ALL')
+    const hwQuery = supabase
       .from('homework')
       .select('*')
-      .eq('class_id', classId)
+      .in('class_id', [classId, 'ALL'])
       .eq('block', block)
       .eq('week', week)
       .eq('due_day', targetDay);
 
-    if (hwErr) console.warn('Error fetching homework for tomorrow view:', hwErr);
+    // 3. Fetch directly from tomorrow_notes table
+    const tnQuery = supabase
+      .from('tomorrow_notes')
+      .select('*')
+      .in('class_id', [classId, 'ALL'])
+      .eq('block', block)
+      .eq('week', week)
+      .eq('target_day', targetDay);
+
+    const [cwRes, hwRes, tnRes, pData, globalRow] = await Promise.all([
+      withTimeout<any>(cwQuery, 8000, { data: null, error: { message: 'Classwork tomorrow query timeout' } }),
+      withTimeout<any>(hwQuery, 8000, { data: null, error: { message: 'Homework tomorrow query timeout' } }),
+      withTimeout<any>(tnQuery, 8000, { data: null, error: null }),
+      fetchServerPlannerDataShared(),
+      readGlobalPlannerSettingsRow(),
+    ]);
+
+    const cwList = cwRes?.data;
+    if (cwRes?.error) console.warn('Error fetching classwork for tomorrow view:', cwRes.error);
+
+    const hwList = hwRes?.data;
+    if (hwRes?.error) console.warn('Error fetching homework for tomorrow view:', hwRes.error);
+
+    const tnList = tnRes?.data;
+    if (tnRes?.error) console.warn('Error fetching tomorrow_notes table:', tnRes.error);
 
     const dynamicNotes: TomorrowSpecialNote[] = [];
 
     // Map classwork to TomorrowSpecialNote
     if (cwList && Array.isArray(cwList)) {
       cwList.forEach((cw: any) => {
-        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((cw.title + ' ' + (cw.details || '')).toLowerCase());
+        const unpackedCw = unpackClassworkDetails(cw.details);
+        const cleanDetails = unpackedCw.details || '';
+        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test((cw.title + ' ' + cleanDetails).toLowerCase());
         dynamicNotes.push({
           id: cw.id,
           classId: cw.class_id as ClassId,
           targetDay: cw.day as SchoolDay,
           subject: cw.subject,
           note: cw.title,
-          arabicNote: cw.details || cw.title,
+          arabicNote: cleanDetails || cw.title,
           bagItem: cw.pages || undefined,
           isQuiz,
           categoryType: isQuiz ? 'quiz' : 'note',
           block: cw.block,
           week: cw.week,
+          pdfUrl: cw.pdf_url || unpackedCw.pdfUrl || undefined,
           linkUrl: cw.link_url || undefined,
           linkTitle: cw.link_title || undefined,
+          links: Array.isArray(cw.links) && cw.links.length > 0 ? cw.links : unpackedCw.links,
         });
       });
     }
@@ -207,56 +246,65 @@ export async function getTomorrowNotesForDay(
           week: hw.week,
           pdfUrl: unpacked.pdfUrl || undefined,
           linkUrl: hw.link_url || undefined,
+          linkTitle: hw.link_title || unpacked.linkTitle || undefined,
+          links: Array.isArray(hw.links) && hw.links.length > 0 ? hw.links : unpacked.links,
         });
       });
     }
 
-    // 3. Fetch from central planner-data endpoint
-    try {
-      const res = await fetch('/api/planner-data');
-      if (res.ok) {
-        const pData = await res.json();
-        if (pData && Array.isArray(pData.tomorrowNotes)) {
-          pData.tomorrowNotes.forEach((n: any) => {
-            if (
-              (n.classId === classId || n.classId === 'ALL') &&
-              n.targetDay === targetDay &&
-              (n.block || 1) === block &&
-              (n.week || 1) === week
-            ) {
-              dynamicNotes.push(n);
-            }
-          });
-        }
-      }
-    } catch {}
+    // Map rows from tomorrow_notes table
+    if (tnList && Array.isArray(tnList)) {
+      tnList.forEach((tn: any) => {
+        const combined = ((tn.note || '') + ' ' + (tn.arabic_note || '')).toLowerCase();
+        const isQuiz = /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(combined);
+        dynamicNotes.push({
+          id: tn.id,
+          classId: tn.class_id as ClassId,
+          targetDay: tn.target_day as SchoolDay,
+          subject: tn.subject,
+          note: tn.note,
+          arabicNote: tn.arabic_note || tn.note,
+          bagItem: tn.bag_item || undefined,
+          isQuiz,
+          categoryType: isQuiz ? 'quiz' : 'note',
+          block: tn.block || block,
+          week: tn.week || week,
+          isCustom: true,
+        });
+      });
+    }
 
-    // 4. Fetch directly from Supabase planner_settings as reliable backup
-    if (isSupabaseConfigured) {
-      try {
-        const { data: psData } = await supabase
-          .from('planner_settings')
-          .select('value')
-          .eq('key', 'tomorrow_special_notes')
-          .maybeSingle();
-        if (psData && psData.value) {
-          const cloudNotes = JSON.parse(psData.value);
-          if (Array.isArray(cloudNotes)) {
-            cloudNotes.forEach((n: any) => {
-              if (
-                (n.classId === classId || n.classId === 'ALL') &&
-                n.targetDay === targetDay &&
-                (n.block || 1) === block &&
-                (n.week || 1) === week
-              ) {
-                dynamicNotes.push(n);
-              }
-            });
-          }
+    // 4. Merge notes from central planner-data endpoint
+    if (pData && Array.isArray(pData.tomorrowNotes)) {
+      pData.tomorrowNotes.forEach((n: any) => {
+        if (
+          (n.classId === classId || n.classId === 'ALL') &&
+          n.targetDay === targetDay &&
+          (n.block || 1) === block &&
+          (n.week || 1) === week
+        ) {
+          dynamicNotes.push(n);
         }
-      } catch (err) {
-        console.warn('Could not fetch cloud tomorrow special notes:', err);
+      });
+    }
+
+    // 5. Merge notes directly from Supabase global planner_settings JSONB
+    try {
+      const cloudNotes = globalRow?.settings?.tomorrow_special_notes;
+      if (Array.isArray(cloudNotes)) {
+        cloudNotes.forEach((n: any) => {
+          if (
+            (n.classId === classId || n.classId === 'ALL') &&
+            n.targetDay === targetDay &&
+            (n.block || 1) === block &&
+            (n.week || 1) === week
+          ) {
+            dynamicNotes.push(n);
+          }
+        });
       }
+    } catch (err) {
+      console.warn('Could not parse cloud tomorrow special notes:', err);
     }
 
     // Merge base notes, local custom notes, and dynamic notes
@@ -282,8 +330,6 @@ export async function getTomorrowNotesForDay(
       const key = n.id || `${n.targetDay}-${n.subject}-${(n.note || '').slice(0, 30)}`;
       map.set(key, n);
     });
-
-    const deletedIds = await getDeletedTomorrowNoteIds();
     const merged = Array.from(map.values());
     const filtered = merged.filter((n) => {
       if (isDisallowedMathNote(n)) return false;
@@ -336,16 +382,10 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
 
   if (isSupabaseConfigured) {
     try {
-      const { data, error } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'deleted_tomorrow_note_ids')
-        .maybeSingle();
-      if (!error && data && data.value) {
-        const dbList = JSON.parse(data.value);
-        if (Array.isArray(dbList)) {
-          localList = Array.from(new Set([...localList, ...dbList]));
-        }
+      const globalRow = await readGlobalPlannerSettingsRow();
+      const dbList = globalRow?.settings?.deleted_tomorrow_note_ids;
+      if (Array.isArray(dbList)) {
+        localList = Array.from(new Set([...localList, ...dbList]));
       }
     } catch (e) {
       console.warn('Error fetching deleted tomorrow note ids from Supabase:', e);
@@ -353,12 +393,9 @@ export async function getDeletedTomorrowNoteIds(): Promise<string[]> {
   }
 
   try {
-    const res = await fetch('/api/planner-data');
-    if (res.ok) {
-      const serverData = await res.json();
-      if (Array.isArray(serverData.deletedTomorrowNoteIds)) {
-        localList = Array.from(new Set([...localList, ...serverData.deletedTomorrowNoteIds]));
-      }
+    const serverData = await fetchServerPlannerDataShared();
+    if (serverData && Array.isArray(serverData.deletedTomorrowNoteIds)) {
+      localList = Array.from(new Set([...localList, ...serverData.deletedTomorrowNoteIds]));
     }
   } catch {}
 
@@ -375,6 +412,7 @@ export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
   }
   appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
   IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
+  invalidateServerPlannerDataCache();
 
   try {
     await fetch('/api/planner-data/delete', {
@@ -386,13 +424,10 @@ export async function saveDeletedTomorrowNoteId(noteId: string): Promise<void> {
 
   if (isSupabaseConfigured) {
     try {
-      await supabase
-        .from('planner_settings')
-        .upsert({
-          key: 'deleted_tomorrow_note_ids',
-          value: JSON.stringify(currentList),
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'key' });
+      await Promise.all([
+        patchGlobalPlannerSettings({ deleted_tomorrow_note_ids: currentList }),
+        supabase.from('tomorrow_notes').delete().eq('id', noteId),
+      ]);
     } catch (e) {
       console.warn('Error saving deleted tomorrow note id to Supabase:', e);
     }
@@ -407,15 +442,10 @@ export async function removeDeletedTomorrowNoteId(noteId: string): Promise<void>
     currentList = currentList.filter((id) => id !== noteId);
     appStorage.setItem('nile_deleted_tomorrow_note_ids_v3', JSON.stringify(currentList));
     IN_MEMORY_NOTES_CACHE['deleted_tomorrow_note_ids'] = JSON.stringify(currentList);
+    invalidateServerPlannerDataCache();
     if (isSupabaseConfigured) {
       try {
-        await supabase
-          .from('planner_settings')
-          .upsert({
-            key: 'deleted_tomorrow_note_ids',
-            value: JSON.stringify(currentList),
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'key' });
+        await patchGlobalPlannerSettings({ deleted_tomorrow_note_ids: currentList });
       } catch (e) {
         console.warn('Error removing deleted tomorrow note id from Supabase:', e);
       }
@@ -445,6 +475,7 @@ export async function saveTomorrowNotes(
   }
 
   saveLocalCustomTomorrowNotes(notes, mode);
+  invalidateServerPlannerDataCache();
 
   try {
     await fetch('/api/planner-data', {
@@ -458,13 +489,90 @@ export async function saveTomorrowNotes(
 
   if (isSupabaseConfigured) {
     try {
-      // 1. Save all custom tomorrow notes to planner_settings for reliable cloud persistence
-      const currentSaved = getLocalCustomTomorrowNotes();
-      await supabase.from('planner_settings').upsert({
-        key: 'tomorrow_special_notes',
-        value: JSON.stringify(currentSaved),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'key' });
+      // 1. Read and merge existing cloud + server tomorrow_special_notes so we never wipe notes from other devices/weeks
+      const [globalRow, tnRes, serverData, deletedIds] = await Promise.all([
+        readGlobalPlannerSettingsRow(),
+        withTimeout<any>(supabase.from('tomorrow_notes').select('*'), 5000, { data: null, error: null }),
+        fetchServerPlannerDataShared(true),
+        getDeletedTomorrowNoteIds(),
+      ]);
+
+      const cloudNotes: TomorrowSpecialNote[] = Array.isArray(globalRow?.settings?.tomorrow_special_notes)
+        ? globalRow!.settings.tomorrow_special_notes
+        : [];
+      const tableNotes: TomorrowSpecialNote[] = Array.isArray(tnRes?.data)
+        ? tnRes.data.map((tn: any) => ({
+            id: tn.id,
+            classId: tn.class_id as ClassId,
+            targetDay: tn.target_day as SchoolDay,
+            subject: tn.subject,
+            note: tn.note,
+            arabicNote: tn.arabic_note || tn.note,
+            bagItem: tn.bag_item || undefined,
+            block: tn.block || 1,
+            week: tn.week || 1,
+            isQuiz: /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(
+              ((tn.note || '') + ' ' + (tn.arabic_note || '')).toLowerCase()
+            ),
+            isCustom: true,
+          }))
+        : [];
+
+      const serverNotes: TomorrowSpecialNote[] = Array.isArray(serverData?.tomorrowNotes) ? serverData.tomorrowNotes : [];
+      const localNotes = getLocalCustomTomorrowNotes();
+      const deletedSet = new Set(deletedIds);
+
+      const getMergeKey = (n: TomorrowSpecialNote) =>
+        n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+
+      const mergedMap = new Map<string, TomorrowSpecialNote>();
+      [...tableNotes, ...cloudNotes, ...serverNotes, ...localNotes].forEach((n) => {
+        if (!n) return;
+        if (mode === 'replace' && notes.length > 0) {
+          const targetClassId = notes[0].classId;
+          if (
+            Number(n.block || 1) === Number(block) &&
+            Number(n.week || 1) === Number(week) &&
+            (targetClassId === 'ALL' || n.classId === targetClassId)
+          ) {
+            return;
+          }
+        }
+        const k = getMergeKey(n);
+        mergedMap.set(k, { ...(mergedMap.get(k) || {}), ...n });
+      });
+      notes.forEach((n) => {
+        if (n) mergedMap.set(getMergeKey(n), n);
+      });
+
+      const mergedList = Array.from(mergedMap.values()).filter((n) => {
+        const key = getMergeKey(n);
+        const semKey = getSemanticKey(n);
+        return !deletedSet.has(key) && !(n.id && deletedSet.has(n.id)) && !(semKey && deletedSet.has(semKey));
+      });
+
+      saveLocalCustomTomorrowNotes(mergedList, 'replace');
+
+      await patchGlobalPlannerSettings({ tomorrow_special_notes: mergedList });
+
+      // Also upsert into tomorrow_notes table directly
+      const tnRows = notes.filter((n) => n).map((n) => ({
+        id: n.id || `tn-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        class_id: n.classId || 'ALL',
+        target_day: n.targetDay,
+        subject: n.subject,
+        note: n.note || n.arabicNote || '',
+        arabic_note: n.arabicNote || n.note || '',
+        bag_item: n.bagItem || null,
+        block: Number(n.block || block),
+        week: Number(n.week || week),
+      }));
+      if (tnRows.length > 0) {
+        const { error: tnUpsertErr } = await supabase.from('tomorrow_notes').upsert(tnRows, { onConflict: 'id' });
+        if (tnUpsertErr) {
+          console.warn('Supabase tomorrow_notes upsert warning:', tnUpsertErr.message);
+        }
+      }
     } catch (sbSettingErr) {
       console.warn('Supabase planner_settings tomorrow notes sync error:', sbSettingErr);
     }
@@ -481,7 +589,6 @@ export async function saveTomorrowNotes(
         for (const classId of targetClasses) {
           const rowId = (note.classId as any) === 'ALL' ? `${targetId}-${classId}` : targetId;
           if (isQuiz) {
-            // Prepare row for homework table
             const row = {
               id: rowId,
               class_id: classId,
@@ -489,17 +596,19 @@ export async function saveTomorrowNotes(
               due_day: note.targetDay,
               subject: note.subject,
               task: note.arabicNote || note.note || '',
-              details: note.bagItem || null,
+              details: packHomeworkDetails(note.bagItem || undefined, note.pdfUrl, note.links, note.linkTitle) || null,
               completed: false,
               priority: 'urgent',
               block: note.block || block,
               week: note.week || week,
               link_url: note.linkUrl || null,
+              link_title: note.linkTitle || null,
+              links: Array.isArray(note.links) ? note.links : [],
             };
 
-            await supabase.from('homework').upsert(row, { onConflict: 'id' });
+            const { error } = await supabase.from('homework').upsert(row, { onConflict: 'id' });
+            if (error) console.warn('Supabase homework mirror warning in saveTomorrowNotes:', error.message);
           } else {
-            // Prepare row for classwork table
             const row = {
               id: rowId,
               class_id: classId,
@@ -507,16 +616,18 @@ export async function saveTomorrowNotes(
               period: 1,
               subject: note.subject,
               title: note.note || '',
-              details: note.arabicNote || note.note || '',
+              details: packClassworkDetails(note.arabicNote || note.note || '', note.pdfUrl, note.links) || null,
               pages: note.bagItem || null,
               completed: false,
               block: note.block || block,
               week: note.week || week,
               link_url: note.linkUrl || null,
               link_title: note.linkTitle || null,
+              links: Array.isArray(note.links) ? note.links : [],
             };
 
-            await supabase.from('classwork').upsert(row, { onConflict: 'id' });
+            const { error } = await supabase.from('classwork').upsert(row, { onConflict: 'id' });
+            if (error) console.warn('Supabase classwork mirror warning in saveTomorrowNotes:', error.message);
           }
         }
       }
@@ -584,3 +695,100 @@ export function getSemanticKey(n: TomorrowSpecialNote): string {
   return `${normSubject}-${cleanWordSeq || n.id || 'note'}-${n.targetDay}`;
 }
 
+// Reconcile custom tomorrow notes bidirectionally between /api/planner-data, local cache, tomorrow_notes table, and global planner_settings
+export async function syncTomorrowNotesWithCloud(): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    const [deletedIds, serverData, globalRow, tnRes] = await Promise.all([
+      getDeletedTomorrowNoteIds(),
+      fetchServerPlannerDataShared(),
+      readGlobalPlannerSettingsRow(),
+      withTimeout<any>(supabase.from('tomorrow_notes').select('*'), 6000, { data: null, error: null }),
+    ]);
+
+    const deletedSet = new Set(deletedIds);
+    const serverNotes: TomorrowSpecialNote[] = Array.isArray(serverData?.tomorrowNotes) ? serverData.tomorrowNotes : [];
+    const cloudNotes: TomorrowSpecialNote[] = Array.isArray(globalRow?.settings?.tomorrow_special_notes)
+      ? globalRow!.settings.tomorrow_special_notes
+      : [];
+    const tableNotes: TomorrowSpecialNote[] = Array.isArray(tnRes?.data)
+      ? tnRes.data.map((tn: any) => ({
+          id: tn.id,
+          classId: tn.class_id as ClassId,
+          targetDay: tn.target_day as SchoolDay,
+          subject: tn.subject,
+          note: tn.note,
+          arabicNote: tn.arabic_note || tn.note,
+          bagItem: tn.bag_item || undefined,
+          block: tn.block || 1,
+          week: tn.week || 1,
+          isQuiz: /quiz|test|اختبار|امتحان|كويز|إملاء|dictation|تسميع|تقييم/.test(
+            ((tn.note || '') + ' ' + (tn.arabic_note || '')).toLowerCase()
+          ),
+          isCustom: true,
+        }))
+      : [];
+    const localNotes = getLocalCustomTomorrowNotes();
+
+    const getKey = (n: TomorrowSpecialNote) =>
+      n.id || `${n.classId || 'ALL'}-${n.targetDay}-${n.block || 1}-${n.week || 1}-${n.subject}-${(n.note || '').slice(0, 30)}`;
+
+    const isDeleted = (n: TomorrowSpecialNote) => {
+      const key = getKey(n);
+      const semKey = getSemanticKey(n);
+      return deletedSet.has(key) || Boolean(n.id && deletedSet.has(n.id)) || Boolean(semKey && deletedSet.has(semKey));
+    };
+
+    const mergedMap = new Map<string, TomorrowSpecialNote>();
+    const addNote = (n: TomorrowSpecialNote) => {
+      if (!n || isDeleted(n)) return;
+      const k = getKey(n);
+      mergedMap.set(k, { ...(mergedMap.get(k) || {}), ...n });
+    };
+    tableNotes.forEach(addNote);
+    localNotes.forEach(addNote);
+    serverNotes.forEach(addNote);
+    cloudNotes.forEach(addNote);
+
+    const merged = Array.from(mergedMap.values());
+    if (merged.length === 0) return;
+
+    saveLocalCustomTomorrowNotes(merged, 'replace');
+
+    const cloudKeys = new Set(cloudNotes.map(getKey));
+    const missingInCloudSettings = merged.some((n) => !cloudKeys.has(getKey(n)));
+    if (missingInCloudSettings) {
+      await patchGlobalPlannerSettings({ tomorrow_special_notes: merged });
+    }
+
+    const tableKeys = new Set(tableNotes.map((t) => t.id).filter(Boolean));
+    const missingInTable = merged.filter((n) => n.id && !tableKeys.has(n.id));
+    if (missingInTable.length > 0) {
+      const tnRows = missingInTable.map((n) => ({
+        id: n.id!,
+        class_id: n.classId || 'ALL',
+        target_day: n.targetDay,
+        subject: n.subject,
+        note: n.note || n.arabicNote || '',
+        arabic_note: n.arabicNote || n.note || '',
+        bag_item: n.bagItem || null,
+        block: Number(n.block || 1),
+        week: Number(n.week || 1),
+      }));
+      await supabase.from('tomorrow_notes').upsert(tnRows, { onConflict: 'id' });
+    }
+
+    const serverKeys = new Set(serverNotes.map(getKey));
+    const missingOnServer = merged.filter((n) => !serverKeys.has(getKey(n)));
+    if (missingOnServer.length > 0) {
+      invalidateServerPlannerDataCache();
+      fetch('/api/planner-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-skip-cloud-mirror': '1' },
+        body: JSON.stringify({ tomorrowNotes: missingOnServer, mode: 'merge' }),
+      }).catch(() => {});
+    }
+  } catch (err) {
+    console.warn('Non-fatal syncTomorrowNotesWithCloud notice:', err);
+  }
+}

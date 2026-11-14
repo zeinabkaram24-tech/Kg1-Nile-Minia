@@ -108,7 +108,7 @@ export async function getAllMaterials(): Promise<MaterialItem[]> {
 
   // 2. Try to fetch from the central server API as secondary online source
   try {
-    const res = await fetch('/api/materials');
+    const res = await fetch('/api/materials', { cache: 'no-store' });
     if (res.ok) {
       const serverItems: MaterialItem[] = await res.json();
       if (Array.isArray(serverItems)) {
@@ -181,7 +181,7 @@ export async function deleteMaterial(id: string, storageUrl?: string): Promise<v
   // 1. Direct Supabase Cloud Delete
   if (isSupabaseConfigured) {
     try {
-      await deleteMaterialFromSupabase(id);
+      await deleteMaterialFromSupabase(id, storageUrl);
     } catch (err) {
       console.warn('Failed to delete material from Supabase cloud:', err);
     }

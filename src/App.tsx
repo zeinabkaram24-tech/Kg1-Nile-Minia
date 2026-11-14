@@ -17,7 +17,12 @@ import { clearAllMaterials, getAllMaterials } from './utils/materialsStorage';
 import { PdfViewerModal } from './components/PdfViewerModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 import { InteractiveEditorModal } from './components/InteractiveEditorModal';
-import { notifyTomorrowNotesListeners, saveTomorrowNotes, saveDeletedTomorrowNoteId, removeDeletedPlannerItemId } from './utils/tomorrowNotesStorage';
+import {
+  notifyTomorrowNotesListeners,
+  saveTomorrowNotes,
+  saveDeletedTomorrowNoteId,
+  syncTomorrowNotesWithCloud,
+} from './utils/tomorrowNotesStorage';
 import { syncTimetablesFromCloud } from './utils/timetableStorage';
 import {
   getActiveUserProfile,
@@ -56,6 +61,9 @@ import {
   getLocalCustomHomework,
   saveLocalCustomClasswork,
   saveLocalCustomHomework,
+  removeDeletedPlannerItemId,
+  getDeletedPlannerItemIds,
+  invalidateServerPlannerDataCache,
 } from './lib/supabase';
 import initialData from './data/initialData.json';
 import { Sparkles, RotateCcw, Database, Loader2, CheckCircle2, AlertCircle, Shield, Calendar as CalendarIcon, Wifi, WifiOff } from 'lucide-react';
@@ -280,17 +288,42 @@ export default function App() {
   const [isMaterialsModalOpen, setIsMaterialsModalOpen] = useState(false);
   const [isSupabaseConfigOpen, setIsSupabaseConfigOpen] = useState(false);
 
+  const [sbConfigVersion, setSbConfigVersion] = useState<number>(0);
+
   // Listen for Supabase config updates (saving URL / API Key from UI)
   useEffect(() => {
     const handleConfigUpdated = async () => {
+      setSbConfigVersion((v) => v + 1);
       setSupabaseStatus('connecting');
       try {
+        invalidateServerPlannerDataCache();
+        const deletedIds = await getDeletedPlannerItemIds();
         const [cwData, hwData] = await Promise.all([
-          fetchAllClasswork(),
-          fetchAllHomework(),
+          fetchAllClasswork(deletedIds),
+          fetchAllHomework(deletedIds),
         ]);
-        if (cwData && cwData.length > 0) setClassworkList(cwData);
-        if (hwData && hwData.length > 0) setHomeworkList(hwData);
+        const profile = getActiveUserProfile();
+        let progress: any = null;
+        if (profile?.mode === 'student' && profile.studentName) {
+          progress = isSupabaseConfigured
+            ? await syncStudentProgressFromDb(profile.studentName).catch(() => getStudentProgress(profile.studentName))
+            : getStudentProgress(profile.studentName);
+        } else {
+          progress = getGuestProgress();
+        }
+        const cwSet = new Set(progress?.completedClassworkIds || []);
+        const hwSet = new Set(progress?.completedHomeworkIds || []);
+        if (cwData && cwData.length > 0) {
+          const map = new Map<string, ClassworkEntry>();
+          cwData.forEach((c) => map.set(c.id, { ...c, completed: cwSet.has(c.id) }));
+          setClassworkList(Array.from(map.values()));
+        }
+        if (hwData && hwData.length > 0) {
+          const map = new Map<string, HomeworkEntry>();
+          hwData.forEach((h) => map.set(h.id, { ...h, completed: hwSet.has(h.id) }));
+          setHomeworkList(Array.from(map.values()));
+        }
+        notifyTomorrowNotesListeners();
         setSupabaseStatus('connected');
         showToast('تم تحديث اتصال Supabase وقراءة البيانات السحابية بنجاح!');
       } catch (err) {
@@ -334,84 +367,114 @@ export default function App() {
   }, [selectedDay]);
 
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const refreshInFlightRef = useRef<Promise<void> | null>(null);
+  const deletedIdsRef = useRef<Set<string>>(new Set());
+  const lastSettingsSyncHashesRef = useRef<{
+    deletedItems?: string;
+    tomorrowNotes?: string;
+    deletedTomorrow?: string;
+    timetables?: string;
+  }>({});
 
   // Core Data Fetch & Synchronization Function (Mobile, Laptop, Cloud)
   const refreshAllData = useCallback(async (showNotification = false) => {
-    try {
-      setIsSyncing(true);
+    if (refreshInFlightRef.current && !showNotification) {
+      return refreshInFlightRef.current;
+    }
 
-      if (isSupabaseConfigured) {
-        setSupabaseStatus('connecting');
-      }
+    const run = (async () => {
+      try {
+        setIsSyncing(true);
 
-      // Fetch classwork, homework, planner settings, timetables, and preload materials in parallel
-      const [cwData, hwData, settings] = await Promise.all([
-        fetchAllClasswork(),
-        fetchAllHomework(),
-        fetchPlannerSettings(),
-        syncTimetablesFromCloud(),
-        getAllMaterials().catch(() => []),
-      ]);
-
-      const profile = getActiveUserProfile();
-      let progress: any = null;
-      if (profile?.mode === 'student' && profile.studentName) {
         if (isSupabaseConfigured) {
-          try {
-            progress = await syncStudentProgressFromDb(profile.studentName);
-          } catch {
+          setSupabaseStatus('connecting');
+        }
+
+        invalidateServerPlannerDataCache();
+        const deletedIds = await getDeletedPlannerItemIds();
+        deletedIdsRef.current = new Set(deletedIds);
+
+        // Fetch classwork, homework, planner settings, timetables, tomorrow notes, and preload materials in parallel
+        const [cwData, hwData] = await Promise.all([
+          fetchAllClasswork(deletedIds),
+          fetchAllHomework(deletedIds),
+          fetchPlannerSettings(),
+          syncTimetablesFromCloud(),
+          syncTomorrowNotesWithCloud().catch(() => {}),
+          getAllMaterials().catch(() => []),
+        ]);
+
+        const profile = getActiveUserProfile();
+        let progress: any = null;
+        if (profile?.mode === 'student' && profile.studentName) {
+          if (isSupabaseConfigured) {
+            try {
+              progress = await syncStudentProgressFromDb(profile.studentName);
+            } catch {
+              progress = getStudentProgress(profile.studentName);
+            }
+          } else {
             progress = getStudentProgress(profile.studentName);
           }
-        } else {
-          progress = getStudentProgress(profile.studentName);
         }
-      }
 
-      // Apply classwork
-      if (cwData && cwData.length > 0) {
-        const uniqueCwMap = new Map<string, ClassworkEntry>();
-        cwData.forEach((c) => uniqueCwMap.set(c.id, c));
-        const dedupedCw = Array.from(uniqueCwMap.values());
+        // Apply classwork
+        if (cwData && cwData.length > 0) {
+          const uniqueCwMap = new Map<string, ClassworkEntry>();
+          cwData.forEach((c) => uniqueCwMap.set(c.id, c));
+          const dedupedCw = Array.from(uniqueCwMap.values());
 
-        if (profile?.mode === 'student' && profile.studentName) {
-          const cwSet = new Set(progress ? progress.completedClassworkIds : []);
-          setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
-        } else {
-          const guestProgress = getGuestProgress();
-          const cwSet = new Set(guestProgress.completedClassworkIds);
-          setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          if (profile?.mode === 'student' && profile.studentName) {
+            const cwSet = new Set(progress ? progress.completedClassworkIds : []);
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          } else {
+            const guestProgress = getGuestProgress();
+            const cwSet = new Set(guestProgress.completedClassworkIds);
+            setClassworkList(dedupedCw.map((c) => ({ ...c, completed: cwSet.has(c.id) })));
+          }
         }
-      }
 
-      // Apply homework
-      if (hwData && hwData.length > 0) {
-        const uniqueHwMap = new Map<string, HomeworkEntry>();
-        hwData.forEach((h) => uniqueHwMap.set(h.id, h));
-        const dedupedHw = Array.from(uniqueHwMap.values());
+        // Apply homework
+        if (hwData && hwData.length > 0) {
+          const uniqueHwMap = new Map<string, HomeworkEntry>();
+          hwData.forEach((h) => uniqueHwMap.set(h.id, h));
+          const dedupedHw = Array.from(uniqueHwMap.values());
 
-        if (profile?.mode === 'student' && profile.studentName) {
-          const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
-          setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
-        } else {
-          const guestProgress = getGuestProgress();
-          const hwSet = new Set(guestProgress.completedHomeworkIds);
-          setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          if (profile?.mode === 'student' && profile.studentName) {
+            const hwSet = new Set(progress ? progress.completedHomeworkIds : []);
+            setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          } else {
+            const guestProgress = getGuestProgress();
+            const hwSet = new Set(guestProgress.completedHomeworkIds);
+            setHomeworkList(dedupedHw.map((h) => ({ ...h, completed: hwSet.has(h.id) })));
+          }
         }
-      }
 
-      if (isSupabaseConfigured) {
-        setSupabaseStatus('connected');
-      }
+        notifyTomorrowNotesListeners();
 
-      if (showNotification) {
-        setToastMsg('✨ تم مزامنة وتحديث جميع البيانات بين الأجهزة والسحابة بنجاح!');
-        setTimeout(() => setToastMsg(null), 4000);
+        if (isSupabaseConfigured) {
+          setSupabaseStatus('connected');
+        }
+
+        if (showNotification) {
+          setToastMsg('✨ تم مزامنة وتحديث جميع البيانات بين الأجهزة والسحابة بنجاح!');
+          setTimeout(() => setToastMsg(null), 4000);
+        }
+      } catch (err) {
+        console.error('Data synchronization error:', err);
+        if (isSupabaseConfigured) setSupabaseStatus('error');
+      } finally {
+        setIsSyncing(false);
       }
-    } catch (err) {
-      console.error('Data synchronization error:', err);
-      if (isSupabaseConfigured) setSupabaseStatus('connected');
+    })();
+
+    refreshInFlightRef.current = run;
+    try {
+      await run;
     } finally {
-      setIsSyncing(false);
+      if (refreshInFlightRef.current === run) {
+        refreshInFlightRef.current = null;
+      }
     }
   }, []);
 
@@ -421,7 +484,12 @@ export default function App() {
   useEffect(() => {
     let isMounted = true;
 
-    refreshAllData(false);
+    (async () => {
+      await syncSupabaseConfigWithServer().catch(() => false);
+      if (isMounted) {
+        refreshAllData(false);
+      }
+    })();
 
     // Subscribe to WhatsApp-Style Real-time SSE Live Sync status
     const unsubscribeStatus = subscribeToLiveSyncStatus((status) => {
@@ -453,7 +521,7 @@ export default function App() {
       }
     });
 
-    // Re-sync whenever window gets focus or tab becomes active, and roll over date if changed
+    // Re-sync whenever window gets focus, tab becomes active, or connection comes back online
     const handleFocusSync = () => {
       if (document.visibilityState === 'visible') {
         refreshAllData(false);
@@ -470,56 +538,197 @@ export default function App() {
     };
 
     window.addEventListener('focus', handleFocusSync);
+    window.addEventListener('online', handleFocusSync);
     document.addEventListener('visibilitychange', handleFocusSync);
 
-    let channel: any = null;
-
-    // Setup Supabase Realtime Channels only if configured
-    if (isSupabaseConfigured) {
-      channel = supabase
-        .channel('planner-realtime-sync')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newCw = rowToClasswork(payload.new as ClassworkRow);
-            setClassworkList((prev) => [newCw, ...prev.filter((c) => c.id !== newCw.id)]);
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedCw = rowToClasswork(payload.new as ClassworkRow);
-            setClassworkList((prev) =>
-              prev.map((c) => (c.id === updatedCw.id ? { ...c, ...updatedCw, completed: c.completed } : c))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            const oldId = payload.old.id;
-            setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
-          }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newHw = rowToHomework(payload.new as HomeworkRow);
-            setHomeworkList((prev) => [newHw, ...prev.filter((h) => h.id !== newHw.id)]);
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedHw = rowToHomework(payload.new as HomeworkRow);
-            setHomeworkList((prev) =>
-              prev.map((h) => (h.id === updatedHw.id ? { ...h, ...updatedHw, completed: h.completed } : h))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            const oldId = payload.old.id;
-            setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
-          }
-        })
-        .subscribe();
-    }
+    // Periodic background sync every 30s when tab is visible so separate containers/devices stay synced
+    const pollInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshAllData(false);
+      }
+    }, 30000);
 
     return () => {
       isMounted = false;
       window.removeEventListener('focus', handleFocusSync);
+      window.removeEventListener('online', handleFocusSync);
       document.removeEventListener('visibilitychange', handleFocusSync);
+      clearInterval(pollInterval);
       unsubscribeStatus();
       unsubscribeEvents();
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
     };
   }, [refreshAllData]);
+
+  // Dedicated Supabase Realtime subscription effect (rebinds automatically if Supabase config changes)
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    const channel = supabase
+      .channel(`planner-realtime-sync-${sbConfigVersion}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classwork' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          let item = rowToClasswork(payload.new as ClassworkRow);
+          if (deletedIdsRef.current.has(item.id)) return;
+          const isProtectedBaseline =
+            ((item.block || 1) === 2 && ((item.week || 1) === 2 || (item.week || 1) === 3)) ||
+            ((item.block || 1) === 3 && (item.week || 1) === 2);
+          if (isProtectedBaseline) {
+            const baseline = INITIAL_CLASSWORK.find((b) => b.id === item.id);
+            if (baseline) {
+              item = {
+                ...item,
+                title: baseline.title,
+                details: baseline.details,
+                pages: baseline.pages,
+                links: baseline.links,
+                linkUrl: baseline.linkUrl,
+                linkTitle: baseline.linkTitle,
+              };
+            }
+          }
+          saveLocalCustomClasswork([item], 'merge');
+          invalidateServerPlannerDataCache();
+          setClassworkList((prev) => {
+            const existing = prev.find((c) => c.id === item.id);
+            const completed = existing ? existing.completed : false;
+            const mergedItem = { ...item, completed };
+            if (existing) {
+              return prev.map((c) => (c.id === item.id ? mergedItem : c));
+            }
+            return [mergedItem, ...prev];
+          });
+          notifyTomorrowNotesListeners();
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = (payload.old as any)?.id;
+          if (oldId) {
+            invalidateServerPlannerDataCache();
+            setClassworkList((prev) => prev.filter((c) => c.id !== oldId));
+            notifyTomorrowNotesListeners();
+          }
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          let item = rowToHomework(payload.new as HomeworkRow);
+          if (deletedIdsRef.current.has(item.id)) return;
+          const isTargetArabicHw =
+            item.id === 'hw-w2-ar-tue-kg1a-wb' ||
+            item.id === 'hw-w2-ar-tue-kg1b-wb' ||
+            item.id === 'hw-w2-ar-tue-kg1c-wb' ||
+            (item.subject === 'Arabic' && item.assignedDay === 'Tuesday' && item.week === 2);
+          const has46 =
+            Boolean(item.task && typeof item.task === 'string' && item.task.includes('46')) ||
+            Boolean(item.pages && typeof item.pages === 'string' && item.pages.includes('46')) ||
+            Boolean(item.details && typeof item.details === 'string' && item.details.includes('46'));
+          if (isTargetArabicHw && has46) {
+            item = {
+              ...item,
+              task: item.task ? item.task.replace(/46/g, '47') : item.task,
+              pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
+              details: item.details ? item.details.replace(/46/g, '47') : item.details,
+            };
+          } else {
+            const isProtectedBaseline =
+              ((item.block || 1) === 2 && ((item.week || 1) === 2 || (item.week || 1) === 3)) ||
+              ((item.block || 1) === 3 && (item.week || 1) === 2);
+            if (isProtectedBaseline) {
+              const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);
+              if (baseline) {
+                item = {
+                  ...item,
+                  task: baseline.task,
+                  details: baseline.details,
+                  pages: baseline.pages,
+                  links: baseline.links,
+                  linkUrl: baseline.linkUrl,
+                  linkTitle: baseline.linkTitle,
+                };
+              }
+            }
+          }
+          saveLocalCustomHomework([item], 'merge');
+          invalidateServerPlannerDataCache();
+          setHomeworkList((prev) => {
+            const existing = prev.find((h) => h.id === item.id);
+            const completed = existing ? existing.completed : false;
+            const mergedItem = { ...item, completed };
+            if (existing) {
+              return prev.map((h) => (h.id === item.id ? mergedItem : h));
+            }
+            return [mergedItem, ...prev];
+          });
+          notifyTomorrowNotesListeners();
+        } else if (payload.eventType === 'DELETE') {
+          const oldId = (payload.old as any)?.id;
+          if (oldId) {
+            invalidateServerPlannerDataCache();
+            setHomeworkList((prev) => prev.filter((h) => h.id !== oldId));
+            notifyTomorrowNotesListeners();
+          }
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'planner_settings' }, (payload) => {
+        const newRow = (payload.new as any) || {};
+        const settingsObj = newRow.settings && typeof newRow.settings === 'object' ? newRow.settings : {};
+        invalidateServerPlannerDataCache();
+
+        if (Array.isArray(settingsObj.deleted_planner_item_ids)) {
+          deletedIdsRef.current = new Set(settingsObj.deleted_planner_item_ids);
+        }
+
+        // Legacy key column check fallback if present, otherwise diff relevant global settings fields
+        const changedKey = newRow.key || (payload.old as any)?.key;
+        if (changedKey === 'tomorrow_special_notes' || changedKey === 'deleted_tomorrow_note_ids') {
+          notifyTomorrowNotesListeners();
+        } else if (changedKey === 'deleted_planner_item_ids') {
+          refreshAllData(false);
+        } else if (changedKey === 'custom_timetables') {
+          syncTimetablesFromCloud().catch(() => {});
+        } else {
+          const prevHashes = lastSettingsSyncHashesRef.current;
+          const nextTomorrowHash = JSON.stringify(settingsObj.tomorrow_special_notes ?? null);
+          const nextDeletedTomorrowHash = JSON.stringify(settingsObj.deleted_tomorrow_note_ids ?? null);
+          const nextDeletedItemsHash = JSON.stringify(settingsObj.deleted_planner_item_ids ?? null);
+          const nextTimetablesHash = JSON.stringify(settingsObj.custom_timetables ?? null);
+
+          if (nextTomorrowHash !== prevHashes.tomorrowNotes || nextDeletedTomorrowHash !== prevHashes.deletedTomorrow) {
+            prevHashes.tomorrowNotes = nextTomorrowHash;
+            prevHashes.deletedTomorrow = nextDeletedTomorrowHash;
+            notifyTomorrowNotesListeners();
+          }
+          if (nextTimetablesHash !== prevHashes.timetables && settingsObj.custom_timetables) {
+            prevHashes.timetables = nextTimetablesHash;
+            syncTimetablesFromCloud().catch(() => {});
+          }
+          if (nextDeletedItemsHash !== prevHashes.deletedItems) {
+            prevHashes.deletedItems = nextDeletedItemsHash;
+            refreshAllData(false);
+          }
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tomorrow_notes' }, () => {
+        invalidateServerPlannerDataCache();
+        syncTomorrowNotesWithCloud()
+          .then(() => notifyTomorrowNotesListeners())
+          .catch(() => notifyTomorrowNotesListeners());
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'timetables' }, () => {
+        syncTimetablesFromCloud().catch(() => {});
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'materials' }, () => {
+        getAllMaterials()
+          .then(() => {
+            window.dispatchEvent(new CustomEvent('materials_updated'));
+            window.dispatchEvent(new CustomEvent('school_materials_updated'));
+          })
+          .catch(() => {});
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshAllData, sbConfigVersion]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -735,13 +944,9 @@ export default function App() {
       return next;
     });
 
+    deletedIdsRef.current.add(id);
     try {
       await deleteHomework(id);
-      await fetch('/api/planner-data/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type: 'homework' }),
-      });
     } catch (e) {
       console.error('Error deleting homework:', e);
     }
@@ -829,13 +1034,9 @@ export default function App() {
 
   const handleDeleteClasswork = async (id: string) => {
     setClassworkList((prev) => prev.filter((c) => c.id !== id));
+    deletedIdsRef.current.add(id);
     try {
       await deleteClasswork(id);
-      await fetch('/api/planner-data/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, type: 'classwork' }),
-      });
     } catch (e) {
       console.error('Error deleting classwork:', e);
     }
@@ -1189,17 +1390,7 @@ export default function App() {
               setCurrentWeek(updatedWeek);
               appStorage.setItem(STORAGE_KEYS.WEEK, String(updatedWeek));
             }
-            const [cwData, hwData] = await Promise.all([
-              fetchAllClasswork(),
-              fetchAllHomework(),
-            ]);
-            if (cwData && cwData.length > 0) {
-              setClassworkList(cwData);
-            }
-            if (hwData && hwData.length > 0) {
-              setHomeworkList(hwData);
-            }
-            notifyTomorrowNotesListeners();
+            await refreshAllData(false);
             setToastMsg('تم تحديث الخطة الأسبوعية والحصص والواجبات بنجاح!');
             setTimeout(() => setToastMsg(null), 4000);
           } catch (err) {
@@ -1240,19 +1431,9 @@ export default function App() {
         isOpen={isSupabaseConfigOpen}
         onClose={() => setIsSupabaseConfigOpen(false)}
         onSaved={async () => {
-          setSupabaseStatus('connecting');
-          try {
-            const [cwData, hwData] = await Promise.all([
-              fetchAllClasswork(),
-              fetchAllHomework(),
-            ]);
-            if (cwData && cwData.length > 0) setClassworkList(cwData);
-            if (hwData && hwData.length > 0) setHomeworkList(hwData);
-            setSupabaseStatus('connected');
-            showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
-          } catch {
-            setSupabaseStatus('error');
-          }
+          setSbConfigVersion((v) => v + 1);
+          await refreshAllData(false);
+          showToast('تم حفظ إعدادات Supabase وتحديث البيانات بنجاح!');
         }}
       />
       {isAdminEditMode && (

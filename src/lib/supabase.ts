@@ -32,18 +32,27 @@ export const STORAGE_KEYS_SUPABASE = {
   KEY: 'nile_supabase_anon_key',
 };
 
-export const DEFAULT_SUPABASE_URL = 'https://umryrjwmlkdbjmgmnbkt.supabase.co';
-export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_nVMt4oGVfTD9TVyDB4HPag_maw8OXag';
+export const DEFAULT_SUPABASE_URL = 'https://elcczvazlgxbgnioxfaf.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_5DUTdClGKYJ_PI4GYRf07g_RFkxguqA';
+const STALE_GRADE2_SUPABASE_HOST = 'umryrjwmlkdbjmgmnbkt.supabase.co';
 
 export function getActiveSupabaseConfig(): { url: string; key: string } {
   if (typeof window !== 'undefined') {
     const savedUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL);
     const savedKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY);
     if (savedUrl && savedKey && savedUrl.trim() !== '' && savedKey.trim() !== '') {
-      return {
-        url: cleanSupabaseUrl(savedUrl),
-        key: cleanSupabaseKey(savedKey),
-      };
+      const cleaned = cleanSupabaseUrl(savedUrl);
+      // Migrate stale Grade 2 Supabase URL cached in browser localStorage to active KG1 project
+      if (!cleaned.includes(STALE_GRADE2_SUPABASE_HOST)) {
+        return {
+          url: cleaned,
+          key: cleanSupabaseKey(savedKey),
+        };
+      }
+      try {
+        localStorage.removeItem(STORAGE_KEYS_SUPABASE.URL);
+        localStorage.removeItem(STORAGE_KEYS_SUPABASE.KEY);
+      } catch {}
     }
   }
   // Fall back to environment variable or central default if not saved locally
@@ -136,13 +145,144 @@ export function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, ms: number,
   });
 }
 
+// Paginated reader to avoid PostgREST's silent 1000-row cap
+export async function fetchAllRowsPaginated<T = any>(
+  table: string,
+  selectCols = '*',
+  orderCol?: string,
+  ascending = true,
+  timeoutMs = 10000
+): Promise<{ data: T[] | null; error: any }> {
+  if (!isSupabaseConfigured) {
+    return { data: null, error: { message: 'Supabase not configured' } };
+  }
+  const pageSize = 1000;
+  const maxPages = 25;
+  const allRows: T[] = [];
+
+  for (let page = 0; page < maxPages; page++) {
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    let query: any = supabase.from(table).select(selectCols);
+    if (orderCol) {
+      query = query.order(orderCol, { ascending });
+    }
+    query = query.range(from, to);
+
+    const res = await withTimeout<any>(
+      query,
+      timeoutMs,
+      { data: null, error: { message: `Supabase ${table} query timeout (page ${page})` } }
+    );
+
+    if (res?.error) {
+      if (page === 0) {
+        return { data: null, error: res.error };
+      }
+      console.warn(`[Supabase Pagination] Error on ${table} page ${page}:`, res.error.message || res.error);
+      break;
+    }
+
+    const batch: T[] = Array.isArray(res?.data) ? res.data : [];
+    allRows.push(...batch);
+    if (batch.length < pageSize) {
+      break;
+    }
+  }
+
+  return { data: allRows, error: null };
+}
+
+// Shared short-lived cache + in-flight deduplication for the ~1MB /api/planner-data payload
+export interface ServerPlannerPayload {
+  classwork: ClassworkEntry[];
+  homework: HomeworkEntry[];
+  tomorrowNotes: any[];
+  deletedTomorrowNoteIds?: string[];
+  deletedPlannerItemIds?: string[];
+}
+
+let serverPlannerCache: { data: ServerPlannerPayload; timestamp: number } | null = null;
+let serverPlannerInFlight: Promise<ServerPlannerPayload | null> | null = null;
+
+export function invalidateServerPlannerDataCache(): void {
+  serverPlannerCache = null;
+}
+
+export async function fetchServerPlannerDataShared(force = false): Promise<ServerPlannerPayload | null> {
+  const now = Date.now();
+  if (!force && serverPlannerCache && now - serverPlannerCache.timestamp < 2000) {
+    return serverPlannerCache.data;
+  }
+  if (!force && serverPlannerInFlight) {
+    return serverPlannerInFlight;
+  }
+
+  const run = (async (): Promise<ServerPlannerPayload | null> => {
+    try {
+      const res = await withTimeout(
+        fetch('/api/planner-data', { cache: 'no-store' }),
+        8000,
+        null as any
+      );
+      if (res && res.ok) {
+        const data = (await res.json()) as ServerPlannerPayload;
+        if (data && typeof data === 'object') {
+          serverPlannerCache = { data, timestamp: Date.now() };
+          return data;
+        }
+      }
+    } catch {}
+    return serverPlannerCache?.data || null;
+  })();
+
+  serverPlannerInFlight = run;
+  try {
+    return await run;
+  } finally {
+    if (serverPlannerInFlight === run) {
+      serverPlannerInFlight = null;
+    }
+  }
+}
+
+async function upsertRowsInChunks(
+  table: string,
+  rows: Record<string, any>[],
+  chunkSize = 50
+): Promise<void> {
+  if (!isSupabaseConfigured || rows.length === 0) return;
+
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize);
+    try {
+      const { error } = await supabase.from(table).upsert(chunk, { onConflict: 'id' });
+      if (error) {
+        console.warn(`[Supabase] Chunk upsert warning on ${table}:`, error.message || error);
+        // Fallback: upsert individually so one problematic row does not block the whole chunk
+        for (const row of chunk) {
+          try {
+            const { error: singleErr } = await supabase.from(table).upsert(row, { onConflict: 'id' });
+            if (singleErr) {
+              console.warn(`[Supabase] Row upsert warning on ${table} (${row.id}):`, singleErr.message || singleErr);
+            }
+          } catch {}
+        }
+      }
+    } catch (e) {
+      console.warn(`[Supabase] Network exception upserting ${table} chunk:`, e);
+    }
+  }
+}
+
 export async function syncSupabaseConfigWithServer(): Promise<boolean> {
   try {
     const localUrl = localStorage.getItem(STORAGE_KEYS_SUPABASE.URL) || '';
     const localKey = localStorage.getItem(STORAGE_KEYS_SUPABASE.KEY) || '';
     
     // Check server-side Supabase credentials with timeout
-    const res = await withTimeout(fetch('/api/supabase-config'), 2500, null as any);
+    const res = await withTimeout(fetch('/api/supabase-config', { cache: 'no-store' }), 3500, null as any);
     let hasUpdatedLocal = false;
     if (res && res.ok) {
       const srvConfig = await res.json();
@@ -182,7 +322,7 @@ export async function syncLocalDataToServer(): Promise<void> {
   // Disabled auto-reupload to prevent stale local cache from resurrecting wiped data
 }
 
-// Database Row Types (snake_case in Supabase)
+// Database Row Types (snake_case in Supabase, matching live KG1 schema)
 export interface ClassworkRow {
   id: string;
   class_id: string;
@@ -197,6 +337,7 @@ export interface ClassworkRow {
   week: number;
   link_url: string | null;
   link_title: string | null;
+  links?: { title: string; url: string }[] | null;
   created_at?: string;
 }
 
@@ -213,8 +354,9 @@ export interface HomeworkRow {
   priority: string;
   block: number;
   week: number;
-  is_link_task: boolean;
   link_url: string | null;
+  link_title?: string | null;
+  links?: { title: string; url: string }[] | null;
   created_at?: string;
 }
 
@@ -226,8 +368,99 @@ export interface StudentProgressRow {
   last_active: number;
 }
 
+export function unpackDetailsWithMeta(detailsStr?: string | null): {
+  details: string | undefined;
+  pdfUrl: string | undefined;
+  links: { title: string; url: string }[] | undefined;
+  linkTitle: string | undefined;
+} {
+  if (!detailsStr) {
+    return { details: undefined, pdfUrl: undefined, links: undefined, linkTitle: undefined };
+  }
+  let text = String(detailsStr);
+  let pdfUrl: string | undefined;
+  let links: { title: string; url: string }[] | undefined;
+  let linkTitle: string | undefined;
+
+  const linksMatch = text.match(/\|\|LINKS_JSON:(\[[\s\S]*?\])(?=\|\||$)/);
+  if (linksMatch) {
+    try {
+      const parsed = JSON.parse(linksMatch[1]);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        links = parsed;
+      }
+    } catch {}
+    text = text.replace(linksMatch[0], '');
+  }
+
+  const linkTitleMatch = text.match(/\|\|LINK_TITLE:([\s\S]*?)(?=\|\||$)/);
+  if (linkTitleMatch) {
+    linkTitle = linkTitleMatch[1]?.trim() || undefined;
+    text = text.replace(linkTitleMatch[0], '');
+  }
+
+  const pdfMatch = text.match(/\|\|PDF_URL:([\s\S]*?)(?=\|\||$)/);
+  if (pdfMatch) {
+    pdfUrl = pdfMatch[1]?.trim() || undefined;
+    text = text.replace(pdfMatch[0], '');
+  }
+
+  return {
+    details: text.trim() || undefined,
+    pdfUrl,
+    links,
+    linkTitle,
+  };
+}
+
+export function packDetailsWithMeta(
+  details?: string,
+  meta?: { pdfUrl?: string; links?: { title: string; url: string }[]; linkTitle?: string }
+): string | undefined {
+  // Strip any previously packed markers first so packing is idempotent
+  const cleanBase = unpackDetailsWithMeta(details).details || '';
+  let res = cleanBase;
+  if (meta?.pdfUrl && meta.pdfUrl.trim()) {
+    res += ` ||PDF_URL:${meta.pdfUrl.trim()}`;
+  }
+  if (meta?.linkTitle && meta.linkTitle.trim()) {
+    res += ` ||LINK_TITLE:${meta.linkTitle.trim()}`;
+  }
+  if (meta?.links && Array.isArray(meta.links) && meta.links.length > 0) {
+    res += ` ||LINKS_JSON:${JSON.stringify(meta.links)}`;
+  }
+  return res.trim() || undefined;
+}
+
+export function unpackClassworkDetails(detailsStr?: string | null) {
+  return unpackDetailsWithMeta(detailsStr);
+}
+
+export function packClassworkDetails(
+  details?: string,
+  pdfUrl?: string,
+  links?: { title: string; url: string }[]
+) {
+  return packDetailsWithMeta(details, { pdfUrl, links });
+}
+
+// Helper to pack and unpack homework details to support storing pdfUrl, linkTitle, and links without DB schema change
+export function unpackHomeworkDetails(detailsStr?: string | null) {
+  return unpackDetailsWithMeta(detailsStr);
+}
+
+export function packHomeworkDetails(
+  details?: string,
+  pdfUrl?: string,
+  links?: { title: string; url: string }[],
+  linkTitle?: string
+) {
+  return packDetailsWithMeta(details, { pdfUrl, links, linkTitle });
+}
+
 // Convert from Row to ClassworkEntry
 export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
+  const unpacked = unpackClassworkDetails(row.details);
   // Find matching baseline entry to preserve multiple links if available
   const baseline = INITIAL_CLASSWORK.find(
     (b) =>
@@ -245,6 +478,9 @@ export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
       links = JSON.parse((row as any).link_urls_json);
     } catch {}
   }
+  if ((!links || (Array.isArray(links) && links.length === 0)) && unpacked.links && unpacked.links.length > 0) {
+    links = unpacked.links;
+  }
   if ((!links || (Array.isArray(links) && links.length === 0)) && baseline?.links && baseline.links.length > 0) {
     links = baseline.links;
   }
@@ -256,7 +492,7 @@ export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
     period: row.period,
     subject: row.subject as SubjectName,
     title: row.title,
-    details: row.details || undefined,
+    details: unpacked.details,
     pages: row.pages || undefined,
     completed: Boolean(row.completed),
     block: row.block || 1,
@@ -264,6 +500,7 @@ export function rowToClasswork(row: ClassworkRow): ClassworkEntry {
     linkUrl: row.link_url || baseline?.linkUrl || undefined,
     linkTitle: row.link_title || baseline?.linkTitle || undefined,
     links: links && Array.isArray(links) && links.length > 0 ? links : undefined,
+    pdfUrl: (row as any).pdf_url || unpacked.pdfUrl || baseline?.pdfUrl || undefined,
   };
 }
 
@@ -276,32 +513,15 @@ export function classworkToRow(entry: ClassworkEntry): Omit<ClassworkRow, 'creat
     period: entry.period,
     subject: entry.subject,
     title: entry.title,
-    details: entry.details || null,
+    details: packClassworkDetails(entry.details, entry.pdfUrl, entry.links) || null,
     pages: entry.pages || null,
     completed: Boolean(entry.completed),
     block: entry.block || 1,
     week: entry.week || 1,
     link_url: entry.linkUrl || null,
     link_title: entry.linkTitle || null,
+    links: Array.isArray(entry.links) ? entry.links : [],
   };
-}
-
-// Helper to pack and unpack homework details to support storing pdfUrl in details column without DB schema change
-export function unpackHomeworkDetails(detailsStr?: string | null) {
-  if (!detailsStr) return { details: undefined, pdfUrl: undefined };
-  const parts = detailsStr.split('||PDF_URL:');
-  return {
-    details: parts[0]?.trim() || undefined,
-    pdfUrl: parts[1]?.trim() || undefined,
-  };
-}
-
-export function packHomeworkDetails(details?: string, pdfUrl?: string) {
-  let res = details?.trim() || '';
-  if (pdfUrl) {
-    res += ` ||PDF_URL:${pdfUrl.trim()}`;
-  }
-  return res || undefined;
 }
 
 // Convert from Row to HomeworkEntry
@@ -317,6 +537,9 @@ export function rowToHomework(row: HomeworkRow): HomeworkEntry {
   );
 
   let links = (row as any).links;
+  if ((!links || (Array.isArray(links) && links.length === 0)) && unpacked.links && unpacked.links.length > 0) {
+    links = unpacked.links;
+  }
   if ((!links || (Array.isArray(links) && links.length === 0)) && baseline?.links && baseline.links.length > 0) {
     links = baseline.links;
   }
@@ -334,9 +557,9 @@ export function rowToHomework(row: HomeworkRow): HomeworkEntry {
     priority: (row.priority as 'normal' | 'urgent') || 'normal',
     block: row.block || 1,
     week: row.week || 1,
-    isLinkTask: Boolean(row.is_link_task),
+    isLinkTask: Boolean((row as any).is_link_task ?? (row.link_url || (Array.isArray(links) && links.length > 0))),
     linkUrl: row.link_url || baseline?.linkUrl || undefined,
-    linkTitle: baseline?.linkTitle || undefined,
+    linkTitle: row.link_title || unpacked.linkTitle || baseline?.linkTitle || undefined,
     links: links && Array.isArray(links) && links.length > 0 ? links : undefined,
     pdfUrl: unpacked.pdfUrl,
   };
@@ -351,14 +574,15 @@ export function homeworkToRow(entry: HomeworkEntry): Omit<HomeworkRow, 'created_
     due_day: entry.dueDay,
     subject: entry.subject,
     task: entry.task,
-    details: packHomeworkDetails(entry.details, entry.pdfUrl) || null,
+    details: packHomeworkDetails(entry.details, entry.pdfUrl, entry.links, entry.linkTitle) || null,
     pages: entry.pages || null,
     completed: Boolean(entry.completed),
     priority: entry.priority || 'normal',
     block: entry.block || 1,
     week: entry.week || 1,
-    is_link_task: Boolean(entry.isLinkTask),
     link_url: entry.linkUrl || null,
+    link_title: entry.linkTitle || null,
+    links: Array.isArray(entry.links) ? entry.links : [],
   };
 }
 
@@ -468,58 +692,67 @@ export function saveLocalCustomHomework(entries: HomeworkEntry[], mode: 'merge' 
 // CRUD Operations for Classwork
 // =========================================================================
 
-export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
-  const deletedIds = await getDeletedPlannerItemIds();
+export async function fetchAllClasswork(preloadedDeletedIds?: string[]): Promise<ClassworkEntry[]> {
+  const deletedIds = preloadedDeletedIds ?? (await getDeletedPlannerItemIds());
   const deletedSet = new Set(deletedIds);
 
-  // 1. Fetch in parallel from both Central Server (/api/planner-data) and Supabase
-  const serverPromise = (async (): Promise<ClassworkEntry[]> => {
-    try {
-      const res = await withTimeout(fetch('/api/planner-data'), 3500, null as any);
-      if (res && res.ok) {
-        const srvData = await res.json();
-        if (srvData && Array.isArray(srvData.classwork)) {
-          return srvData.classwork as ClassworkEntry[];
-        }
-      }
-    } catch {}
-    return [];
+  // 1. Fetch in parallel from both Central Server (/api/planner-data, deduplicated) and paginated Supabase
+  const serverPromise = (async (): Promise<{ items: ClassworkEntry[]; ok: boolean }> => {
+    const srvData = await fetchServerPlannerDataShared();
+    if (srvData && Array.isArray(srvData.classwork)) {
+      return { items: srvData.classwork as ClassworkEntry[], ok: true };
+    }
+    return { items: [], ok: false };
   })();
 
-  const supabasePromise = (async (): Promise<ClassworkEntry[]> => {
-    if (!isSupabaseConfigured) return [];
+  const supabasePromise = (async (): Promise<{ items: ClassworkEntry[]; ok: boolean }> => {
+    if (!isSupabaseConfigured) return { items: [], ok: false };
     try {
-      const res = await withTimeout<any>(
-        supabase.from('classwork').select('*').order('period', { ascending: true }),
-        3500,
-        { data: null, error: { message: 'Supabase classwork query timeout' } }
-      );
-      if (!res.error && res.data && Array.isArray(res.data)) {
-        return (res.data as ClassworkRow[]).map(rowToClasswork);
+      const res = await fetchAllRowsPaginated<ClassworkRow>('classwork', '*', 'period', true, 10000);
+      if (!res.error && Array.isArray(res.data)) {
+        return { items: res.data.map(rowToClasswork), ok: true };
+      }
+      if (res.error) {
+        console.warn('Error fetching classwork from Supabase:', res.error.message || res.error);
       }
     } catch (err) {
       console.warn('Network exception fetching classwork from Supabase:', err);
     }
-    return [];
+    return { items: [], ok: false };
   })();
 
-  const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
-  const localCustom = getLocalCustomClasswork();
+  const [serverRes, supabaseRes] = await Promise.all([serverPromise, supabasePromise]);
+  const serverItems = serverRes.items;
+  const dbItems = supabaseRes.items;
+  const localCustom = getLocalCustomClasswork().filter((c) => c && c.id && !deletedSet.has(c.id));
 
   // Merge order: INITIAL_CLASSWORK baseline -> Local Custom Items -> Server Items -> Supabase DB Items
+  // Preserve multi-links / pdfUrl / linkTitle from richer sources when Supabase row lacks them
   const map = new Map<string, ClassworkEntry>();
-  INITIAL_CLASSWORK.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
-  localCustom.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
-  serverItems.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
-  dbItems.forEach((c) => {
-    if (c && c.id && !deletedSet.has(c.id)) map.set(c.id, c);
-  });
+  const mergeIntoMap = (incoming: ClassworkEntry) => {
+    if (!incoming || !incoming.id || deletedSet.has(incoming.id)) return;
+    const prev = map.get(incoming.id);
+    if (!prev) {
+      map.set(incoming.id, incoming);
+      return;
+    }
+    map.set(incoming.id, {
+      ...prev,
+      ...incoming,
+      links: incoming.links && incoming.links.length > 0 ? incoming.links : prev.links,
+      linkTitle: incoming.linkTitle || prev.linkTitle,
+      linkUrl: incoming.linkUrl || prev.linkUrl,
+      pdfUrl: incoming.pdfUrl || prev.pdfUrl,
+    });
+  };
+
+  INITIAL_CLASSWORK.forEach(mergeIntoMap);
+  localCustom.forEach(mergeIntoMap);
+  serverItems.forEach(mergeIntoMap);
+  dbItems.forEach(mergeIntoMap);
+
+  const repairedForDb: ClassworkEntry[] = [];
+  const dbItemMap = new Map(dbItems.map((c) => [c.id, c]));
 
   const consolidated = Array.from(map.values()).map((c) => {
     const isProtectedBaseline =
@@ -528,7 +761,7 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
     if (isProtectedBaseline) {
       const baseline = INITIAL_CLASSWORK.find((b) => b.id === c.id);
       if (baseline) {
-        return {
+        const updated: ClassworkEntry = {
           ...c,
           title: baseline.title,
           details: baseline.details,
@@ -537,32 +770,51 @@ export async function fetchAllClasswork(): Promise<ClassworkEntry[]> {
           linkUrl: baseline.linkUrl,
           linkTitle: baseline.linkTitle,
         };
+        const dbMatch = dbItemMap.get(c.id);
+        if (
+          dbMatch &&
+          (dbMatch.title !== updated.title ||
+            (dbMatch.details || '') !== (updated.details || '') ||
+            (dbMatch.pages || '') !== (updated.pages || '') ||
+            (dbMatch.linkUrl || '') !== (updated.linkUrl || '') ||
+            (dbMatch.linkTitle || '') !== (updated.linkTitle || '') ||
+            JSON.stringify(dbMatch.links || []) !== JSON.stringify(updated.links || []))
+        ) {
+          repairedForDb.push(updated);
+        }
+        return updated;
       }
     }
     return c;
   });
 
+  // Clean deleted items from local custom cache
+  if (deletedSet.size > 0) {
+    saveLocalCustomClasswork(localCustom, 'replace');
+  }
+
   // Background replication:
-  // 1. If Supabase is active, push any item from server/local that is not in Supabase yet
-  if (isSupabaseConfigured && dbItems.length >= 0) {
-    const dbItemIds = new Set(dbItems.map((c) => c.id));
-    const missingInDb = consolidated.filter((c) => !dbItemIds.has(c.id));
-    if (missingInDb.length > 0) {
-      const rows = missingInDb.map(classworkToRow);
-      for (let i = 0; i < rows.length; i += 50) {
-        Promise.resolve(supabase.from('classwork').upsert(rows.slice(i, i + 50), { onConflict: 'id' })).catch(() => {});
-      }
+  // 1. If Supabase succeeded, push missing items AND protected-baseline repairs to Supabase
+  if (isSupabaseConfigured && supabaseRes.ok) {
+    const missingInDb = consolidated.filter((c) => !dbItemMap.has(c.id));
+    const toPushMap = new Map<string, ClassworkEntry>();
+    missingInDb.forEach((c) => toPushMap.set(c.id, c));
+    repairedForDb.forEach((c) => toPushMap.set(c.id, c));
+    if (toPushMap.size > 0) {
+      const rows = Array.from(toPushMap.values()).map(classworkToRow);
+      upsertRowsInChunks('classwork', rows, 50).catch(() => {});
     }
   }
 
-  // 2. If server database is missing any Supabase/local item, update central server
-  if (serverItems.length >= 0) {
+  // 2. If server database is missing any Supabase/local item, update central server (without cloud re-mirror loop)
+  if (serverRes.ok) {
     const serverItemIds = new Set(serverItems.map((c) => c.id));
     const missingOnServer = consolidated.filter((c) => !serverItemIds.has(c.id));
     if (missingOnServer.length > 0) {
+      invalidateServerPlannerDataCache();
       fetch('/api/planner-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-skip-cloud-mirror': '1' },
         body: JSON.stringify({ classwork: missingOnServer, mode: 'merge' }),
       }).catch(() => {});
     }
@@ -575,6 +827,7 @@ export async function upsertClasswork(entry: ClassworkEntry): Promise<ClassworkE
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomClasswork([entry]);
+  invalidateServerPlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -617,6 +870,7 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   if (target) {
     target.completed = completed;
     saveLocalCustomClasswork([target]);
+    invalidateServerPlannerDataCache();
 
     // Centralized cross-device sync backup
     try {
@@ -646,69 +900,120 @@ export async function updateClassworkCompletion(id: string, completed: boolean):
   }
 }
 
+export async function readGlobalPlannerSettingsRow(): Promise<{
+  id: string;
+  current_block?: number;
+  current_week?: number;
+  active_term?: string;
+  settings: Record<string, any>;
+} | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const res = await withTimeout<any>(
+      supabase.from('planner_settings').select('id, current_block, current_week, active_term, settings').eq('id', 'global').maybeSingle(),
+      5000,
+      { data: null, error: null }
+    );
+    if (!res?.error && res?.data) {
+      const settingsObj = res.data.settings && typeof res.data.settings === 'object' ? res.data.settings : {};
+      return {
+        ...res.data,
+        settings: settingsObj,
+      };
+    }
+  } catch {}
+  return null;
+}
+
+export async function patchGlobalPlannerSettings(
+  settingsPatch: Record<string, any>,
+  topLevel?: { current_block?: number; current_week?: number; active_term?: string }
+): Promise<void> {
+  if (!isSupabaseConfigured) return;
+  try {
+    const existing = await readGlobalPlannerSettingsRow();
+    const mergedSettings = {
+      ...(existing?.settings || {}),
+      ...settingsPatch,
+    };
+    const row: Record<string, any> = {
+      id: 'global',
+      current_block: topLevel?.current_block ?? existing?.current_block ?? 1,
+      current_week: topLevel?.current_week ?? existing?.current_week ?? 2,
+      active_term: topLevel?.active_term ?? existing?.active_term ?? 'Term 2',
+      settings: mergedSettings,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabase.from('planner_settings').upsert(row, { onConflict: 'id' });
+    if (error) {
+      console.warn('Warning updating global planner_settings:', error.message || error);
+    }
+  } catch (e) {
+    console.warn('Network error updating global planner_settings:', e);
+  }
+}
+
 const DELETED_ITEMS_STORAGE_KEY = 'nile_deleted_planner_item_ids_v3';
+let deletedPlannerIdsInFlight: Promise<string[]> | null = null;
 
 export async function getDeletedPlannerItemIds(): Promise<string[]> {
-  let localList: string[] = [];
-  try {
-    const localRaw = appStorage.getItem(DELETED_ITEMS_STORAGE_KEY);
-    if (localRaw) {
-      const parsed = JSON.parse(localRaw);
-      if (Array.isArray(parsed)) localList = parsed;
-    }
-  } catch {}
+  if (deletedPlannerIdsInFlight) {
+    return deletedPlannerIdsInFlight;
+  }
 
-  try {
-    const res = await fetch('/api/planner-data');
-    if (res.ok) {
-      const srvData = await res.json();
-      if (Array.isArray(srvData.deletedPlannerItemIds)) {
+  const run = (async (): Promise<string[]> => {
+    let localList: string[] = [];
+    try {
+      const localRaw = appStorage.getItem(DELETED_ITEMS_STORAGE_KEY);
+      if (localRaw) {
+        const parsed = JSON.parse(localRaw);
+        if (Array.isArray(parsed)) localList = parsed;
+      }
+    } catch {}
+
+    try {
+      const srvData = await fetchServerPlannerDataShared();
+      if (srvData && Array.isArray(srvData.deletedPlannerItemIds)) {
         localList = Array.from(new Set([...localList, ...srvData.deletedPlannerItemIds]));
       }
-    }
-  } catch {}
+    } catch {}
 
-  if (!isSupabaseConfigured) return localList;
+    if (!isSupabaseConfigured) return localList;
 
-  try {
-    const { data, error } = await supabase
-      .from('planner_settings')
-      .select('value')
-      .eq('key', 'deleted_planner_item_ids')
-      .maybeSingle();
-    if (!error && data && data.value) {
-      const dbList = JSON.parse(data.value);
+    try {
+      const globalRow = await readGlobalPlannerSettingsRow();
+      const dbList = globalRow?.settings?.deleted_planner_item_ids;
       if (Array.isArray(dbList)) {
         const combined = Array.from(new Set([...localList, ...dbList]));
         appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(combined));
         return combined;
       }
+    } catch (e) {
+      console.warn('Error fetching deleted planner item ids:', e);
     }
-  } catch (e) {
-    console.warn('Error fetching deleted planner item ids:', e);
+    return localList;
+  })();
+
+  deletedPlannerIdsInFlight = run;
+  try {
+    return await run;
+  } finally {
+    if (deletedPlannerIdsInFlight === run) {
+      deletedPlannerIdsInFlight = null;
+    }
   }
-  return localList;
 }
 
 export async function saveDeletedPlannerItemId(itemId: string): Promise<void> {
   let currentList = await getDeletedPlannerItemIds();
   if (!currentList.includes(itemId)) {
-    currentList.push(itemId);
+    currentList = [...currentList, itemId];
   }
   appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(currentList));
+  invalidateServerPlannerDataCache();
 
   if (!isSupabaseConfigured) return;
-  try {
-    await supabase
-      .from('planner_settings')
-      .upsert({
-        key: 'deleted_planner_item_ids',
-        value: JSON.stringify(currentList),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'key' });
-  } catch (e) {
-    console.warn('Error saving deleted planner item id to Supabase settings:', e);
-  }
+  await patchGlobalPlannerSettings({ deleted_planner_item_ids: currentList });
 }
 
 export async function removeDeletedPlannerItemId(itemId: string): Promise<void> {
@@ -716,18 +1021,9 @@ export async function removeDeletedPlannerItemId(itemId: string): Promise<void> 
   if (currentList.includes(itemId)) {
     currentList = currentList.filter(id => id !== itemId);
     appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(currentList));
+    invalidateServerPlannerDataCache();
     if (isSupabaseConfigured) {
-      try {
-        await supabase
-          .from('planner_settings')
-          .upsert({
-            key: 'deleted_planner_item_ids',
-            value: JSON.stringify(currentList),
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'key' });
-      } catch (e) {
-        console.warn('Error removing deleted planner item id from Supabase settings:', e);
-      }
+      await patchGlobalPlannerSettings({ deleted_planner_item_ids: currentList });
     }
   }
 }
@@ -741,6 +1037,7 @@ export async function deleteClasswork(id: string): Promise<void> {
     const updated = current.filter((c) => c.id !== id);
     appStorage.setItem(LOCAL_CUSTOM_CW_KEY, JSON.stringify(updated));
   } catch {}
+  invalidateServerPlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -768,6 +1065,20 @@ export async function deleteClasswork(id: string): Promise<void> {
 export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
   saveLocalCustomClasswork(entries, mode);
+  invalidateServerPlannerDataCache();
+
+  // Remove any re-inserted IDs from deleted list
+  try {
+    const deletedList = await getDeletedPlannerItemIds();
+    const entryIds = new Set(entries.map((e) => e.id).filter(Boolean));
+    const remaining = deletedList.filter((id) => !entryIds.has(id));
+    if (remaining.length !== deletedList.length) {
+      appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(remaining));
+      if (isSupabaseConfigured) {
+        await patchGlobalPlannerSettings({ deleted_planner_item_ids: remaining });
+      }
+    }
+  } catch {}
 
   // Centralized cross-device sync backup
   try {
@@ -783,75 +1094,73 @@ export async function bulkInsertClasswork(entries: ClassworkEntry[], mode: 'merg
   if (!isSupabaseConfigured) return;
 
   const rows = entries.map(classworkToRow);
-  for (let i = 0; i < rows.length; i += 50) {
-    const chunk = rows.slice(i, i + 50);
-    try {
-      const { error } = await supabase.from('classwork').upsert(chunk, { onConflict: 'id' });
-      if (error) {
-        console.warn('Warning bulk inserting classwork chunk:', error.message || error);
-      }
-    } catch (e) {
-      console.warn('Network exception bulk inserting classwork chunk:', e);
-    }
-  }
+  await upsertRowsInChunks('classwork', rows, 50);
 }
 
 // =========================================================================
 // CRUD Operations for Homework
 // =========================================================================
 
-export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
-  const deletedIds = await getDeletedPlannerItemIds();
+export async function fetchAllHomework(preloadedDeletedIds?: string[]): Promise<HomeworkEntry[]> {
+  const deletedIds = preloadedDeletedIds ?? (await getDeletedPlannerItemIds());
   const deletedSet = new Set(deletedIds);
 
-  // 1. Fetch in parallel from both Central Server (/api/planner-data) and Supabase
-  const serverPromise = (async (): Promise<HomeworkEntry[]> => {
-    try {
-      const res = await withTimeout(fetch('/api/planner-data'), 3500, null as any);
-      if (res && res.ok) {
-        const srvData = await res.json();
-        if (srvData && Array.isArray(srvData.homework)) {
-          return srvData.homework as HomeworkEntry[];
-        }
-      }
-    } catch {}
-    return [];
+  // 1. Fetch in parallel from both Central Server (/api/planner-data, deduplicated) and paginated Supabase
+  const serverPromise = (async (): Promise<{ items: HomeworkEntry[]; ok: boolean }> => {
+    const srvData = await fetchServerPlannerDataShared();
+    if (srvData && Array.isArray(srvData.homework)) {
+      return { items: srvData.homework as HomeworkEntry[], ok: true };
+    }
+    return { items: [], ok: false };
   })();
 
-  const supabasePromise = (async (): Promise<HomeworkEntry[]> => {
-    if (!isSupabaseConfigured) return [];
+  const supabasePromise = (async (): Promise<{ items: HomeworkEntry[]; ok: boolean }> => {
+    if (!isSupabaseConfigured) return { items: [], ok: false };
     try {
-      const res = await withTimeout<any>(
-        supabase.from('homework').select('*').order('created_at', { ascending: false }),
-        3500,
-        { data: null, error: { message: 'Supabase homework query timeout' } }
-      );
-      if (!res.error && res.data && Array.isArray(res.data)) {
-        return (res.data as HomeworkRow[]).map(rowToHomework);
+      const res = await fetchAllRowsPaginated<HomeworkRow>('homework', '*', 'created_at', false, 10000);
+      if (!res.error && Array.isArray(res.data)) {
+        return { items: res.data.map(rowToHomework), ok: true };
+      }
+      if (res.error) {
+        console.warn('Error fetching homework from Supabase:', res.error.message || res.error);
       }
     } catch (err) {
       console.warn('Network exception fetching homework from Supabase:', err);
     }
-    return [];
+    return { items: [], ok: false };
   })();
 
-  const [serverItems, dbItems] = await Promise.all([serverPromise, supabasePromise]);
-  const localCustom = getLocalCustomHomework();
+  const [serverRes, supabaseRes] = await Promise.all([serverPromise, supabasePromise]);
+  const serverItems = serverRes.items;
+  const dbItems = supabaseRes.items;
+  const localCustom = getLocalCustomHomework().filter((h) => h && h.id && !deletedSet.has(h.id));
 
   // Merge order: INITIAL_HOMEWORK baseline -> Local Custom Items -> Server Items -> Supabase DB Items
   const map = new Map<string, HomeworkEntry>();
-  INITIAL_HOMEWORK.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  localCustom.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  serverItems.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
-  dbItems.forEach((h) => {
-    if (h && h.id && !deletedSet.has(h.id)) map.set(h.id, h);
-  });
+  const mergeIntoMap = (incoming: HomeworkEntry) => {
+    if (!incoming || !incoming.id || deletedSet.has(incoming.id)) return;
+    const prev = map.get(incoming.id);
+    if (!prev) {
+      map.set(incoming.id, incoming);
+      return;
+    }
+    map.set(incoming.id, {
+      ...prev,
+      ...incoming,
+      links: incoming.links && incoming.links.length > 0 ? incoming.links : prev.links,
+      linkTitle: incoming.linkTitle || prev.linkTitle,
+      linkUrl: incoming.linkUrl || prev.linkUrl,
+      pdfUrl: incoming.pdfUrl || prev.pdfUrl,
+    });
+  };
+
+  INITIAL_HOMEWORK.forEach(mergeIntoMap);
+  localCustom.forEach(mergeIntoMap);
+  serverItems.forEach(mergeIntoMap);
+  dbItems.forEach(mergeIntoMap);
+
+  const repairedForDb: HomeworkEntry[] = [];
+  const dbItemMap = new Map(dbItems.map((h) => [h.id, h]));
 
   const consolidated = Array.from(map.values()).map((item) => {
     const isTargetArabicHw =
@@ -872,6 +1181,9 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
         pages: item.pages ? item.pages.replace(/46/g, '47') : '47',
         details: item.details ? item.details.replace(/46/g, '47') : item.details,
       };
+      if (dbItemMap.has(item.id)) {
+        repairedForDb.push(corrected);
+      }
       return corrected;
     }
 
@@ -882,7 +1194,7 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
     if (isProtectedBaseline) {
       const baseline = INITIAL_HOMEWORK.find((b) => b.id === item.id);
       if (baseline) {
-        return {
+        const updated: HomeworkEntry = {
           ...item,
           task: baseline.task,
           details: baseline.details,
@@ -891,33 +1203,51 @@ export async function fetchAllHomework(): Promise<HomeworkEntry[]> {
           linkUrl: baseline.linkUrl,
           linkTitle: baseline.linkTitle,
         };
+        const dbMatch = dbItemMap.get(item.id);
+        if (
+          dbMatch &&
+          (dbMatch.task !== updated.task ||
+            (dbMatch.details || '') !== (updated.details || '') ||
+            (dbMatch.pages || '') !== (updated.pages || '') ||
+            (dbMatch.linkUrl || '') !== (updated.linkUrl || '') ||
+            (dbMatch.linkTitle || '') !== (updated.linkTitle || '') ||
+            JSON.stringify(dbMatch.links || []) !== JSON.stringify(updated.links || []))
+        ) {
+          repairedForDb.push(updated);
+        }
+        return updated;
       }
     }
 
     return item;
   });
 
+  if (deletedSet.size > 0) {
+    saveLocalCustomHomework(localCustom, 'replace');
+  }
+
   // Background replication:
-  // 1. If Supabase is active, push missing items to Supabase
-  if (isSupabaseConfigured && dbItems.length >= 0) {
-    const dbItemIds = new Set(dbItems.map((h) => h.id));
-    const missingInDb = consolidated.filter((h) => !dbItemIds.has(h.id));
-    if (missingInDb.length > 0) {
-      const rows = missingInDb.map(homeworkToRow);
-      for (let i = 0; i < rows.length; i += 50) {
-        Promise.resolve(supabase.from('homework').upsert(rows.slice(i, i + 50), { onConflict: 'id' })).catch(() => {});
-      }
+  // 1. If Supabase succeeded, push missing items AND repaired items to Supabase
+  if (isSupabaseConfigured && supabaseRes.ok) {
+    const missingInDb = consolidated.filter((h) => !dbItemMap.has(h.id));
+    const toPushMap = new Map<string, HomeworkEntry>();
+    missingInDb.forEach((h) => toPushMap.set(h.id, h));
+    repairedForDb.forEach((h) => toPushMap.set(h.id, h));
+    if (toPushMap.size > 0) {
+      const rows = Array.from(toPushMap.values()).map(homeworkToRow);
+      upsertRowsInChunks('homework', rows, 50).catch(() => {});
     }
   }
 
-  // 2. If server is missing any Supabase/local items, update central server
-  if (serverItems.length >= 0) {
+  // 2. If server is missing any Supabase/local items, update central server (without cloud re-mirror loop)
+  if (serverRes.ok) {
     const serverItemIds = new Set(serverItems.map((h) => h.id));
     const missingOnServer = consolidated.filter((h) => !serverItemIds.has(h.id));
     if (missingOnServer.length > 0) {
+      invalidateServerPlannerDataCache();
       fetch('/api/planner-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-skip-cloud-mirror': '1' },
         body: JSON.stringify({ homework: missingOnServer, mode: 'merge' }),
       }).catch(() => {});
     }
@@ -930,6 +1260,7 @@ export async function upsertHomework(entry: HomeworkEntry): Promise<HomeworkEntr
   // If item was previously deleted, un-delete it
   await removeDeletedPlannerItemId(entry.id);
   saveLocalCustomHomework([entry]);
+  invalidateServerPlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -972,6 +1303,7 @@ export async function updateHomeworkCompletion(id: string, completed: boolean): 
   if (target) {
     target.completed = completed;
     saveLocalCustomHomework([target]);
+    invalidateServerPlannerDataCache();
 
     // Centralized cross-device sync backup
     try {
@@ -1010,6 +1342,7 @@ export async function deleteHomework(id: string): Promise<void> {
     const updated = current.filter((h) => h.id !== id);
     appStorage.setItem(LOCAL_CUSTOM_HW_KEY, JSON.stringify(updated));
   } catch {}
+  invalidateServerPlannerDataCache();
 
   // Centralized cross-device sync backup
   try {
@@ -1037,6 +1370,20 @@ export async function deleteHomework(id: string): Promise<void> {
 export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge' | 'replace' = 'merge'): Promise<void> {
   if (entries.length === 0) return;
   saveLocalCustomHomework(entries, mode);
+  invalidateServerPlannerDataCache();
+
+  // Remove any re-inserted IDs from deleted list
+  try {
+    const deletedList = await getDeletedPlannerItemIds();
+    const entryIds = new Set(entries.map((e) => e.id).filter(Boolean));
+    const remaining = deletedList.filter((id) => !entryIds.has(id));
+    if (remaining.length !== deletedList.length) {
+      appStorage.setItem(DELETED_ITEMS_STORAGE_KEY, JSON.stringify(remaining));
+      if (isSupabaseConfigured) {
+        await patchGlobalPlannerSettings({ deleted_planner_item_ids: remaining });
+      }
+    }
+  } catch {}
 
   // Centralized cross-device sync backup
   try {
@@ -1052,17 +1399,7 @@ export async function bulkInsertHomework(entries: HomeworkEntry[], mode: 'merge'
   if (!isSupabaseConfigured) return;
 
   const rows = entries.map(homeworkToRow);
-  for (let i = 0; i < rows.length; i += 50) {
-    const chunk = rows.slice(i, i + 50);
-    try {
-      const { error } = await supabase.from('homework').upsert(chunk, { onConflict: 'id' });
-      if (error) {
-        console.warn('Warning bulk inserting homework chunk:', error.message || error);
-      }
-    } catch (e) {
-      console.warn('Network error bulk inserting homework chunk:', e);
-    }
-  }
+  await upsertRowsInChunks('homework', rows, 50);
 }
 
 // =========================================================================
@@ -1073,19 +1410,14 @@ export async function fetchPlannerSettings(): Promise<Record<string, string>> {
   if (!isSupabaseConfigured) return {};
 
   try {
-    const res = await withTimeout<any>(
-      supabase.from('planner_settings').select('*'),
-      2500,
-      { data: null, error: { message: 'Settings query timeout' } }
-    );
-    const { data, error } = res;
-    if (error || !data) {
-      return {};
-    }
-
+    const globalRow = await readGlobalPlannerSettingsRow();
+    if (!globalRow) return {};
     const map: Record<string, string> = {};
-    for (const item of data || []) {
-      map[item.key] = item.value;
+    if (globalRow.current_block !== undefined) map.current_block = String(globalRow.current_block);
+    if (globalRow.current_week !== undefined) map.current_week = String(globalRow.current_week);
+    if (globalRow.active_term) map.active_term = String(globalRow.active_term);
+    for (const [k, v] of Object.entries(globalRow.settings || {})) {
+      map[k] = typeof v === 'string' ? v : JSON.stringify(v);
     }
     return map;
   } catch {
@@ -1096,17 +1428,10 @@ export async function fetchPlannerSettings(): Promise<Record<string, string>> {
 export async function savePlannerSetting(key: string, value: string): Promise<void> {
   if (!isSupabaseConfigured) return;
 
-  try {
-    const { error } = await supabase
-      .from('planner_settings')
-      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-
-    if (error) {
-      console.warn(`Could not save planner setting ${key} to Supabase:`, error.message);
-    }
-  } catch (e) {
-    console.warn(`Could not save planner setting ${key} to Supabase:`, e);
-  }
+  const topLevel: { current_block?: number; current_week?: number } = {};
+  if (key === 'current_block') topLevel.current_block = Number(value) || 1;
+  if (key === 'current_week') topLevel.current_week = Number(value) || 1;
+  await patchGlobalPlannerSettings({ [key]: value }, topLevel);
 }
 
 // =========================================================================
@@ -1279,18 +1604,18 @@ export async function seedInitialDataIfEmpty(): Promise<{
 
     // Seed initial settings if empty
     try {
-      const { count: settiingsCount } = await supabase
-        .from('planner_settings')
-        .select('*', { count: 'exact', head: true });
-
-      if ((settiingsCount ?? 0) === 0) {
-        const settingsToSeed = [
-          { key: 'current_class', value: initialData.nile_planner_current_class_v3 || 'KG1B' },
-          { key: 'current_week', value: initialData.nile_planner_current_week_v3 || '3' },
-          { key: 'selected_day', value: initialData.nile_planner_selected_day_v3 || 'Sunday' },
-          { key: 'current_block', value: '1' },
-        ];
-        await supabase.from('planner_settings').upsert(settingsToSeed, { onConflict: 'key' });
+      const existingGlobal = await readGlobalPlannerSettingsRow();
+      if (!existingGlobal) {
+        await patchGlobalPlannerSettings(
+          {
+            current_class: initialData.nile_planner_current_class_v3 || 'KG1B',
+            selected_day: initialData.nile_planner_selected_day_v3 || 'Sunday',
+          },
+          {
+            current_block: 1,
+            current_week: Number(initialData.nile_planner_current_week_v3 || 2),
+          }
+        );
       }
     } catch {
       // Ignore if table not yet created
@@ -1313,40 +1638,23 @@ export async function forceSyncBaselineToSupabase(): Promise<void> {
     const deletedIds = await getDeletedPlannerItemIds();
     const deletedSet = new Set(deletedIds);
 
-    // 1. Check existing classwork
-    const { data: cwExisting } = await supabase
-      .from('classwork')
-      .select('id');
-    
-    const existingCwIds = new Set((cwExisting || []).map((r: any) => r.id));
-    
-    // Only insert baseline items if the database has no classwork at all, or only insert items not in deletedSet and not already existing
-    if (existingCwIds.size === 0) {
-      const missingCw = INITIAL_CLASSWORK.filter((c) => c && c.id && !deletedSet.has(c.id));
+    // 1. Check existing classwork (paginated so we never truncate at 1000 rows)
+    const { data: cwExisting, error: cwErr } = await fetchAllRowsPaginated<{ id: string }>('classwork', 'id');
+    if (!cwErr && Array.isArray(cwExisting)) {
+      const existingCwIds = new Set(cwExisting.map((r) => r.id));
+      const missingCw = INITIAL_CLASSWORK.filter((c) => c && c.id && !deletedSet.has(c.id) && !existingCwIds.has(c.id));
       if (missingCw.length > 0) {
-        const cwRows = missingCw.map(classworkToRow);
-        for (let i = 0; i < cwRows.length; i += 50) {
-          const chunk = cwRows.slice(i, i + 50);
-          await supabase.from('classwork').insert(chunk);
-        }
+        await upsertRowsInChunks('classwork', missingCw.map(classworkToRow), 50);
       }
     }
 
-    // 2. Check existing homework
-    const { data: hwExisting } = await supabase
-      .from('homework')
-      .select('id');
-    
-    const existingHwIds = new Set((hwExisting || []).map((r: any) => r.id));
-    
-    if (existingHwIds.size === 0) {
-      const missingHw = INITIAL_HOMEWORK.filter((h) => h && h.id && !deletedSet.has(h.id));
+    // 2. Check existing homework (paginated)
+    const { data: hwExisting, error: hwErr } = await fetchAllRowsPaginated<{ id: string }>('homework', 'id');
+    if (!hwErr && Array.isArray(hwExisting)) {
+      const existingHwIds = new Set(hwExisting.map((r) => r.id));
+      const missingHw = INITIAL_HOMEWORK.filter((h) => h && h.id && !deletedSet.has(h.id) && !existingHwIds.has(h.id));
       if (missingHw.length > 0) {
-        const hwRows = missingHw.map(homeworkToRow);
-        for (let i = 0; i < hwRows.length; i += 50) {
-          const chunk = hwRows.slice(i, i + 50);
-          await supabase.from('homework').insert(chunk);
-        }
+        await upsertRowsInChunks('homework', missingHw.map(homeworkToRow), 50);
       }
     }
   } catch (err) {
@@ -1387,8 +1695,8 @@ export function materialToRow(item: MaterialItem): MaterialRow {
   };
 }
 
-export function rowToMaterial(row: MaterialRow): MaterialItem {
-  const effectiveUrl = row.file_url || undefined;
+export function rowToMaterial(row: MaterialRow & { storage_url?: string | null }): MaterialItem {
+  const effectiveUrl = row.file_url || row.storage_url || undefined;
   const isPdf = Boolean(
     (row.file_name && row.file_name.toLowerCase().endsWith('.pdf')) ||
     (effectiveUrl && effectiveUrl.toLowerCase().endsWith('.pdf')) ||
@@ -1471,24 +1779,27 @@ export async function uploadPdfToSupabaseStorage(
 /**
  * Fetch all materials metadata from Supabase 'materials' table (Lightweight, excludes heavy base64 file_data for maximum speed)
  */
-export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[]> {
-  if (!isSupabaseConfigured) return [];
+export async function fetchAllMaterialsFromSupabase(): Promise<MaterialItem[] | null> {
+  if (!isSupabaseConfigured) return null;
 
   try {
-    const { data, error } = await supabase
-      .from('materials')
-      .select('id, file_name, file_size, block, section, class_id, file_url, uploaded_at')
-      .order('uploaded_at', { ascending: false });
+    const { data, error } = await fetchAllRowsPaginated<MaterialRow>(
+      'materials',
+      'id, file_name, file_size, block, section, class_id, file_url, uploaded_at',
+      'uploaded_at',
+      false,
+      8000
+    );
 
-    if (error) {
-      console.warn('Supabase fetch materials notice:', error.message);
-      return [];
+    if (error || !Array.isArray(data)) {
+      if (error) console.warn('Supabase fetch materials notice:', error.message || error);
+      return null;
     }
 
-    return (data as MaterialRow[]).map(rowToMaterial);
+    return data.map(rowToMaterial);
   } catch (err) {
     console.warn('Network exception fetching materials:', err);
-    return [];
+    return null;
   }
 }
 

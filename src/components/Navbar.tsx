@@ -35,6 +35,9 @@ interface NavbarProps {
   onOpenAdminAuth?: () => void;
   onOpenMaterials?: () => void;
   onOpenSupabaseConfig?: () => void;
+  supabaseStatus?: 'connecting' | 'connected' | 'unconfigured' | 'error';
+  onSyncNow?: () => void;
+  isSyncing?: boolean;
   isAdminEditMode?: boolean;
   onToggleAdminEditMode?: (enabled: boolean) => void;
 }

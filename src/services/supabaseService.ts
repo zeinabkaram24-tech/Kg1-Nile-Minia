@@ -1,4 +1,9 @@
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import {
+  isSupabaseConfigured,
+  supabase,
+  readGlobalPlannerSettingsRow,
+  patchGlobalPlannerSettings,
+} from '../lib/supabase';
 import { ClassId, SchoolDay, ClassworkEntry, HomeworkEntry, PeriodSlot, SubjectName, MaterialItem } from '../types';
 import initialData from '../data/initialData.json';
 
@@ -426,20 +431,26 @@ export async function supabaseClearAllHomework(): Promise<boolean> {
 // Timetables CRUD operations
 // ----------------------------------------------------------------------
 export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<SchoolDay, PeriodSlot[]>> | null> {
-  // 1. Direct Supabase Cloud check
+  // 1. Direct Supabase Cloud check: timetables table + global settings fallback
   if (isSupabaseConfigured) {
     try {
-      const { data: settingData } = await supabase
-        .from('planner_settings')
-        .select('value')
-        .eq('key', 'custom_timetables')
-        .maybeSingle();
-
-      if (settingData && settingData.value) {
-        const parsed = JSON.parse(settingData.value);
-        if (parsed && typeof parsed === 'object') {
-          return parsed;
+      const { data: rows, error } = await supabase.from('timetables').select('*');
+      if (!error && Array.isArray(rows) && rows.length > 0) {
+        const parsedMap: Record<string, any> = {};
+        for (const row of rows) {
+          if (row.class_id && row.schedule) {
+            parsedMap[row.class_id] = typeof row.schedule === 'string' ? JSON.parse(row.schedule) : row.schedule;
+          }
         }
+        if (Object.keys(parsedMap).length > 0) {
+          return parsedMap as Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
+        }
+      }
+
+      const globalRow = await readGlobalPlannerSettingsRow();
+      const customTt = globalRow?.settings?.custom_timetables;
+      if (customTt && typeof customTt === 'object' && Object.keys(customTt).length > 0) {
+        return customTt as Record<ClassId, Record<SchoolDay, PeriodSlot[]>>;
       }
     } catch (e) {
       console.warn('Supabase direct timetable fetch warning:', e);
@@ -448,7 +459,7 @@ export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<
 
   // 2. Server backend endpoint
   try {
-    const res = await fetch('/api/db/timetables');
+    const res = await fetch('/api/db/timetables', { cache: 'no-store' });
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data && Object.keys(json.data).length > 0) {
@@ -459,7 +470,7 @@ export async function supabaseFetchTimetables(): Promise<Record<ClassId, Record<
 
   // 3. Local fallback
   try {
-    const raw = localStorage.getItem('nile_planner_custom_timetables_v1');
+    const raw = localStorage.getItem('nile_planner_custom_timetables_v2') || localStorage.getItem('nile_planner_custom_timetables_v1');
     if (raw) {
       return JSON.parse(raw);
     }
@@ -486,14 +497,20 @@ export async function supabaseSaveClassTimetable(
 export async function supabaseSaveAllTimetables(
   timetables: Record<ClassId, Record<SchoolDay, PeriodSlot[]>>
 ): Promise<boolean> {
-  // 1. Direct Supabase Cloud Save
+  // 1. Direct Supabase Cloud Save (timetables table + global settings JSONB)
   if (isSupabaseConfigured) {
     try {
-      await supabase.from('planner_settings').upsert({
-        key: 'custom_timetables',
-        value: JSON.stringify(timetables),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'key' });
+      const nowIso = new Date().toISOString();
+      const rows = Object.entries(timetables).map(([classId, schedule]) => ({
+        class_id: classId,
+        schedule,
+        updated_at: nowIso,
+      }));
+      if (rows.length > 0) {
+        const { error } = await supabase.from('timetables').upsert(rows, { onConflict: 'class_id' });
+        if (error) console.warn('Supabase direct save timetables table warning:', error.message);
+      }
+      await patchGlobalPlannerSettings({ custom_timetables: timetables });
     } catch (sbErr) {
       console.warn('Supabase direct save timetable error:', sbErr);
     }
@@ -517,7 +534,8 @@ export async function supabaseSaveAllTimetables(
 export async function supabaseClearAllTimetables(): Promise<boolean> {
   if (isSupabaseConfigured) {
     try {
-      await supabase.from('planner_settings').delete().eq('key', 'custom_timetables');
+      await supabase.from('timetables').delete().neq('class_id', '___non_existent___');
+      await patchGlobalPlannerSettings({ custom_timetables: {} });
     } catch {}
   }
   try {
